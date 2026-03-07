@@ -291,7 +291,7 @@
 
                 const primaryColor = "#A32E37";
                 const textColor = "#333333";
-                const logoUrl = `${window.location.origin}/static/images/logo.png`;
+                const logoUrl = "{% static 'images/logo.png' %}";
 
                 // 🌟 WRAP THE TEMPLATE IN STRICT HTML FOR WEASYPRINT
                 const pdfTemplate = `

@@ -360,8 +360,8 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
 
             const primaryColor = "#A32e37";
             const textColor = "#333333";
-            const logoUrl = `${window.location.origin}/static/images/logo.png`;
-            const QutationUrl = `${window.location.origin}/static/images/Qutation.png`;
+            const logoUrl = "{% static 'images/logo.png' %}";
+            const QutationUrl = "{% static 'images/Qutation.png' %}";
 
             // 🌟 WRAP THE TEMPLATE IN STRICT HTML FOR WEASYPRINT
             const pdfTemplate = `

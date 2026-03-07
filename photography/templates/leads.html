@@ -428,11 +428,8 @@ function downloadQuotationPDF() {
     
             const primaryColor = "#A32E37"; 
             const textColor = "#333333";
-            const logoUrl = `${window.location.origin}/static/images/logo.png`;
-            const QutationUrl = `${window.location.origin}/static/images/Qutation.png`;
-
-    
-
+            const logoUrl = "{% static 'images/logo.png' %}";
+            const QutationUrl = "{% static 'images/Qutation.png' %}";
             const pdfTemplate = `
             <!DOCTYPE html>
             <html>
