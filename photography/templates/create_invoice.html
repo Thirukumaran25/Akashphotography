@@ -1,0 +1,584 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Invoice AK-{{ invoice.invoice_number }} - {{ lead.name }}{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    body { font-family: "Inter", sans-serif; background-color: #fafafa; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .clean-input { border: 1px solid #eee; border-radius: 6px; padding: 8px 12px; outline: none; transition: all 0.2s; width: 100%; }
+    .clean-input:focus { border-color: #A9323D; box-shadow: 0 0 0 2px rgba(169, 50, 61, 0.1); }
+</style>
+
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 max-w-5xl mx-auto p-8 lg:p-12 relative">
+        
+        <a href="{% url 'invoice_list' %}" class="absolute top-6 right-6 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition z-[100] cursor-pointer shadow-lg">
+            <i class="fas fa-times text-sm pointer-events-none"></i>
+        </a>
+
+        <form method="POST" id="invoiceEditorForm" class="space-y-12">
+            {% csrf_token %}
+            <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
+
+            <div class="space-y-6">
+                <div class="flex justify-between items-center mb-5">
+                    <h2 class="text-[20px] font-bold text-black m-0">Bill To</h2>
+                    <span class="px-3 py-1 text-[11px] font-bold rounded-full uppercase tracking-wider
+                        {% if invoice.status == 'COMPLETED' %}bg-green-100 text-green-700
+                        {% elif invoice.status == 'PARTIAL' %}bg-yellow-100 text-yellow-700
+                        {% else %}bg-red-100 text-red-700{% endif %}">
+                        {{ invoice.status }}
+                    </span>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-[#111] text-white rounded-full flex items-center justify-center text-sm font-bold tracking-wider uppercase">
+                        {{ lead.name.split.0|slice:":1" }}{{ lead.name.split.1|slice:":1" }}
+                    </div>
+                    <div class="leading-tight">
+                        <p class="font-bold text-[15px] text-black">
+                            {{ lead.name }} &ndash; {{ lead.project.project_name }}
+                        </p>
+                        <input type="email" name="client_email" placeholder="client@email.com" value="{{ lead.email|default:'' }}" class="border-none p-0 mt-1 focus:ring-0 text-[13px] text-gray-500 w-full outline-none bg-transparent">
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <h3 class="text-[18px] font-bold text-black mb-4">Services</h3>
+                
+                <div class="bg-[#fafafa] rounded-xl p-6 lg:p-8 border border-gray-100">
+                    <div class="grid grid-cols-12 gap-4 text-[12px] font-bold text-gray-500 mb-4 uppercase tracking-wide px-2">
+                        <div class="col-span-5">SERVICE</div>
+                        <div class="col-span-2 text-center">QTY</div>
+                        <div class="col-span-3">PRICE</div>
+                        <div class="col-span-2 text-right">AMOUNT</div>
+                    </div>
+
+                    <div id="invoiceServiceRowsContainer" class="space-y-3">
+                        {% for service in services %}
+                        <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group" data-service-id="{{ service.id }}">
+                            <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+
+                            <div class="col-span-5 pr-4">
+                                <input type="text" name="service_name[]" value="{{ service.service_name }}" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="Service Name">
+                                <div class="invoice-deliverables-cell">
+                                    <div class="deliverables-list flex flex-col gap-1 ml-2">
+                                        {% for d in service.deliverables.all %}
+                                        <div class="deliverable-item flex justify-between items-center text-[12px] text-gray-600" data-id="{{ d.id }}" data-price="{{ d.price }}">
+                                            <span class="flex items-center gap-2"><span class="text-[8px] text-gray-400">•</span> {{ d.title }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-gray-400">₹{{ d.price|floatformat:0 }}</span>
+                                                <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-span-2 flex justify-center pt-0.5">
+                                <input type="number" name="qty[]" value="{{ service.qty }}" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
+                            </div>
+                            <div class="col-span-3 pt-0.5">
+                                <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
+                                    <span class="text-gray-400">₹</span>
+                                    <input type="number" name="price[]" value="{{ service.price|floatformat:0 }}" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
+                                </div>
+                            </div>
+                            <div class="col-span-2 text-right pt-2.5">
+                                <div class="row-subtotal font-bold text-[15px] text-gray-900">₹{{ service.total_amount|floatformat:0 }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 px-2 flex gap-6">
+                        <button type="button" onclick="addNewServiceRow()" class="text-[#A9323D] font-bold text-[13px] flex items-center gap-1.5 hover:underline tracking-wide uppercase">
+                            <i class="fa-regular fa-circle-plus"></i> ADD ITEM
+                        </button>
+                        <button type="button" onclick="launchDeliverableDropdown()" class="text-blue-600 font-bold text-[13px] flex items-center gap-1.5 hover:underline tracking-wide uppercase">
+                            <i class="fa-solid fa-layer-group"></i> ADD DELIVERABLE
+                        </button>
+                    </div>
+
+                    <div class="flex justify-end mt-10 border-t border-gray-200 pt-8">
+                        <div class="w-full max-w-[340px] space-y-4">
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Subtotal</p>
+                                <p id="invoiceSubtotal" class="font-bold text-black">₹ {{ subtotal|floatformat:0 }}</p>
+                            </div>
+                            
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Discount</p>
+                                <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
+                                    <span class="text-gray-400">₹</span>
+                                    <input type="number" name="discount_amount" value="{{ invoice.discount_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Tax Rate</p>
+                                <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
+                                    <input type="number" name="tax_rate" value="{{ invoice.tax_rate|default:0|floatformat:1 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
+                                    <span class="text-gray-400">%</span>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Tax Amount</p>
+                                <p id="invoiceTaxAmount" class="font-bold text-black">₹ {{ tax_amount|floatformat:0 }}</p>
+                            </div>
+
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Pre Paid Amount</p>
+                                <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
+                                    <span class="text-gray-400">₹</span>
+                                    <input type="number" name="pre_paid_amount" value="{{ invoice.pre_paid_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
+                                </div>
+                            </div>
+                            
+                            <div class="border-t border-gray-300 pt-4 flex justify-between font-black text-[16px] text-black">
+                                <p>Total Due</p>
+                                <p id="invoiceGrandTotal">₹ {{ grand_total|floatformat:0 }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-4 pt-4 border-t border-gray-100">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-[18px] font-bold text-black">Payments</h3>
+                    <button type="button" onclick="openPaymentModal()" class="text-[#A9323D] font-bold text-[13px] flex items-center gap-1.5 hover:underline tracking-wide uppercase">
+                        <i class="fa-regular fa-credit-card"></i> Add Payment
+                    </button>
+                </div>
+
+                {% if invoice.payments.all %}
+                <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
+                    <table class="w-full text-left text-[13px]">
+                        <thead class="bg-gray-50 text-gray-500 font-bold uppercase tracking-wider text-[11px]">
+                            <tr>
+                                <th class="px-5 py-3">Date</th>
+                                <th class="px-5 py-3">Method</th>
+                                <th class="px-5 py-3">Ref ID</th>
+                                <th class="px-5 py-3 text-right">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for payment in invoice.payments.all %}
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-5 py-3 text-gray-800 font-medium">{{ payment.date|date:"M d, Y" }}</td>
+                                <td class="px-5 py-3 text-gray-600">{{ payment.payment_method }}</td>
+                                <td class="px-5 py-3 text-gray-500">{{ payment.reference|default:"-" }}</td>
+                                <td class="px-5 py-3 font-bold text-gray-900 text-right text-[14px] payment-amount-val">₹ {{ payment.amount|floatformat:0 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="bg-gray-50 border border-gray-200 border-dashed rounded-lg p-6 text-center text-gray-400 text-sm font-medium">
+                    No payments recorded yet.
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="space-y-3">
+                    <h3 class="text-[15px] font-bold text-black">Notes</h3>
+                    <textarea name="notes" rows="3" class="w-full p-4 border border-gray-200 rounded-lg bg-[#fafafa] text-[13px] font-medium text-gray-700 outline-none focus:border-gray-400 transition" placeholder="Optional notes for the client...">{{ invoice.notes }}</textarea>
+                </div>
+                <div class="space-y-3 max-w-sm ml-auto w-full">
+                    <h3 class="text-[15px] font-bold text-black">Due Date</h3>
+                    <div class="border border-gray-200 rounded-lg overflow-hidden">
+                        <div class="bg-white p-3 text-[13px] font-bold text-gray-800 border-b border-gray-200">Payment Due</div>
+                        <input type="date" name="due_date" value="{{ invoice.due_date|date:'Y-m-d' }}" class="w-full p-3 text-[13px] font-medium text-gray-600 outline-none bg-white">
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-4 flex justify-end">
+                <button type="submit" class="px-8 py-3 bg-[#A9323D] text-white font-bold rounded text-[13px] hover:bg-red-800 transition tracking-wide shadow-md uppercase">
+                    Save Invoice
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="paymentModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
+        
+        <div class="flex justify-between items-center mb-6">
+            <h3 class="font-bold text-xl text-[#0b2b46]">Make Payment</h3>
+            <button type="button" onclick="closePaymentModal()" class="text-gray-400 hover:text-red-600 text-2xl leading-none">&times;</button>
+        </div>
+        
+        <form id="paymentForm" onsubmit="submitPayment(event)" class="space-y-5">
+            <input type="hidden" id="pay_invoice_id" value="{{ invoice.id }}">
+            
+            <div>
+                <label class="block text-[13px] font-bold text-[#0b2b46] mb-1.5">Payment Date</label>
+                <input type="date" id="pay_date" required class="w-full border border-gray-300 rounded p-2.5 text-[14px] text-gray-700 outline-none focus:border-green-600 transition" value="{% now 'Y-m-d' %}">
+            </div>
+
+            <div>
+                <label class="block text-[13px] font-bold text-[#0b2b46] mb-1.5">Payment Reference Id</label>
+                <input type="text" id="pay_ref" class="w-full border border-gray-300 rounded p-2.5 text-[14px] text-gray-700 outline-none focus:border-green-600 transition" placeholder="e.g. UTR or Txn ID">
+            </div>
+
+            <div>
+                <label class="block text-[13px] font-bold text-[#0b2b46] mb-2.5">Payment Mode</label>
+                <div class="flex flex-wrap items-center gap-4 text-[13px] text-gray-700">
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="pay_mode" value="UPI Payment" class="accent-green-600 w-4 h-4" required checked> UPI Payment</label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="pay_mode" value="Cash" class="accent-green-600 w-4 h-4"> Cash</label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="pay_mode" value="Bank Transfer" class="accent-green-600 w-4 h-4"> Bank Transfer</label>
+                    <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="pay_mode" value="Others" class="accent-green-600 w-4 h-4"> Others</label>
+                </div>
+            </div>
+
+            <div class="pt-2 border-t border-gray-100">
+                <label class="block text-[13px] font-bold text-[#0b2b46] mb-2.5">Payment Type</label>
+                <div class="flex items-center gap-6 text-[13px] text-gray-700 mb-3">
+                    <label class="flex items-center gap-1.5 cursor-pointer">
+                        <input type="radio" name="pay_type" value="partial" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()" checked> 
+                        Partial Pay
+                    </label>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-[#A9323D] font-bold">
+                        <input type="radio" name="pay_type" value="full" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()"> 
+                        Full Pay (<span id="modalBalanceDisplay">₹0</span>)
+                    </label>
+                </div>
+                
+                <div class="flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-green-600 transition">
+                    <span class="bg-gray-50 px-4 py-2.5 text-[13px] text-gray-500 font-bold border-r border-gray-300">INR</span>
+                    <input type="number" id="pay_amount" required class="w-full p-2.5 text-[14px] outline-none transition-colors" placeholder="Enter amount" min="1">
+                </div>
+            </div>
+
+            <div class="flex justify-center gap-4 mt-8 pt-4">
+                <button type="button" onclick="closePaymentModal()" class="px-8 py-2.5 bg-gray-100 text-gray-700 rounded shadow-sm font-bold text-[14px] hover:bg-gray-200 transition">Cancel</button>
+                <button type="submit" id="btnSubmitPayment" class="px-10 py-2.5 bg-[#16a34a] text-white rounded shadow-sm font-bold text-[14px] hover:bg-green-700 transition">Add Payment</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="deliverableDropdownModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeDeliverableDropdown()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+        <h3 class="font-black text-xl mb-2">Select a Deliverable</h3>
+        <p class="text-sm text-gray-500 mb-6">Clicking an item will add it to the last active service row.</p>
+        
+        <div id="deliverableListItems" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar pr-1">
+            {% for d in available_deliverables %}
+            <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition" onclick="selectSnapshotDeliverable('{{ d.id }}', '{{ d.title|escapejs }}', '{{ d.price }}')">
+                <p class="font-bold text-sm">{{ d.title }}</p>
+                <p class="font-black text-[#A9323D] text-[15px]">₹ {{ d.price|floatformat:0 }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+// --- CSRF Helper ---
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for (let i = 0; i < cookies.length; i++) {
+            let cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+} 
+
+// ==========================================
+// 🌟 NEW: PAYMENT MODAL LOGIC
+// ==========================================
+function openPaymentModal() {
+    // 1. Ensure latest totals are calculated
+    calculateTotals();
+    
+    // 2. Fetch the Grand Total directly from the UI
+    let grandTotalText = document.getElementById("invoiceGrandTotal").innerText;
+    let grandTotal = parseFloat(grandTotalText.replace(/[₹, ]/g, "")) || 0;
+    
+    // 3. Sum up all previous payments from the HTML table
+    let totalPaidSoFar = 0;
+    document.querySelectorAll(".payment-amount-val").forEach(td => {
+        totalPaidSoFar += parseFloat(td.innerText.replace(/[₹, ]/g, "")) || 0;
+    });
+    
+    // 4. Calculate exactly what is left
+    let balanceDue = grandTotal - totalPaidSoFar;
+    if (balanceDue < 0) balanceDue = 0;
+    
+    // 5. Store balance on the modal and update UI display
+    document.getElementById("paymentModal").dataset.balance = balanceDue;
+    document.getElementById("modalBalanceDisplay").innerText = `₹ ${balanceDue.toLocaleString('en-IN')}`;
+    
+    // Reset form default state
+    document.getElementById("paymentForm").reset();
+    document.getElementById("pay_amount").readOnly = false;
+    document.getElementById("pay_amount").classList.remove("bg-gray-100");
+    
+    document.getElementById("paymentModal").classList.remove("hidden");
+}
+
+function closePaymentModal() {
+    document.getElementById("paymentModal").classList.add("hidden");
+}
+
+// Auto-fill amount based on radio selection
+function togglePaymentType() {
+    const isFullPay = document.querySelector('input[name="pay_type"]:checked').value === 'full';
+    const amountInput = document.getElementById("pay_amount");
+    const balance = parseFloat(document.getElementById("paymentModal").dataset.balance) || 0;
+    
+    if (isFullPay) {
+        amountInput.value = balance;
+        amountInput.readOnly = true; // Lock the input so they can't change it if they selected Full
+        amountInput.classList.add("bg-gray-100", "text-gray-500", "font-bold");
+    } else {
+        amountInput.value = '';
+        amountInput.readOnly = false;
+        amountInput.classList.remove("bg-gray-100", "text-gray-500", "font-bold");
+    }
+}
+
+function submitPayment(e) {
+    e.preventDefault();
+    const btn = document.getElementById("btnSubmitPayment");
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    const data = new URLSearchParams({
+        invoice_id: document.getElementById("pay_invoice_id").value,
+        amount: document.getElementById("pay_amount").value,
+        payment_method: document.querySelector('input[name="pay_mode"]:checked').value,
+        date: document.getElementById("pay_date").value,
+        reference: document.getElementById("pay_ref").value
+    });
+
+    fetch("/invoice/log-payment/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: data
+    })
+    .then(res => res.json())
+    .then(resData => {
+        if(resData.success) {
+            // Instantly refreshes to show the new table row and correct remaining balance
+            location.reload(); 
+        } else {
+            alert("Error adding payment.");
+            btn.innerHTML = "Add Payment";
+            btn.disabled = false;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        btn.innerHTML = "Add Payment";
+        btn.disabled = false;
+    });
+}
+
+
+// ==========================================
+// INVOICE CALCULATIONS & EDITOR LOGIC
+// ==========================================
+function calculateTotals() {
+    let subtotal = 0;
+    document.querySelectorAll(".invoice-service-row").forEach(row => {
+        let qty = parseFloat(row.querySelector('input.qty').value) || 0;
+        let price = parseFloat(row.querySelector('input.price').value) || 0;
+        let lineTotal = qty * price;
+        row.querySelector(".row-subtotal").innerText = `₹ ${lineTotal.toLocaleString('en-IN')}`;
+        subtotal += lineTotal;
+    });
+    
+    document.getElementById("invoiceSubtotal").innerText = `₹ ${subtotal.toLocaleString('en-IN')}`;
+    
+    const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
+    const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
+    const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
+    
+    const postDiscountAmount = subtotal - discount;
+    const calculatedTax = postDiscountAmount * (taxRate / 100);
+    document.getElementById("invoiceTaxAmount").innerText = `₹ ${Math.round(calculatedTax).toLocaleString('en-IN')}`;
+    
+    const grandTotal = postDiscountAmount + calculatedTax - prepaid;
+    document.getElementById("invoiceGrandTotal").innerText = `₹ ${Math.round(grandTotal).toLocaleString('en-IN')}`;
+}
+
+let activeDeliverableRow = null;
+
+document.addEventListener('focusin', function(e) {
+    if (e.target.closest('.invoice-service-row')) {
+        activeDeliverableRow = e.target.closest('.invoice-service-row');
+    }
+});
+
+function addNewServiceRow() {
+    const container = document.getElementById("invoiceServiceRowsContainer");
+    const rowHtml = `
+    <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group">
+        <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+        <div class="col-span-5 pr-4">
+            <input type="text" name="service_name[]" value="" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="New Service Name">
+            <div class="invoice-deliverables-cell">
+                <div class="deliverables-list flex flex-col gap-1 ml-2"></div>
+            </div>
+        </div>
+        <div class="col-span-2 flex justify-center pt-0.5">
+            <input type="number" name="qty[]" value="1" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
+        </div>
+        <div class="col-span-3 pt-0.5">
+            <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
+                <span class="text-gray-400">₹</span>
+                <input type="number" name="price[]" value="0" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
+            </div>
+        </div>
+        <div class="col-span-2 text-right pt-2.5">
+            <div class="row-subtotal font-bold text-[15px] text-gray-900">₹0</div>
+        </div>
+    </div>`;
+    
+    container.insertAdjacentHTML('beforeend', rowHtml);
+    activeDeliverableRow = container.lastElementChild;
+    calculateTotals();
+}
+
+function removeServiceRow(btn) {
+    btn.closest(".invoice-service-row").remove();
+    calculateTotals();
+}
+
+function launchDeliverableDropdown() {
+    if(!activeDeliverableRow) {
+        const rows = document.querySelectorAll('.invoice-service-row');
+        if(rows.length > 0) activeDeliverableRow = rows[rows.length - 1];
+        else {
+            alert("Please add a service item first.");
+            return;
+        }
+    }
+    document.getElementById("deliverableDropdownModal").classList.remove("hidden");
+}
+
+function closeDeliverableDropdown() {
+    document.getElementById("deliverableDropdownModal").classList.add("hidden");
+}
+
+function selectSnapshotDeliverable(id, title, price) {
+    if (!activeDeliverableRow) return;
+    const deliverablesContainer = activeDeliverableRow.querySelector(".deliverables-list");
+    const pillHtml = `
+        <div class="deliverable-item flex justify-between items-center text-[12px] text-gray-600" data-id="${id}" data-price="${price}">
+            <span class="flex items-center gap-2"><span class="text-[8px] text-gray-400">•</span> ${title}</span>
+            <div class="flex items-center gap-2">
+                <span class="text-gray-400">₹${parseFloat(price).toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
+            </div>
+        </div>
+    `;
+    deliverablesContainer.insertAdjacentHTML('beforeend', pillHtml);
+    const priceInput = activeDeliverableRow.querySelector('input.price');
+    const currentPrice = parseFloat(priceInput.value) || 0;
+    const deliverablePrice = parseFloat(price);
+    
+    priceInput.value = (currentPrice + deliverablePrice).toFixed(0);
+    calculateTotals();
+    closeDeliverableDropdown();
+}
+
+function removeSnapshotDeliverable(btn) {
+    const deliverableItem = btn.closest(".deliverable-item");
+    const deliverablePrice = parseFloat(deliverableItem.dataset.price);
+    const priceInput = btn.closest(".invoice-service-row").querySelector('input.price');
+    const currentPrice = parseFloat(priceInput.value) || 0;
+    
+    priceInput.value = (currentPrice - deliverablePrice).toFixed(0);
+    deliverableItem.remove();
+    calculateTotals();
+}
+
+// Ensure the form gets correctly saved
+document.getElementById("invoiceEditorForm").addEventListener("submit", function(e) {
+    e.preventDefault(); 
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SAVING INVOICE...';
+    submitBtn.disabled = true;
+
+    let services = [];
+    document.querySelectorAll(".invoice-service-row").forEach(row => {
+        let serviceName = row.querySelector('input[name="service_name[]"]').value;
+        if (!serviceName) return; 
+
+        let qty = row.querySelector('input.qty').value;
+        let price = row.querySelector('input.price').value;
+        let deliverableIds = Array.from(row.querySelectorAll(".deliverable-item")).map(item => parseInt(item.dataset.id));
+
+        services.push({
+            service_name: serviceName,
+            deliverable_ids: deliverableIds, 
+            qty: qty,
+            price: price
+        });
+    });
+
+    const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
+    const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
+    const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
+    const notes = document.querySelector('textarea[name="notes"]').value;
+    const dueDate = document.querySelector('input[name="due_date"]').value;
+
+    const data = {
+        invoice_id: this.querySelector('input[name="invoice_id"]').value,
+        services: services,
+        discount_amount: discount,
+        tax_rate: taxRate,
+        pre_paid_amount: prepaid,
+        notes: notes,
+        due_date: dueDate
+    };
+
+    fetch("/save-invoice/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+        body: JSON.stringify(data)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            location.href = "/invoice/list/";
+        } else {
+            alert("Error saving invoice: " + (data.message || "Unknown error"));
+            submitBtn.innerHTML = 'Save Invoice';
+            submitBtn.disabled = false;
+        }
+    });
+});
+
+// Run once on load
+calculateTotals();
+</script>
+{% endblock %}

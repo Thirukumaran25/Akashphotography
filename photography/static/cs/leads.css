@@ -1,0 +1,2618 @@
+.leads-wrapper {
+    max-width: 1400px;
+    margin: auto;
+    padding: 30px 40px;
+}
+
+.search-wrapper {
+    position: relative;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #888;
+    font-size: 14px;
+    pointer-events: none;
+}
+
+#globalSearch {
+    padding-left: 36px;   /* space for icon */
+    padding-right: 30px;  /* space for ❌ */
+}
+
+.clear-search {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    display: none;
+    font-size: 18px;
+}
+
+.overview-header,
+.stats,
+.kanban,
+.column,
+.card,
+.card-row {
+  min-width: 0;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.form-scroll{
+ flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-right: 6px;}
+/* OVERVIEW */
+.overview-header {
+    background: #fafafa;
+    padding: 25px 30px;
+    border-radius: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.overview-left h2 {
+    font-size: 20px;
+    margin-bottom: 18px;
+    text-decoration: underline;
+}
+
+.stats {
+    display: flex;
+
+    gap: 30px;
+}
+
+.stats span {
+    font-size: 11px;
+ font-family: "Inter", sans-serif;
+  
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  color: #000;
+}
+
+.stats strong {
+    display: block;
+    font-size: 18px;
+    margin-top: 3px;
+}
+
+/* ACTION BUTTONS */
+.overview-right {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+.filter-btn{
+    display: block;
+}
+
+.filter-btn span{
+        font-size: 15px;
+        font-weight: 600;
+ font-family: "Inter", sans-serif;
+
+}
+
+.new-btn {
+    background: var(--primary);
+    color: white;
+    padding: 2px 25px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.filter-btn {
+   border: none;
+  background: transparent;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap:8px;
+}
+
+/* KANBAN */
+.kanban {
+    display: flex;
+    gap: 24px;
+}
+
+.column {
+    flex: 1;
+    background: #f7f7f7;
+    border-radius: 14px;
+    padding: 16px;
+    
+}
+
+/* COLUMN HEAD */
+.column-head {
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  margin-bottom: 15px;
+  font-family: "Inter", sans-serif;
+}
+
+/* pill label */
+.column-head .label {
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* count outside pill */
+.column-head .count {
+  font-size: 18px;
+  font-weight: 500;
+  color: #888;
+}
+
+/* COLORS (reuse yours, just move bg here) */
+.new .label {
+  background: #fde9f6;
+  color: #b100a4;
+}
+
+.follow .label {
+  background: #fff7d9;
+  color: #bfa600;
+}
+
+.accepted .label {
+  background: #e8f8ec;
+  color: #1a9b39;
+}
+
+.lost .label {
+  background: #ffe8e8;
+  color: #d11a1a;
+}
+.card-title > div{
+    font-size: 15px;
+}
+
+/* CARD */
+.card {
+    border: 0.5px solid #dddbdb;
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    cursor: grab;
+    transition: .25s;
+    font-size: 12px;
+}
+.card-row span{
+   font-size: 0.6875rem;
+    padding:2px;
+    font-weight: 500;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+}
+
+.amount {
+    margin-top: 8px;
+    font-weight: 600;
+}
+
+/* DRAG */
+.dragging { opacity: .5; }
+.column.hover { background: #ffecec; }
+
+/* MODAL */
+.modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+     z-index: 5000;
+}
+.modal-content {
+    background: white;
+    padding: 28px;
+    border-radius: 14px;
+    width: 340px;
+}
+/* MODAL BACKDROP */
+.lead-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* FORM CARD */
+.lead-form {
+    position: relative;
+    width: 420px;
+    max-width: 94vw;
+    max-height: 90vh;
+
+    background: #fff;
+    border-radius: 14px;
+    padding: 28px;
+
+    display: flex;              /* ✅ REQUIRED */
+    flex-direction: column;     /* ✅ REQUIRED */
+
+    overflow: hidden;           /* stop outer scroll */
+}
+.lead-form form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0; /* 🔥 critical for scrolling */
+}
+.row select {
+  height: 38px;           /* 👈 controls height */
+  padding: 6px 10px;      /* 👈 reduces vertical padding */
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.form-step {
+  display: none;
+  flex: 1;
+ 
+  animation: fadeSlide .3s ease;
+}
+
+.form-step.active {
+  display: block;
+}
+
+.field-group {
+    margin-bottom: 14px;
+}
+
+.field-group label {
+    display: block;
+    font-size: 10px;
+    color: #666;
+    margin-bottom: 6px;
+}
+
+.row {
+    display: flex;
+    gap: 10px;
+}
+
+.row input,
+.row select {
+    flex: 1;
+}
+
+select {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background: white;
+}
+
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+
+/* STEPS */
+.steps {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.step {
+    font-size: 11px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    background: #eee;
+}
+
+.step.active {
+    background: var(--primary);
+    color: white;
+}
+
+/* FORM STEPS */
+
+
+.form-step h3 {
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+/* INPUTS */
+.form-step input {
+    width: 100%;
+    padding: 11px;
+    margin-bottom: 12px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+.form-step input::placeholder{
+    font-size: 10px;
+}
+
+/* BUTTONS */
+.form-step button {
+    width: 100%;
+    padding: 12px;
+    border-radius: 8px;
+    border: none;
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+}
+.form-actions {
+  margin-top: auto;
+  display: flex;
+  gap: 10px;
+  padding-top: 12px;
+  background: #fff;
+}
+
+
+.form-actions button:first-child {
+    background: #ccc;
+    color: black;
+}
+/* form close button */
+.close-btn {
+    position: absolute;
+    top: 5px;
+    right: 12px;
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    z-index: 10;
+}
+
+.close-btn:hover {
+    color: #000;
+}
+
+
+
+/* ANIMATIONS */
+@keyframes scaleFade {
+    from { transform: scale(.85); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(40px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+.card-title {
+    font-weight: 600;
+    font-size: 16px;
+    margin-bottom: 6px;
+}
+
+.card hr {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 8px 0;
+}
+
+.card-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+.card-row img {
+    width: 14px;
+    opacity: .7;
+}
+
+.card-row.danger {
+    color: red;
+}
+
+.card-row small {
+    background: #ffdede;
+    color: red;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: auto;
+}
+
+/* payment modal */
+/* PAYMENT POPUP */
+.payment-box {
+    width: 380px;
+    padding: 24px;
+    border-radius: 16px;
+}
+
+.payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    position: relative;
+}
+
+.payment-header .close-btn {
+    position: static; /* 🔥 override absolute */
+    font-size: 22px;
+    color: #555;
+    cursor: pointer;
+}
+
+.payment-header .close-btn:hover {
+    color: #000;
+}
+.payment-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.payment-info {
+    font-size: 13px;
+    color: #666;
+    margin-bottom: 18px;
+}
+
+.payment-box .field-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.btn-primary {
+    background: var(--primary);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-secondary {
+    background: #eee;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+
+/* edit button */
+.card-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: #000;
+}
+
+/* Edit button */
+.edit-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Pencil icon */
+.edit-btn i {
+  font-size: 12px;
+  color: #6b7280; /* gray */
+  transition: color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover effect */
+.edit-btn:hover i {
+  color: #C62828; /* primary red */
+  transform: scale(1.1);
+}
+
+/* filter css */
+/* FILTER DRAWER */
+.filter-drawer {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 350px;
+    height: 100%;
+    background: #fff;
+    box-shadow: -4px 0 20px rgba(0,0,0,.15);
+    transition: .35s ease;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+}
+
+.filter-drawer.open {
+    right: 0;
+}
+
+/* HEADER */
+.filter-header {
+    padding: 18px 20px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.filter-header h3 {
+    margin: 0;
+}
+
+.close-filter {
+    font-size: 26px;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+/* BODY */
+.filter-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+.filter-section {
+    margin-bottom: 22px;
+}
+
+.filter-section h4 {
+    font-size: 10px;
+    margin-bottom: 10px;
+    color: #444;
+}
+
+.filter-section label {
+    display: block;
+    font-size: 11px;
+    margin-bottom: 6px;
+    cursor: pointer;
+}
+
+.range {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+
+.range input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width:100px;
+}
+
+/* FOOTER */
+.filter-footer {
+    padding: 15px;
+    border-top: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+}
+
+.clear-btn {
+    background: #eee;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.apply-btn {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+/* ============================= */
+/* MODERN FILTER DRAWER UPGRADE */
+/* ============================= */
+
+.filter-drawer {
+    background: #ffffff;
+    box-shadow: -10px 0 40px rgba(0,0,0,.18);
+    transition: right .4s cubic-bezier(.4,0,.2,1);
+    font-family: Inter, system-ui, sans-serif;
+}
+
+/* Smooth open animation */
+.filter-drawer.open {
+    animation: slideIn .45s ease forwards;
+}
+
+@keyframes slideIn {
+    from {
+        right: -420px;
+        opacity: .7;
+    }
+    to {
+        right: 0;
+        opacity: 1;
+    }
+}
+
+/* ================= */
+/* HEADER */
+/* ================= */
+
+.filter-header {
+    background: linear-gradient(135deg, #f9f9f9, #ffffff);
+}
+
+.filter-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: .3px;
+}
+
+.close-filter {
+    color: #666;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.close-filter:hover {
+    color: #000;
+    transform: scale(1.15);
+}
+
+/* ================= */
+/* BODY */
+/* ================= */
+
+.filter-body {
+    padding-bottom: 30px;
+}
+
+/* SECTION CARD STYLE */
+.filter-section {
+    padding: 14px 14px 16px;
+    border-radius: 14px;
+    background: #fafafa;
+    box-shadow: inset 0 0 0 1px #eee;
+    transition: box-shadow .2s ease, transform .2s ease;
+}
+
+.filter-section:hover {
+    box-shadow: inset 0 0 0 1px #ddd;
+}
+
+/* SECTION TITLE */
+.filter-section h4 {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .6px;
+    color: #555;
+    margin-bottom: 12px;
+}
+
+/* LABELS */
+.filter-section label {
+    padding: 6px 8px;
+    border-radius: 8px;
+    transition: background .15s ease;
+}
+
+.filter-section label:hover {
+    background: rgba(0,0,0,.04);
+}
+
+/* INPUTS */
+.filter-section input[type="radio"],
+.filter-section input[type="checkbox"] {
+    accent-color: var(--primary);
+    margin-right: 6px;
+    cursor: pointer;
+}
+
+/* DATE & NUMBER INPUTS */
+.range input,
+.filter-section input[type="text"] {
+    font-size: 13px;
+    transition: border .2s ease, box-shadow .2s ease;
+}
+
+.range input:focus,
+.filter-section input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(120,80,255,.15);
+}
+
+/* ================= */
+/* PAYMENT + EVENT TYPE */
+/* ================= */
+
+.filter-section:nth-child(5) label,
+.filter-section:nth-child(6) label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ================= */
+/* PRIORITY */
+/* ================= */
+
+.filter-section .urgent,
+.filter-section .upcoming,
+.filter-section .safe {
+    display: inline-block;
+    padding: 6px 10px;
+    margin-right: 6px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.filter-section .urgent {
+    background: #ffe6e6;
+    color: #d11a1a;
+}
+
+.filter-section .upcoming {
+    background: #fff5cc;
+    color: #b08900;
+}
+
+.filter-section .safe {
+    background: #e8f8ec;
+    color: #1a9b39;
+}
+
+.filter-section .urgent:hover,
+.filter-section .upcoming:hover,
+.filter-section .safe:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,.12);
+}
+
+/* ================= */
+/* SEARCH */
+/* ================= */
+
+.filter-section input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #ccc;
+}
+
+/* ================= */
+/* FOOTER */
+/* ================= */
+
+.filter-footer {
+    background: #ffffff;
+    box-shadow: 0 -6px 20px rgba(0,0,0,.08);
+}
+
+.clear-btn {
+    background: #f2f2f2;
+    font-weight: 500;
+    transition: background .2s ease;
+}
+
+.clear-btn:hover {
+    background: #e4e4e4;
+}
+
+.apply-btn {
+    font-weight: 600;
+    letter-spacing: .3px;
+    transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.apply-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0,0,0,.25);
+}
+
+
+/* search styling */
+.overview-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+
+
+.search-wrapper {
+    position: relative;
+    width: 320px;
+    max-width: 100%;
+}
+
+.search-wrapper input {
+    width: 100%;
+    padding: 12px 40px 12px 16px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 12px;
+    outline: none;
+    transition: border .2s ease, box-shadow .2s ease;
+}
+
+.search-wrapper input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(158, 42, 47, .12);
+}
+
+/* ❌ CLEAR BUTTON */
+.clear-search {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #999;
+    cursor: pointer;
+    display: none;
+    transition: color .2s ease, transform .2s ease;
+}
+
+.clear-search:hover {
+    color: var(--primary);
+    transform: translateY(-50%) scale(1.15);
+}
+
+
+/* validation tosat */
+.form-toast {
+  display: none;
+  background: #ffe5e5;
+  color: #c62828;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  margin-bottom: 14px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+
+/* responsiveness */
+@media (min-width: 320px) and (max-width: 374px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 14px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 16px 14px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .overview-left h2 {
+    font-size: 20px;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  /* STATS */
+  .stats {
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: space-between;
+  }
+
+  .stats > div {
+    width: 48%;
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 12px;
+  }
+
+  .stats strong {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    margin-top: 0;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 12px;
+  }
+
+  .filter-btn span {
+    font-size: 16px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .column {
+    padding: 12px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 10px;
+  }
+
+  .column-head .label {
+    font-size: 14px;
+    padding: 6px 12px;
+  }
+
+  .column-head .count {
+    font-size: 16px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 15px;
+    padding: 14px;
+  }
+
+  .card-title {
+    font-size: 15px;
+    gap: 8px;
+  }
+
+  .edit-btn i {
+    font-size: 15px;
+  }
+
+  .card-row {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .card-row img {
+    width: 12px;
+  }
+
+  .card-row small {
+    font-size: 9px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  .filter-header h3 {
+    font-size: 16px;
+  }
+
+  .filter-section {
+    padding: 12px;
+  }
+
+  .filter-section h4 {
+    font-size: 12px;
+  }
+
+  .filter-section label {
+    font-size: 12px;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 92%;
+    padding: 20px;
+    min-height: auto;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 92%;
+    padding: 20px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 16px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 14px;
+    padding: 10px;
+  }
+
+  .form-step button {
+    padding: 10px;
+    font-size: 14px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 16px;
+  }
+
+  .payment-info {
+    font-size: 12px;
+  }
+    /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .overview-left h2 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .stats > div {
+    width: 48%;
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 12px;
+  }
+
+  .stats strong {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .search-wrapper {
+    width: 100%;
+  }
+
+  /* ========================= */
+  /* BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+
+@media (min-width: 374px) and (max-width: 424px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 18px 16px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 18px;
+    padding: 18px;
+  }
+
+  .overview-left h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .stats > div {
+    width: 46%;
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 13px;
+  }
+
+  .stats strong {
+    font-size: 20px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    width: 100%;
+    margin-top: 0;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    max-width: 360px;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    width: 100%;
+    padding: 12px;
+    justify-content: center;
+  }
+
+  .filter-btn span {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .column {
+    padding: 14px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 12px;
+  }
+
+  .column-head .label {
+    font-size: 15px;
+    padding: 6px 14px;
+  }
+
+  .column-head .count {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 16px;
+    padding: 15px;
+  }
+
+  .card-title {
+    font-size: 16px;
+    gap: 10px;
+  }
+
+  .edit-btn i {
+    font-size: 16px;
+  }
+
+  .card-row {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 13px;
+  }
+
+  .card-row small {
+    font-size: 10px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  .filter-header h3 {
+    font-size: 17px;
+  }
+
+  .filter-section {
+    padding: 14px;
+  }
+
+  .filter-section h4 {
+    font-size: 13px;
+  }
+
+  .filter-section label {
+    font-size: 13px;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 92%;
+    padding: 22px;
+    min-height: auto;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 92%;
+    padding: 22px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 17px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 15px;
+    padding: 11px;
+  }
+
+  .form-step button {
+    padding: 11px;
+    font-size: 15px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 17px;
+  }
+
+  .payment-info {
+    font-size: 13px;
+  }
+
+}
+
+@media (min-width: 424px) and (max-width: 599px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 22px 20px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 20px;
+  }
+
+  .overview-left h2 {
+    font-size: 24px;
+    margin-bottom: 14px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px 24px;
+  }
+
+  .stats > div {
+    width: 45%;
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 14px;
+  }
+
+  .stats strong {
+    font-size: 22px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    width: 100%;
+    margin-top: 0;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: row;
+    gap: 14px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 12px 14px;
+  }
+
+  .filter-btn span {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .column {
+    padding: 16px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 14px;
+  }
+
+  .column-head .label {
+    font-size: 16px;
+    padding: 7px 16px;
+  }
+
+  .column-head .count {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 17px;
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    gap: 12px;
+  }
+
+  .edit-btn i {
+    font-size: 17px;
+  }
+
+  .card-row {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 14px;
+  }
+
+  .card-row small {
+    font-size: 11px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  .filter-header h3 {
+    font-size: 18px;
+  }
+
+  .filter-section {
+    padding: 16px;
+  }
+
+  .filter-section h4 {
+    font-size: 14px;
+  }
+
+  .filter-section label {
+    font-size: 14px;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 90%;
+    padding: 24px;
+    min-height: auto;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 90%;
+    padding: 24px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 18px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .form-step button {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .form-actions {
+    flex-direction: row;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 18px;
+  }
+
+  .payment-info {
+    font-size: 14px;
+  }
+
+}
+
+@media (min-width: 599px) and (max-width: 767px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 24px 24px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .overview-left h2 {
+    font-size: 26px;
+    margin-bottom: 14px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 28px;
+    justify-content: center;
+  }
+
+  .stats > div {
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 14px;
+  }
+
+  .stats strong {
+    font-size: 24px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    max-width: 480px;
+    width: 100%;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 12px 18px;
+  }
+
+  .filter-btn span {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+
+  .column {
+    padding: 16px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 14px;
+  }
+
+  .column-head .label {
+    font-size: 16px;
+    padding: 7px 16px;
+  }
+
+  .column-head .count {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 17px;
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    gap: 12px;
+  }
+
+  .edit-btn i {
+    font-size: 17px;
+  }
+
+  .card-row {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 14px;
+  }
+
+  .card-row small {
+    font-size: 11px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  .filter-header h3 {
+    font-size: 18px;
+  }
+
+  .filter-section {
+    padding: 16px;
+  }
+
+  .filter-section h4 {
+    font-size: 14px;
+  }
+
+  .filter-section label {
+    font-size: 14px;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 80%;
+    max-width: 520px;
+    padding: 26px;
+    min-height: auto;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 80%;
+    max-width: 520px;
+    padding: 26px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 18px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .form-step button {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .form-actions {
+    flex-direction: row;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 18px;
+  }
+
+  .payment-info {
+    font-size: 14px;
+  }
+
+}
+
+@media (min-width: 767px) and (max-width: 899px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 24px 24px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 22px;
+    padding: 22px;
+  }
+
+  .overview-left h2 {
+    font-size: 26px;
+    margin-bottom: 14px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 28px;
+    justify-content: center;
+  }
+
+  .stats > div {
+    text-align: center;
+  }
+
+  .stats span {
+    font-size: 14px;
+  }
+
+  .stats strong {
+    font-size: 24px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    max-width: 480px;
+    width: 100%;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    width: 100%;
+    flex-direction: row;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    flex: 0 0 auto;
+    min-width: 180px;
+    padding: 12px 18px;
+  }
+
+  .filter-btn span {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+
+  .column {
+    padding: 16px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 14px;
+  }
+
+  .column-head .label {
+    font-size: 16px;
+    padding: 7px 16px;
+  }
+
+  .column-head .count {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 17px;
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 17px;
+    gap: 12px;
+  }
+
+  .edit-btn i {
+    font-size: 17px;
+  }
+
+  .card-row {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 14px;
+  }
+
+  .card-row small {
+    font-size: 11px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 100%;
+    right: -100%;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  .filter-header h3 {
+    font-size: 18px;
+  }
+
+  .filter-section {
+    padding: 16px;
+  }
+
+  .filter-section h4 {
+    font-size: 14px;
+  }
+
+  .filter-section label {
+    font-size: 14px;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 80%;
+    max-width: 520px;
+    padding: 26px;
+    min-height: auto;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 80%;
+    max-width: 520px;
+    padding: 26px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 18px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .form-step button {
+    padding: 12px;
+    font-size: 16px;
+  }
+
+  .form-actions {
+    flex-direction: row;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 18px;
+  }
+
+  .payment-info {
+    font-size: 14px;
+  }
+
+}
+@media (min-width: 899px) and (max-width: 1023px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 28px 32px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 26px;
+    padding: 26px;
+  }
+
+  .overview-left {
+    flex: 1.3;
+  }
+
+  .overview-left h2 {
+    font-size: 26px;
+    margin-bottom: 14px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    display: flex;
+    gap: 28px;
+  }
+
+  .stats > div {
+    text-align: left;
+  }
+
+  .stats span {
+    font-size: 13px;
+  }
+
+  .stats strong {
+    font-size: 22px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    max-width: 440px;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 14px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    padding: 10px 18px;
+  }
+
+  .filter-btn span {
+    font-size: 16px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 22px;
+  }
+
+  .column {
+    padding: 16px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 14px;
+  }
+
+  .column-head .label {
+    font-size: 15px;
+    padding: 6px 14px;
+  }
+
+  .column-head .count {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 15.5px;
+    padding: 15px;
+  }
+
+  .card-title {
+    font-size: 15.5px;
+    gap: 10px;
+  }
+
+  .edit-btn i {
+    font-size: 15px;
+  }
+
+  .card-row {
+    font-size: 13px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 13px;
+  }
+
+  .card-row small {
+    font-size: 10px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 420px;
+    right: -420px;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 65%;
+    max-width: 580px;
+    padding: 28px;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 65%;
+    max-width: 580px;
+    padding: 28px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 18px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  .form-step button {
+    font-size: 15px;
+    padding: 12px;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 18px;
+  }
+
+  .payment-info {
+    font-size: 14px;
+  }
+
+    .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 28px;
+    justify-content: center;
+  }
+}
+@media (min-width: 1023px) and (max-width: 1199px) {
+
+  /* ========================= */
+  /* GLOBAL */
+  /* ========================= */
+  html {
+    font-size: 16px;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  /* ========================= */
+  /* WRAPPER */
+  /* ========================= */
+  .leads-wrapper {
+    padding: 30px 36px;
+  }
+
+  /* ========================= */
+  /* OVERVIEW HEADER */
+  /* ========================= */
+  .overview-header {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 30px;
+    padding: 28px;
+  }
+
+  .overview-left {
+    flex: 1.4;
+  }
+
+  .overview-left h2 {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  /* ========================= */
+  /* STATS */
+  /* ========================= */
+  .stats {
+    display: flex;
+    gap: 32px;
+  }
+
+  .stats > div {
+    text-align: left;
+  }
+
+  .stats span {
+    font-size: 13px;
+  }
+
+  .stats strong {
+    font-size: 24px;
+  }
+
+  /* ========================= */
+  /* SEARCH */
+  /* ========================= */
+  .overview-search {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+  }
+
+  .search-wrapper {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  /* ========================= */
+  /* ACTION BUTTONS */
+  /* ========================= */
+  .overview-right {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 16px;
+  }
+
+  .new-btn,
+  .filter-btn {
+    padding: 12px 20px;
+  }
+
+  .filter-btn span {
+    font-size: 17px;
+  }
+
+  /* ========================= */
+  /* KANBAN */
+  /* ========================= */
+  .kanban {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .column {
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* COLUMN HEAD */
+  /* ========================= */
+  .column-head {
+    gap: 16px;
+  }
+
+  .column-head .label {
+    font-size: 16px;
+    padding: 7px 16px;
+  }
+
+  .column-head .count {
+    font-size: 18px;
+  }
+
+  /* ========================= */
+  /* CARDS */
+  /* ========================= */
+  .card {
+    font-size: 16px;
+    padding: 16px;
+  }
+
+  .card-title {
+    font-size: 16px;
+    gap: 12px;
+  }
+
+  .edit-btn i {
+    font-size: 16px;
+  }
+
+  .card-row {
+    font-size: 13.5px;
+    gap: 8px;
+  }
+
+  .card-row img {
+    width: 14px;
+  }
+
+  .card-row small {
+    font-size: 11px;
+  }
+
+  /* ========================= */
+  /* FILTER DRAWER */
+  /* ========================= */
+  .filter-drawer {
+    width: 420px;
+    right: -420px;
+  }
+
+  .filter-drawer.open {
+    right: 0;
+  }
+
+  /* ========================= */
+  /* MODALS */
+  /* ========================= */
+  .lead-form {
+    width: 60%;
+    max-width: 600px;
+    padding: 30px;
+  }
+
+  .modal-content,
+  .payment-box {
+    width: 60%;
+    max-width: 600px;
+    padding: 30px;
+  }
+
+  /* ========================= */
+  /* FORM */
+  /* ========================= */
+  .form-step h3 {
+    font-size: 19px;
+  }
+
+  .form-step input,
+  .payment-box input {
+    font-size: 15.5px;
+    padding: 12px;
+  }
+
+  .form-step button {
+    font-size: 15.5px;
+    padding: 12px;
+  }
+
+  /* ========================= */
+  /* PAYMENT */
+  /* ========================= */
+  .payment-header h3 {
+    font-size: 19px;
+  }
+
+  .payment-info {
+    font-size: 14px;
+  }
+      .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px 28px;
+    justify-content: center;
+  }
+  .card-row span{
+    font-size: 10px;
+  }
+
+}
+
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+.card.shake {
+  animation: shake 0.4s;
+}
+.drop-indicator {
+    height: 6px;
+    margin: 6px 0;
+    background: linear-gradient(
+        to right,
+        transparent,
+        #4cafef,
+        transparent
+    );
+    border-radius: 4px;
+}

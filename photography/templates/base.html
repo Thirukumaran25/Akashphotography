@@ -1,0 +1,290 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Akash Photography{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: "Inter", sans-serif; background: #fff; overflow-x: hidden; overflow-y: auto; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        @keyframes panelFadeIn { from { opacity: .6; } to { opacity: 1; } }
+        @keyframes badgePop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        .followup-panel.open { right: 0; animation: panelFadeIn .45s ease; }
+        .notif-badge.show { transform: scale(1); animation: badgePop .35s ease; }
+    </style>
+</head>
+
+<body>
+
+<div class="followup-panel fixed top-0 right-[-420px] w-full sm:w-[420px] h-full bg-gradient-to-b from-white to-[#fafafa] shadow-[-20px_0_60px_rgba(0,0,0,.18)] transition-all duration-450 ease-[cubic-bezier(.4,0,.2,1)] z-[3000] flex flex-col" id="followupPanel">
+    <div class="followup-header p-[22px_22px_18px] border-b border-[rgba(0,0,0,.06)] flex justify-between items-center bg-white">
+        <div>
+            <h3 class="m-0 text-[20px] font-bold tracking-[.3px]">🔔 Follow-ups</h3>
+            <p class="m-[6px_0_0] text-[13px] text-[#666]">You have <strong class="text-[#9e2a2f]" id="followupTotal">0</strong> reminders</p>
+        </div>
+        <button class="close-btn text-[26px] bg-transparent border-none cursor-pointer text-[#888] transition-all duration-200 hover:text-[#000] hover:scale-[1.15]" onclick="closeFollowup()">×</button>
+    </div>
+
+    <div class="followup-summary flex gap-[12px] p-[18px]">
+        <div class="summary-item overdue flex-1 rounded-[16px] p-[14px_10px] text-center font-semibold shadow-[inset_0_0_0_1px_rgba(0,0,0,.05)] transition-all duration-250 hover:-translate-y-[3px] hover:shadow-[0_10px_25px_rgba(0,0,0,.12)] bg-gradient-to-br from-[#ffe6e6] to-white text-[#d11a1a]">
+            <span class="block text-[12px] tracking-[.4px]">Overdue</span>
+            <strong class="block mt-[6px] text-[24px]" id="countOverdue">0</strong>
+        </div>
+        <div class="summary-item today flex-1 rounded-[16px] p-[14px_10px] text-center font-semibold shadow-[inset_0_0_0_1px_rgba(0,0,0,.05)] transition-all duration-250 hover:-translate-y-[3px] hover:shadow-[0_10px_25px_rgba(0,0,0,.12)] bg-gradient-to-br from-[#fff4d6] to-white text-[#b08900]">
+            <span class="block text-[12px] tracking-[.4px]">Today</span>
+            <strong class="block mt-[6px] text-[24px]" id="countToday">0</strong>
+        </div>
+        <div class="summary-item upcoming flex-1 rounded-[16px] p-[14px_10px] text-center font-semibold shadow-[inset_0_0_0_1px_rgba(0,0,0,.05)] transition-all duration-250 hover:-translate-y-[3px] hover:shadow-[0_10px_25px_rgba(0,0,0,.12)] bg-gradient-to-br from-[#e8f8ec] to-white text-[#1a9b39]">
+            <span class="block text-[12px] tracking-[.4px]">Upcoming</span>
+            <strong class="block mt-[6px] text-[24px]" id="countUpcoming">0</strong>
+        </div>
+    </div>
+
+    <div class="followup-tabs flex border-b border-[rgba(0,0,0,.06)] bg-white">
+        <button class="active flex-1 p-[14px_10px] border-none bg-transparent cursor-pointer font-semibold text-[14px] text-[#666] transition-colors relative [&.active]:text-[#9e2a2f] [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-0 [&.active]:after:left-[20%] [&.active]:after:w-[60%] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[6px]" onclick="switchTab('today')">Today</button>
+        <button class="flex-1 p-[14px_10px] border-none bg-transparent cursor-pointer font-semibold text-[14px] text-[#666] transition-colors relative [&.active]:text-[#9e2a2f] [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-0 [&.active]:after:left-[20%] [&.active]:after:w-[60%] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[6px]" onclick="switchTab('overdue')">Overdue</button>
+        <button class="flex-1 p-[14px_10px] border-none bg-transparent cursor-pointer font-semibold text-[14px] text-[#666] transition-colors relative [&.active]:text-[#9e2a2f] [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-0 [&.active]:after:left-[20%] [&.active]:after:w-[60%] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[6px]" onclick="switchTab('upcoming')">Upcoming</button>
+    </div>
+
+    <div class="followup-list flex-1 overflow-y-auto p-[18px]" id="followupList">
+        </div>
+</div>
+
+<div class="h-[28px] md:h-[28px] lg:h-[34px] xl:h-[36px] 2xl:h-[40px] bg-[#9e2a2f] mb-2 md:mb-2 lg:mb-[14px] xl:mb-[16px] 2xl:mb-[20px] w-full"></div>
+
+<nav class="h-[64px] lg:h-[80px] xl:h-[84px] grid grid-cols-[auto_1fr_auto] lg:grid-cols-[130px_1fr_180px] xl:grid-cols-[150px_1fr_150px] 2xl:grid-cols-[200px_1fr_200px] items-center px-[14px] lg:px-[36px] xl:px-[48px] bg-white border-b border-[#eee] sticky top-0 z-[1000]">
+    
+    <div class="nav-left flex items-center justify-start">
+        <a href="{% url 'home' %}">
+            <img src="{% static 'images/logo.png' %}" alt="Akash" class="logo h-[46px] lg:h-[68px] xl:h-[72px] 2xl:h-[80px] w-auto object-contain">
+        </a>
+    </div>
+
+    <div class="nav-center fixed top-[10px] right-0 w-full h-full bg-white translate-x-full transition-transform duration-350 ease-[cubic-bezier(.4,0,.2,1)] z-[2000] lg:static lg:transform-none lg:h-auto lg:bg-transparent lg:flex lg:justify-center [&.open]:translate-x-0">
+        <button class="mobile-menu-close absolute top-[16px] right-[16px] w-[36px] h-[36px] rounded-full border-none bg-[#f2f2f2] text-[22px] font-semibold cursor-pointer text-[#444] flex items-center justify-center transition-all hover:bg-[#e5e5e5] hover:scale-[1.08] z-[2100] lg:hidden" onclick="toggleMobileMenu()">×</button>
+        
+        <div class="nav-menu flex flex-col items-start gap-[6px] p-[18px] lg:flex-row lg:items-center lg:gap-[36px] xl:gap-[44px] 2xl:gap-[50px] lg:p-0">
+            
+            <a href="{% url 'home' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/dashboard.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Dashboard</span>
+            </a>
+
+            <a href="{% url 'home' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/leads.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Leads</span>
+            </a>
+
+            <a href="{% url 'projects' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/project.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Projects</span>
+            </a>
+
+            <a href="#" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/session.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Session</span>
+            </a>
+
+            <a href="{% url 'invoice_list' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/invoice.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Project Invoice</span>
+            </a>
+
+            <a href="#" class="nav-item group employee flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+                <img src="{% static 'images/employees.png' %}" class="w-[24px] lg:w-[26px] xl:w-[28px] 2xl:w-[24px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
+                <span>Employees</span>
+            </a>
+
+        </div>
+    </div>
+
+    <div class="nav-right flex items-center justify-end gap-[12px] lg:gap-[16px] xl:gap-[18px]">
+        <div class="notification relative cursor-pointer" onclick="openFollowup()">
+            <img src="{% static 'images/notification.png' %}" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] xl:w-[32px] xl:h-[34px] 2xl:w-[28px] 2xl:h-[28px] mt-[2px]">
+            <span class="notif-badge absolute top-[-6px] right-[-6px] min-w-[18px] h-[18px] px-[5px] bg-[#e53935] text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow-[0_4px_10px_rgba(229,57,53,.45)] scale-0 transition-transform duration-250 ease-in-out" id="followupBadge">0</span>
+        </div>
+        <div class="mobile-menu-btn flex flex-col justify-between w-[28px] h-[20px] cursor-pointer lg:hidden" onclick="toggleMobileMenu()">
+            <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
+            <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
+            <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
+        </div>
+        <div class="profile-circle hidden lg:flex items-center justify-center w-[34px] h-[34px] 2xl:w-[28px] 2xl:h-[28px] bg-black text-white text-[13px] font-semibold rounded-[20%] cursor-pointer transition-transform duration-300 hover:scale-[1.08]">AK</div>
+    </div>
+</nav>
+
+<main>
+    {% block content %}{% endblock %}
+</main>
+
+<script>
+// 1. MAKE FUNCTIONS GLOBALLY AVAILABLE IMMEDIATELY
+window.toggleMobileMenu = function() {
+    const navCenter = document.querySelector(".nav-center");
+    if (navCenter) {
+        navCenter.classList.toggle("open");
+    }
+};
+
+window.openFollowup = function() {
+    const panel = document.getElementById("followupPanel");
+    if (panel) {
+        panel.classList.add("open");
+        loadFollowups();
+    }
+};
+
+window.closeFollowup = function() {
+    const panel = document.getElementById("followupPanel");
+    if (panel) {
+        panel.classList.remove("open");
+    }
+};
+
+// 2. RUN SETUP ON PAGE LOAD
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // Auto-detect the active link based on the current URL path
+    const currentPath = window.location.pathname;
+    const navItems = document.querySelectorAll(".nav-item");
+
+    // Clear any hardcoded active states
+    navItems.forEach(item => item.classList.remove("active"));
+
+    // Apply active state dynamically
+    navItems.forEach(item => {
+        const href = item.getAttribute("href");
+        if (!href || href === "#") return;
+
+        // Exact match (useful for root URL '/')
+        if (currentPath === href) {
+            item.classList.add("active");
+        } 
+        // Partial match for subdirectories
+        else if (href !== "/" && currentPath.startsWith(href)) {
+            item.classList.add("active");
+        }
+    });
+
+    // Close mobile menu when clicking a link
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            const navCenter = document.querySelector(".nav-center");
+            if (navCenter) navCenter.classList.remove("open");
+        });
+    });
+
+    // Load notification badge on load
+    loadFollowups(); 
+});
+
+// ===============================
+// FOLLOWUP PANEL LOGIC
+// ===============================
+let followupData = {};
+let activeTab = "today";
+
+function loadFollowups() {
+    fetch("/followups/data/")
+        .then(res => {
+            if (!res.ok) throw new Error("Network response was not ok");
+            return res.json();
+        })
+        .then(data => {
+            followupData = data;
+            
+            // PANEL COUNTS (Add safety checks in case elements don't exist)
+            const elTotal = document.getElementById("followupTotal");
+            const elOverdue = document.getElementById("countOverdue");
+            const elToday = document.getElementById("countToday");
+            const elUpcoming = document.getElementById("countUpcoming");
+
+            if (elTotal) elTotal.innerText = data.counts.total;
+            if (elOverdue) elOverdue.innerText = data.counts.overdue;
+            if (elToday) elToday.innerText = data.counts.today;
+            if (elUpcoming) elUpcoming.innerText = data.counts.upcoming;
+
+            // 🔔 BADGE UPDATE
+            const badge = document.getElementById("followupBadge");
+            if (badge) {
+                const total = data.counts.total;
+                if (total > 0) {
+                    badge.innerText = total > 9 ? "9+" : total;
+                    badge.classList.add("show");
+                } else {
+                    badge.classList.remove("show");
+                }
+            }
+
+            renderList();
+        })
+        .catch(err => console.log("Followups endpoint not ready/found:", err));
+}
+
+window.switchTab = function(tab) {
+    activeTab = tab;
+    document.querySelectorAll(".followup-tabs button").forEach(b => b.classList.remove("active"));
+    
+    // Check if event exists (fixes potential error)
+    if (window.event && window.event.target) {
+        window.event.target.classList.add("active");
+    }
+    renderList();
+};
+
+function renderList() {
+    const list = document.getElementById("followupList");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    if (!followupData[activeTab] || !followupData[activeTab].length) {
+        list.innerHTML = `<div class="text-center text-[#777] mt-[90px] text-[14px] animate-[fadeIn_0.3s_ease]">🎉 No follow-ups here</div>`;
+        return;
+    }
+
+    followupData[activeTab].forEach(lead => {
+        list.innerHTML += `
+            <div class="bg-white rounded-[18px] p-[16px] mb-[16px] shadow-[0_12px_30px_rgba(0,0,0,.08)] transition-all duration-250 hover:-translate-y-[4px] hover:shadow-[0_18px_40px_rgba(0,0,0,.14)]">
+                <h4 class="m-[0_0_6px] text-[16px] font-semibold">${lead.client_name}</h4>
+                <p class="text-[13px] text-[#555] m-[4px_0]">📞 ${lead.phone}</p>
+                <p class="text-[13px] text-[#555] m-[4px_0]">📅 ${lead.event_type}</p>
+                <p class="text-[13px] text-[#555] m-[4px_0]">⏰ ${lead.follow_up_date}</p>
+                <div class="flex gap-[10px] mt-[12px]">
+                    <button class="flex-1 p-[9px] rounded-[10px] border-none cursor-pointer text-[13px] font-semibold transition-all duration-200 hover:-translate-y-[2px] hover:shadow-[0_6px_14px_rgba(0,0,0,.18)] bg-[#f1f1f1] text-black" onclick="window.location.href='/leads/?open_lead=${lead.id}'">Open Lead</button>
+                    <button class="flex-1 p-[9px] rounded-[10px] border-none cursor-pointer text-[13px] font-semibold transition-all duration-200 hover:-translate-y-[2px] hover:shadow-[0_6px_14px_rgba(0,0,0,.18)] bg-[#9e2a2f] text-white" onclick="markDone(${lead.id})">Mark Done</button>
+                </div>
+            </div>
+        `;
+    });
+}
+
+window.markDone = function(id) {
+    const csrfEl = document.getElementById("csrf_token");
+    if (!csrfEl) return;
+    
+    fetch("/followups/done/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": csrfEl.value,
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: new URLSearchParams({ lead_id: id })
+    }).then(() => loadFollowups());
+};
+</script>
+
+</body>
+</html>

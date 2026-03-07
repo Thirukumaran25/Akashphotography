@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Team Members{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/team_members.css' %}">
+
+<div class="team-wrapper">
+
+    <!-- HEADER -->
+    <div class="team-header">
+        <div>
+            <h2>Team Members</h2>
+            <p>Manage your photographers, editors & assistants</p>
+        </div>
+        <button onclick="openModal()">+ Add Team Member</button>
+    </div>
+
+    <!-- SUMMARY -->
+    <div class="team-summary">
+        <div class="card">Total <strong>{{ total }}</strong></div>
+        <div class="card green">Active <strong>{{ active }}</strong></div>
+        <div class="card red">Inactive <strong>{{ inactive }}</strong></div>
+    </div>
+
+    <!-- TABLE -->
+    <table class="team-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Role</th>
+                <th>Username</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in members %}
+            <tr>
+                <td><td>{{ m.user.get_full_name|default:m.user.username }}</td></td>
+                <td><span class="role {{ m.role|lower }}">{{ m.get_role_display }}</span></td>
+                <td>{{ m.user.username }}</td>
+                <td>
+                    {% if m.is_active %}
+                        <span class="status active">Active</span>
+                    {% else %}
+                        <span class="status inactive">Inactive</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">No team members added</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="memberModal">
+    <form method="post" action="{% url 'create_team_member' %}" class="modal-box">
+        {% csrf_token %}
+        <h3>Add Team Member</h3>
+
+        <input type="text" name="name" placeholder="Full Name" required>
+        <input type="text" name="username" placeholder="Username" required>
+        <input type="password" name="password" placeholder="Temporary Password" required>
+
+        <select name="role" required>
+            <option value="">Select Role</option>
+            <option value="PHOTOGRAPHER">Photographer</option>
+            <option value="VIDEOGRAPHER">Videographer</option>
+            <option value="EDITOR">Editor</option>
+            <option value="ASSISTANT">Assistant</option>
+        </select>
+
+        <div class="modal-actions">
+            <button type="button" onclick="closeModal()">Cancel</button>
+            <button type="submit" class="primary">Create</button>
+        </div>
+    </form>
+</div>
+
+<script>
+function openModal() {
+    document.getElementById("memberModal").style.display = "flex";
+}
+function closeModal() {
+    document.getElementById("memberModal").style.display = "none";
+}
+</script>
+{% endblock %}

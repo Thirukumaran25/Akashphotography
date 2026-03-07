@@ -1,0 +1,315 @@
+/* ===============================
+   PAGE WRAPPER
+================================ */
+
+.sessions-wrapper {
+  background: #f4f4f4;
+  padding: 30px;
+  min-height: 100vh;
+}
+
+/* ===============================
+   HEADER + TABS
+================================ */
+
+.sessions-header {
+  background: #f4f4f4;
+  padding-bottom: 26px;
+}
+
+.session-tabs {
+  background: #ffffff;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px;
+  width: fit-content;
+  margin: auto;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+}
+
+.session-tabs span {
+  padding: 8px 18px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #333;
+  transition: all 0.25s ease;
+}
+
+.session-tabs span:hover {
+  background: #f3f3f3;
+}
+
+.session-tabs .active {
+  background: #ffe5e5;
+  color: #b3262d;
+}
+
+.refresh-btn {
+  margin-left: 6px;
+  border: none;
+  background: #f3f3f3;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: transform 0.2s ease;
+}
+
+.refresh-btn:hover {
+  transform: rotate(180deg);
+}
+
+/* ===============================
+   MONTH GROUP
+================================ */
+
+.session-month {
+  margin-top: 34px;
+  width:60%;
+  margin: auto;
+}
+
+.month-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 14px;
+  color: #000;
+}
+
+/* ===============================
+   SESSION CARD
+================================ */
+
+/* .session-card {
+  display: flex;
+
+  align-items: center;
+  background: #fffbe6;
+  border-radius: 20px;
+  padding: 20px 24px;
+  margin-bottom: 14px;
+  gap: 20px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+} */
+ .session-card {
+  display: flex;
+  align-items: center;
+  background: #fffbe6;
+  border-radius: 20px;
+  padding: 22px 35px; /* 🔥 FIXED */
+  margin-bottom: 18px;
+  gap: 26px; /* 🔥 FIXED */
+}
+
+.session-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+}
+
+/* Pending state */
+.session-card.pending {
+  background: #fff1f1;
+}
+
+/* ===============================
+   DATE COLUMN
+================================ */
+
+.session-date {
+  text-align: center;
+  width: 70px;
+  flex-shrink: 0;
+}
+
+.session-date .weekday {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+
+.session-date .day {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: #000;
+}
+
+/* ===============================
+   VERTICAL DIVIDER
+================================ */
+
+
+.session-divider {
+  width: 1px;
+  height: 56px; /* 🔥 FIXED */
+  background: #d9d9d9;
+  flex-shrink: 0;
+}
+
+/* ===============================
+   INFO SECTION
+================================ */
+
+/* .session-info {
+  display: flex;
+ justify-content: space-around;
+ align-items: center;
+  
+  flex: 1;
+} */
+ .session-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto; /* 🔥 EXACT SPACING */
+  align-items: center;
+  column-gap: 30px; /* 🔥 FIXED */
+  flex: 1;
+}
+.status-badge{
+  padding:20px;
+}
+
+/* Time & location */
+
+ .time-location {
+  font-size: 15px;
+  color: #555;
+  line-height: 1.6;
+}
+
+
+
+.event-title strong {
+  font-weight: 700;
+}
+.event-title {
+  font-size: 16px;
+  color: #000;
+  font-weight: 600;
+  margin-bottom: 6px; /* 🔥 */
+}
+
+.team-avatars {
+  display: flex;
+  align-items: center;
+  margin-top: 4px; /* 🔥 tighter */
+}
+
+
+/* ===============================
+   TEAM AVATARS
+================================ */
+
+
+
+.team-avatars .avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #000;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: -8px;
+  border: 2px solid #fff;
+}
+
+.team-avatars .avatar:first-child {
+  margin-left: 0;
+}
+
+/* ===============================
+   ASSIGN TEAM LINK
+================================ */
+
+.assign-link {
+  margin-top: 6px;
+  background: #ffffff;
+  border: 1px dashed #ccc;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  width: fit-content;
+  transition: all 0.25s ease;
+}
+
+.assign-link:hover {
+  background: #ffecec;
+  border-color: #c62828;
+  color: #c62828;
+}
+
+/* ===============================
+   STATUS BADGES
+================================ */
+
+.session-status {
+  flex-shrink: 0;
+}
+.session-status {
+  display: flex;
+  align-items: center;
+  
+}
+
+.badge {
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  
+}
+
+/* Pending */
+.badge.pending {
+  background: #ff0000;
+  color: #ffffff;
+}
+
+/* In progress */
+.badge.progress {
+  background: #ffeb3b;
+  color: #000;
+}
+
+/* ===============================
+   ASSIGN PANEL
+================================ */
+
+.session-assign-panel {
+  display: none;
+  background: #ffffff;
+  padding: 26px;
+  border-radius: 20px;
+  margin: 12px 0 26px;
+  animation: slideFade 0.35s ease;
+}
+
+/* ===============================
+   ANIMATIONS
+================================ */
+
+@keyframes slideFade {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.session-status .progress {
+  padding: 6px 18px !important;
+  height:30px;
+}

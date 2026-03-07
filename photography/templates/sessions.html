@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Sessions{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/sessions.css' %}">
+<link rel="stylesheet" href="{% static 'css/team_assign_inline.css' %}">
+<link rel="stylesheet" href="{% static 'css/task_assign.css' %}">
+<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+
+<div class="sessions-wrapper">
+
+  <div class="sessions-header">
+    <div class="session-tabs">
+      <span class="{% if active_tab == 'upcoming' %}active{% endif %}" data-tab="upcoming">Upcoming Event</span>
+      <span class="{% if active_tab == 'past' %}active{% endif %}" data-tab="past">Past Event</span>
+      <span class="{% if active_tab == 'future' %}active{% endif %}" data-tab="future">To be decided</span>
+      <button class="refresh-btn">⟳</button>
+    </div>
+  </div>
+
+  {% for month, projects in grouped_projects.items %}
+  <div class="session-month">
+    <h3 class="month-title">{{ month }}</h3>
+
+    {% for p in projects %}
+    <div class="session-card
+      {% if p.status == 'COMPLETED' %}completed
+      {% elif p.status == 'ASSIGNED' %}pending
+      {% else %}assigned{% endif %}"
+      data-id="{{ p.id }}">
+
+      <div class="session-date">
+        <div class="weekday">{{ p.lead.event_start_date|date:"D" }}</div>
+        <div class="day">{{ p.lead.event_start_date|date:"d" }}</div>
+      </div>
+
+      <div class="session-divider"></div>
+
+      <div class="session-info">
+        <div class="time-location">
+          ⏰ {{ p.lead.event_start_session }} – {{ p.lead.event_end_session }}<br>
+          📍 {{ p.lead.event_location }}
+        </div>
+
+        <div>
+          <div class="event-title">
+            <strong>{{ p.lead.event_type }}</strong><br>
+            {{ p.client_name }}
+          </div>
+
+          {% if p.status == 'ASSIGNED' %}
+            <button class="assign-link" data-project="{{ p.id }}">+ Assign Team</button>
+          {% else %}
+            <div class="team-avatars">
+              {% for t in p.team_assignments.all %}
+                <span class="avatar">{{ t.member.user.first_name|slice:":1"|upper }}</span>
+              {% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="session-status">
+        {% if p.status == 'COMPLETED' %}
+          <span class="badge completed">Completed</span>
+        {% elif p.status == 'ASSIGNED' %}
+          <span class="badge pending">Pending</span>
+        {% else %}
+          <span class="badge progress">In-Progress</span>
+        {% endif %}
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% endfor %}
+
+</div>
+
+<!-- 🔥 SINGLE POPUP INSTANCE -->
+{% include "partials/team_assign.html" %}
+
+<!-- 🔥 SINGLE TASK POPUP (same as projects) -->
+{% include "partials/task_assign.html" %}
+
+<script src="{% static 'js/sessions.js' %}"></script>
+<script src="{% static 'js/global.js' %}"></script>
+{% endblock %}

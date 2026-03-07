@@ -1,0 +1,528 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    body { font-family: "Inter", sans-serif; background-color: #fafafa; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
+     <img src="{% static 'images/Qutation.png' %}" alt="Akash" class="w-full h-full object-contain">
+
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 border-b border-gray-200 pb-6 gap-6">
+        <div>
+            <h1 class="text-[28px] font-black text-gray-900 mb-8 inline-block border-b-[4px] border-gray-900 pb-1">
+                Project Invoice
+            </h1>
+            
+            <div class="flex gap-10 sm:gap-16 text-sm">
+                <div>
+                    <p class="text-gray-400 font-semibold mb-1 text-[13px]">Paid</p>
+                    <p class="text-[22px] font-bold text-gray-800">₹ {{ total_paid|floatformat:0 }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 font-semibold mb-1 text-[13px]">Upcoming</p>
+                    <p class="text-[22px] font-bold text-gray-800">₹ {{ total_upcoming|floatformat:0 }}</p>
+                </div>
+                <div>
+                    <p class="text-gray-400 font-semibold mb-1 text-[13px]">Past Due</p>
+                    <p class="text-[22px] font-bold text-gray-800">₹ {{ total_past_due|floatformat:0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4 w-full lg:w-auto">
+            <button onclick="openNewInvoiceModal()" class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow-sm whitespace-nowrap">
+                + NEW INVOICE
+            </button>
+            <button class="flex items-center gap-2 font-bold text-gray-700 hover:text-black transition text-sm">
+                <i class="fa-solid fa-bars-staggered"></i> Filters
+            </button>
+        </div>
+    </div>
+
+    <div class="w-full overflow-x-auto no-scrollbar">
+        <div class="min-w-[1000px]">
+            
+            <div class="grid grid-cols-12 gap-4 text-[13px] font-bold text-gray-400 mb-3 px-4">
+                <div class="col-span-1">Project ID</div>
+                <div class="col-span-3">Project Name</div>
+                <div class="col-span-2">Amount</div>
+                <div class="col-span-2">Due On</div>
+                <div class="col-span-2">Created</div>
+                <div class="col-span-2">Invoice Status</div>
+            </div>
+
+            <div class="bg-[#fef2f2] text-[#dc2626] font-bold text-[13px] px-4 py-2 mb-2 uppercase tracking-wide border border-[#fecaca] flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#dc2626]"></div> PAYMENT PENDING
+            </div>
+            
+            <div class="space-y-1.5 mb-8">
+                {% for inv in pending_invoices %}
+                <div class="grid grid-cols-12 gap-4 items-center bg-white px-4 py-3 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all rounded text-[14px] font-medium text-gray-800">
+                    <div class="col-span-1 text-gray-500 font-semibold">{{ inv.invoice_number }}</div>
+                    <div class="col-span-3 pr-4 truncate" title="{{ inv.project_name }}">{{ inv.project_name }}</div>
+                    <div class="col-span-2 font-bold text-black">₹ {{ inv.display_amount|floatformat:0 }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.created_at|date:"M d, Y" }}</div>
+                    
+                    <div class="col-span-2 flex items-center justify-between">
+                        <button class="bg-[#A9323D] text-white px-3 py-1.5 rounded flex items-center justify-between w-24 text-[12px] font-bold">
+                            Pending <i class="fas fa-caret-down text-[10px]"></i>
+                        </button>
+                        
+                        <div class="flex gap-3 text-gray-500 text-[15px]">
+                            <a href="{% url 'create_invoice' inv.lead.id %}" class="hover:text-black transition" title="Edit Invoice"><i class="fas fa-pen"></i></a>
+                            <button onclick="downloadInvoice('{{ inv.id }}', this)" class="hover:text-black transition" title="Download"><i class="fas fa-download"></i></button>
+                            <button onclick="openPreviewModal('{{ inv.invoice_number }}', '{{ inv.project_name|escapejs }}')" class="hover:text-black transition" title="Preview/Share"><i class="fas fa-share"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-6 text-center text-gray-400 bg-white border border-gray-100 text-sm font-medium">No pending invoices.</div>
+                {% endfor %}
+            </div>
+
+            <div class="bg-[#f0fdf4] text-[#16a34a] font-bold text-[13px] px-4 py-2 mb-2 uppercase tracking-wide border border-[#bbf7d0] flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#16a34a]"></div> PAYMENT CLOSED
+            </div>
+            
+            <div class="space-y-1.5 mb-8">
+                {% for inv in completed_invoices %}
+                <div class="grid grid-cols-12 gap-4 items-center bg-white px-4 py-3 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all rounded text-[14px] font-medium text-gray-800 opacity-80 hover:opacity-100">
+                    <div class="col-span-1 text-gray-500 font-semibold">{{ inv.invoice_number }}</div>
+                    <div class="col-span-3 pr-4 truncate" title="{{ inv.project_name }}">{{ inv.project_name }}</div>
+                    <div class="col-span-2 font-bold text-black">₹ {{ inv.display_amount|floatformat:0 }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.created_at|date:"M d, Y" }}</div>
+                    
+                    <div class="col-span-2 flex items-center justify-between">
+                        <button class="bg-[#16a34a] text-white px-3 py-1.5 rounded flex items-center justify-between w-28 text-[12px] font-bold">
+                            Completed <i class="fas fa-caret-down text-[10px]"></i>
+                        </button>
+                        
+                        <div class="flex gap-3 text-gray-500 text-[15px]">
+                            <a href="{% url 'create_invoice' inv.lead.id %}" class="hover:text-black transition" title="Edit Invoice"><i class="fas fa-pen"></i></a>
+                            <button onclick="downloadInvoice('{{ inv.id }}', this)" class="hover:text-black transition" title="Download"><i class="fas fa-download"></i></button>
+                            <button onclick="openPreviewModal('{{ inv.invoice_number }}', '{{ inv.project_name|escapejs }}')" class="hover:text-black transition" title="Preview/Share"><i class="fas fa-share"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-6 text-center text-gray-400 bg-white border border-gray-100 text-sm font-medium">No completed invoices.</div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div id="newInvoiceModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl w-full max-w-2xl p-10 relative shadow-2xl" onclick="event.stopPropagation()">
+        <button onclick="closeNewInvoiceModal()" class="absolute top-6 right-6 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition">
+            <i class="fas fa-times text-sm"></i>
+        </button>
+        
+        <h2 class="text-[24px] font-black text-gray-900 mb-8 inline-block border-b-[4px] border-gray-900 pb-1">
+            Create a new Invoice
+        </h2>
+        
+        <div class="mb-8 relative">
+            <label class="block text-[15px] font-bold text-gray-900 mb-3">Search Client</label>
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-4 text-gray-400"></i>
+                <input type="text" id="invoiceSearchInput" onkeyup="searchLeads(this.value)" placeholder="Type a name, project, email, or phone..." autocomplete="off" class="w-full pl-10 p-3.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-200 focus:border-red-500 outline-none transition">
+            </div>
+            
+            <div id="invoiceSearchResults" class="hidden absolute w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
+                </div>
+        </div>
+        
+        <input type="hidden" id="selectedLeadIdForInvoice">
+        
+        <div id="selectedClientDisplay" class="hidden mb-8 p-4 bg-red-50 border border-red-100 rounded-lg flex justify-between items-center">
+            <div>
+                <p class="font-bold text-gray-900 text-sm" id="displayClientName">Client Name</p>
+                <p class="text-xs text-gray-500 mt-1" id="displayProjectName">Project Name</p>
+            </div>
+            <button type="button" onclick="clearSelectedLead()" class="text-red-600 hover:text-red-800 text-sm font-bold">Change</button>
+        </div>
+        
+        <button id="btnProceedInvoice" onclick="proceedToCreateInvoice()" class="bg-[#A9323D] text-white px-10 py-3 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow opacity-50 cursor-not-allowed" disabled>
+            NEXT
+        </button>
+    </div>
+</div>
+
+<div id="invoicePreviewModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4">
+    <div class="bg-[#f5f5f5] rounded-xl w-full max-w-4xl h-[90vh] overflow-y-auto relative shadow-2xl flex flex-col p-6">
+        
+        <button onclick="closePreviewModal()" class="absolute top-4 right-4 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition shadow z-10">
+            <i class="fas fa-times text-sm"></i>
+        </button>
+
+        <div class="text-center mb-6 pt-4">
+            <h2 class="text-[22px] font-black text-black mb-5" id="previewModalTitle">Client - INVOICE</h2>
+            <div class="flex justify-center items-center gap-4">
+                <span class="border border-gray-300 bg-white px-5 py-2.5 font-bold text-gray-800 rounded-lg text-sm shadow-sm" id="previewModalInvNum">AK-200</span>
+                <button class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow flex items-center gap-2">
+                    <i class="fas fa-download"></i> Download Invoice
+                </button>
+                <button class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow flex items-center gap-2">
+                    <i class="fas fa-share"></i> Share Invoice
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white w-full max-w-3xl mx-auto shadow-md border border-gray-200 min-h-[600px] relative overflow-hidden flex-shrink-0">
+            
+            <div class="bg-[#111] h-32 w-full flex justify-between items-center px-10">
+                <div class="bg-white w-16 h-16 rounded flex items-center justify-center font-bold text-xl">Logo</div>
+                <div class="text-right">
+                    <h1 class="text-white text-3xl font-black tracking-widest">INVOICE</h1>
+                    <p class="text-gray-300 font-bold mt-1" id="paperInvNum">AK-200</p>
+                </div>
+            </div>
+            
+            <div class="p-10 space-y-8">
+                <div class="flex justify-between text-sm">
+                    <div>
+                        <p class="text-gray-500 font-bold mb-1 text-xs tracking-wider">INVOICE TO:</p>
+                        <p class="font-bold text-lg text-black" id="paperClientName">Client Name</p>
+                        <p class="text-gray-600">client@email.com</p>
+                    </div>
+                    <div class="text-right space-y-1">
+                        <p><span class="text-gray-500">Amount Paid:</span> <span class="font-bold text-black">₹ --</span></p>
+                        <p><span class="text-gray-500">Total Due:</span> <span class="font-bold text-black">₹ --</span></p>
+                    </div>
+                </div>
+                
+                <div class="py-20 text-center text-gray-300 italic font-medium">
+                    (Invoice line items will be rendered here dynamically)
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 left-0 right-0 h-4 bg-[#A9323D]"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            let cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function openNewInvoiceModal() {
+        document.getElementById('newInvoiceModal').classList.remove('hidden');
+        clearSelectedLead();
+    }
+    
+    function closeNewInvoiceModal() {
+        document.getElementById('newInvoiceModal').classList.add('hidden');
+    }
+
+    function openPreviewModal(invNum, projectName) {
+        document.getElementById('previewModalTitle').innerText = `${projectName} - INVOICE`;
+        document.getElementById('previewModalInvNum').innerText = invNum;
+        document.getElementById('paperInvNum').innerText = invNum;
+        document.getElementById('paperClientName').innerText = projectName;
+        
+        document.getElementById('invoicePreviewModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    function closePreviewModal() {
+        document.getElementById('invoicePreviewModal').classList.add('hidden');
+        document.body.style.overflow = 'auto';
+    }
+
+
+    function downloadInvoice(invoiceId, btnElement) {
+        const icon = btnElement.querySelector('i');
+        const originalClass = icon.className;
+        icon.className = "fas fa-spinner fa-spin text-red-600";
+        btnElement.disabled = true;
+
+        fetch(`/invoice/data/${invoiceId}/`)
+            .then(res => res.json())
+            .then(data => {
+                
+                let rowsHtml = '';
+                data.services.forEach(service => {
+                    let deliverableItems = service.deliverables.map(d => `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d}</li>`).join('');
+                    
+                    rowsHtml += `
+                    <tr>
+                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
+                            <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
+                            <ul style="margin:5px 0 0 0;padding:0;list-style:none;">${deliverableItems}</ul>
+                        </td>
+                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;">
+                            <span style="font-weight:bold;font-size:13px;">${service.qty}</span>
+                        </td>
+                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;">
+                            <span style="font-weight:bold;font-size:13px;">₹ ${service.price.toLocaleString('en-IN')}</span>
+                        </td>
+                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;">
+                            <strong style="font-size:14px;color:#111;">₹ ${service.total_amount.toLocaleString('en-IN')}</strong>
+                        </td>
+                    </tr>`;
+                });
+
+                const displayName = data.project_name ? `${data.client_name}` : data.client_name;
+                const initials = data.client_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
+
+                const primaryColor = "#A32E37";
+                const secondaryColor = "#f0f8ff";
+                const textColor = "#333333";
+                const logoUrl = `${window.location.origin}/static/images/logo.png`;
+
+                const pdfTemplate = `
+                <div style="font-family:Helvetica,Arial,sans-serif;background:#fff;padding:30px;color:${textColor};">
+                    <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
+                        <div style="display:table-cell; vertical-align:middle; width:50%;">
+                            <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center;">
+                                <img src="${logoUrl}" alt="Logo" style="height:64px; width:auto; object-fit:contain;">
+                            </div>
+                        </div>
+                        <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
+                            <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">invoice</h1>
+                        </div>
+                    </div>
+                    <h2 style="font-size:15px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
+                    <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:60px;vertical-align:middle;">
+                                <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
+                            </td>
+                            <td style="vertical-align:middle;">
+                                <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
+                                <div style="font-size:12px;color:#666;margin-top:4px;">${data.email}</div>
+                            </td>
+                            <td style="text-align:right;vertical-align:middle;">
+                                <div style="font-size:18px;font-weight:900;color:#A9323D;">${data.invoice_number}</div>
+                                <div style="font-size:12px;color:#666;margin-top:4px;">Due: ${data.due_date}</div>
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
+                    <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:45%;">Service</th>
+                                    <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:15%;">Qty</th>
+                                    <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
+                                    <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+                        
+                        <table style="width:100%;margin-top:30px;border-collapse:collapse;">
+                            <tr>
+                                <td style="width:50%;"></td>
+                                <td style="width:50%;">
+                                    
+                                    <div style="border:1px solid #eaeaea;border-radius:8px;padding:15px;margin-bottom:15px;background:#fff;">
+                                        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                                            <tr><td style="padding-bottom:8px;color:#666;">Subtotal</td><td style="padding-bottom:8px;color:#111;font-weight:bold;text-align:right;">₹ ${data.subtotal.toLocaleString('en-IN')}</td></tr>
+                                            <tr><td style="padding-bottom:8px;color:#666;">Discount</td><td style="padding-bottom:8px;color:#111;font-weight:bold;text-align:right;">- ₹ ${data.discount_amount.toLocaleString('en-IN')}</td></tr>
+                                            <tr><td style="padding-bottom:12px;color:#666;">Tax Amount</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">+ ₹ ${data.tax_amount.toLocaleString('en-IN')}</td></tr>
+                                            <tr><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;">Total Amount</td><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;text-align:right;">₹ ${data.total_amount.toLocaleString('en-IN')}</td></tr>
+                                        </table>
+                                    </div>
+
+                                    <div style="border:1px solid #eaeaea;border-radius:8px;padding:15px;background:#f5fdf5;">
+                                        <table style="width:100%;font-size:13px;border-collapse:collapse;">
+                                            <tr><td style="padding-bottom:8px;color:#666;">Pre Paid Amount</td><td style="padding-bottom:8px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.pre_paid_amount.toLocaleString('en-IN')}</td></tr>
+                                            <tr><td style="padding-bottom:12px;color:#666;">Paid Amounts</td><td style="padding-bottom:12px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.paid_amount.toLocaleString('en-IN')}</td></tr>
+                                            <tr><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;">Remaining Amount</td><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;text-align:right;">₹ ${data.balance_due.toLocaleString('en-IN')}</td></tr>
+                                        </table>
+                                    </div>
+
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>`;
+
+                const filename = `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf`;
+
+                // 4. Send to Playwright Backend endpoint
+                return fetch('/generate-pdf/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    },
+                    body: JSON.stringify({ html: pdfTemplate, filename: filename })
+                }).then(res => {
+                    if (!res.ok) throw new Error("Server error generating PDF");
+                    return { blob: res.blob(), filename: filename }; 
+                });
+
+            })
+            .then(async ({ blob, filename }) => {
+                const resolvedBlob = await blob;
+                const url = window.URL.createObjectURL(resolvedBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                icon.className = "fas fa-check text-green-600";
+                setTimeout(() => {
+                    icon.className = originalClass;
+                    btnElement.disabled = false;
+                }, 2000);
+            })
+            .catch(err => {
+                console.error("PDF generation failed:", err);
+                icon.className = originalClass;
+                btnElement.disabled = false;
+                alert("Failed to download PDF. Check console.");
+            });
+    }
+
+    window.addEventListener('click', function(e) {
+        const newModal = document.getElementById('newInvoiceModal');
+        const prevModal = document.getElementById('invoicePreviewModal');
+        if (e.target === newModal) closeNewInvoiceModal();
+        if (e.target === prevModal) closePreviewModal();
+    });
+
+
+
+// --- Search Logic ---
+    let searchTimeout = null;
+
+    function searchLeads(query) {
+        const resultsContainer = document.getElementById("invoiceSearchResults");
+        
+        if (query.length < 2) {
+            resultsContainer.classList.add("hidden");
+            return;
+        }
+
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            fetch(`/invoice/search-leads/?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultsContainer.innerHTML = "";
+                    
+                    if (data.results.length === 0) {
+                        resultsContainer.innerHTML = `<div class="p-4 text-center text-sm text-gray-500">No un-invoiced leads found.</div>`;
+                    } else {
+                        data.results.forEach(lead => {
+                            const rowHtml = `
+                            <div class="p-3 border-b last:border-b-0 hover:bg-gray-50 cursor-pointer transition flex justify-between items-center" onclick="selectLeadForInvoice('${lead.id}', '${lead.name.replace(/'/g, "\\'")}', '${lead.project_name.replace(/'/g, "\\'")}')">
+                                <div>
+                                    <p class="font-bold text-sm text-gray-800">${lead.name}</p>
+                                    <p class="text-xs text-gray-500 mt-0.5">${lead.email} | ${lead.mobile}</p>
+                                </div>
+                                <div class="text-xs font-semibold text-gray-400 bg-gray-100 px-2 py-1 rounded">
+                                    ${lead.project_name}
+                                </div>
+                            </div>`;
+                            resultsContainer.insertAdjacentHTML('beforeend', rowHtml);
+                        });
+                    }
+                    resultsContainer.classList.remove("hidden");
+                });
+        }, 300);
+    }
+
+    function selectLeadForInvoice(id, name, projectName) {
+        document.getElementById("selectedLeadIdForInvoice").value = id;
+        
+        document.getElementById("displayClientName").innerText = name;
+        document.getElementById("displayProjectName").innerText = projectName;
+        
+        document.getElementById("invoiceSearchInput").classList.add("hidden");
+        document.getElementById("invoiceSearchResults").classList.add("hidden");
+        document.getElementById("selectedClientDisplay").classList.remove("hidden");
+        
+        const btn = document.getElementById("btnProceedInvoice");
+        btn.disabled = false;
+        btn.classList.remove("opacity-50", "cursor-not-allowed");
+    }
+
+    function clearSelectedLead() {
+        document.getElementById("selectedLeadIdForInvoice").value = "";
+        
+        document.getElementById("invoiceSearchInput").value = "";
+        document.getElementById("invoiceSearchInput").classList.remove("hidden");
+        document.getElementById("selectedClientDisplay").classList.add("hidden");
+        
+        const btn = document.getElementById("btnProceedInvoice");
+        btn.disabled = true;
+        btn.classList.add("opacity-50", "cursor-not-allowed");
+    }
+
+    function proceedToCreateInvoice() {
+        const leadId = document.getElementById("selectedLeadIdForInvoice").value;
+        if (!leadId) return;
+
+        const btn = document.getElementById("btnProceedInvoice");
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+        btn.disabled = true;
+
+        const formData = new URLSearchParams({ lead_id: leadId });
+
+        // Call the new, dedicated endpoint
+        fetch("/invoice/generate-from-lead/", { 
+            method: "POST", 
+            headers: { 
+                "Content-Type": "application/x-www-form-urlencoded", 
+                "X-CSRFToken": getCookie("csrftoken") 
+            }, 
+            body: formData 
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Server Error");
+            return res.json();
+        })
+        .then(data => {
+            if(data.success && data.invoice_url) {
+                window.location.href = data.invoice_url; 
+            } else {
+                alert("Could not generate invoice. Please check data.");
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error("Error:", err);
+            alert("A server error occurred. Please check your backend terminal.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+</script>
+{% endblock %}

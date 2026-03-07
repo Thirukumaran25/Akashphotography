@@ -1,0 +1,1405 @@
+:root {
+    --primary: #9e2a2f;
+    --text-dark: #111;
+    --text-muted: #666;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+   font-family: "Inter", sans-serif;
+    background: #fff;
+}
+
+/* TOP STRIP */
+.top-strip {
+    height: 40px;
+    background: var(--primary);
+    margin-bottom: 20px;
+}
+
+/* NAVBAR CONTAINER */
+.navbar {
+  height: 84px;
+  display: grid;
+  grid-template-columns: 200px 1fr 200px; /* LEFT | CENTER | RIGHT */
+  align-items: center;
+  padding: 0 48px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.navbar {
+  height: 84px;
+  display: grid;
+  grid-template-columns: 150px 1fr 150px; /* LEFT | CENTER | RIGHT */
+  align-items: center;
+  padding: 0 78px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+/* LEFT */
+.nav-left {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.nav-left img{
+    width:97px;
+}
+
+/* CENTER */
+.nav-center {
+  display: flex;
+  justify-content: center;
+}
+
+/* RIGHT */
+.nav-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+}
+
+/* LEFT LOGO */
+.nav-left .logo {
+    height: 80px;
+}
+
+/* CENTER MENU */
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    list-style: none;
+}
+
+/* MENU ITEM */
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    color: var(--text-dark);
+    font-size: 15px;
+    font-weight: 500;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.nav-item img {
+    width: 17px;
+    height: 17px;
+}
+.nav-item.employee img{
+    width:24px;
+}
+
+/* ACTIVE STATE */
+.nav-item.active {
+    color: var(--primary);
+}
+
+.nav-item.active::after {
+    content: "";
+    position: absolute;
+    bottom: -18px;
+    width: 28px;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 4px;
+}
+
+/* HOVER ANIMATION */
+.nav-item:hover {
+    transform: translateY(-3px);
+    color: var(--primary);
+}
+.nav-item:hover img,
+.nav-item.active img {
+  filter: brightness(0)
+          saturate(100%)
+          invert(23%)
+          sepia(92%)
+          saturate(5200%)
+          hue-rotate(352deg)
+          brightness(92%)
+          contrast(70%);
+}
+
+
+/* RIGHT SECTION */
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+/* NOTIFICATION */
+.notification img {
+    width: 28px;
+    height:28px;
+    cursor: pointer;
+    margin-top: 2px;
+}
+
+/* PROFILE CIRCLE */
+.profile-circle {
+    width: 28px;
+    height: 28px;
+    background: #000;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 20%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.profile-circle:hover {
+    transform: scale(1.08);
+}
+
+
+/* PROGRESS HEADER */
+.progress-wrapper {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+}
+
+.progress-line {
+    position: absolute;
+    top: 14px;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: #ddd;
+    z-index: 0;
+}
+
+.progress-step {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+}
+
+.progress-step span {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ddd;
+    color: #555;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.progress-step p {
+    font-size: 12px;
+    margin-top: 6px;
+    color: #777;
+}
+
+.progress-step.active span {
+    background: var(--primary);
+    color: white;
+}
+
+.progress-step.active p {
+    color: var(--primary);
+}
+
+/* follow up reminder */
+/* ============================= */
+/* FOLLOW-UP PANEL (MODERN) */
+/* ============================= */
+
+.followup-panel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 420px;
+    height: 100%;
+    background: linear-gradient(180deg, #ffffff, #fafafa);
+    box-shadow: -20px 0 60px rgba(0,0,0,.18);
+    transition: right .45s cubic-bezier(.4,0,.2,1);
+    z-index: 3000;
+    display: flex;
+    flex-direction: column;
+    font-family: "Inter", system-ui, sans-serif;
+}
+
+/* OPEN ANIMATION */
+.followup-panel.open {
+    right: 0;
+    animation: panelFadeIn .45s ease;
+}
+
+@keyframes panelFadeIn {
+    from { opacity: .6; }
+    to { opacity: 1; }
+}
+
+/* ============================= */
+/* HEADER */
+/* ============================= */
+
+.followup-header {
+    padding: 22px 22px 18px;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+}
+
+.followup-header h3 {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: .3px;
+}
+
+.followup-header p {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+
+.followup-header strong {
+    color: var(--primary);
+}
+
+.followup-header .close-btn {
+    font-size: 26px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #888;
+    transition: transform .2s ease, color .2s ease;
+}
+
+.followup-header .close-btn:hover {
+    color: #000;
+    transform: scale(1.15);
+}
+
+/* ============================= */
+/* SUMMARY STRIP */
+/* ============================= */
+
+.followup-summary {
+    display: flex;
+    gap: 12px;
+    padding: 18px;
+}
+
+.summary-item {
+    flex: 1;
+    border-radius: 16px;
+    padding: 14px 10px;
+    text-align: center;
+    font-weight: 600;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,.05);
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+.summary-item span {
+    display: block;
+    font-size: 12px;
+    letter-spacing: .4px;
+}
+
+.summary-item strong {
+    display: block;
+    margin-top: 6px;
+    font-size: 24px;
+}
+
+.summary-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0,0,0,.12);
+}
+
+/* COLORS */
+.summary-item.overdue {
+    background: linear-gradient(135deg, #ffe6e6, #fff);
+    color: #d11a1a;
+}
+
+.summary-item.today {
+    background: linear-gradient(135deg, #fff4d6, #fff);
+    color: #b08900;
+}
+
+.summary-item.upcoming {
+    background: linear-gradient(135deg, #e8f8ec, #fff);
+    color: #1a9b39;
+}
+
+/* ============================= */
+/* TABS */
+/* ============================= */
+
+.followup-tabs {
+    display: flex;
+    border-bottom: 1px solid rgba(0,0,0,.06);
+    background: #fff;
+}
+
+.followup-tabs button {
+    flex: 1;
+    padding: 14px 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    color: #666;
+    transition: color .2s ease;
+    position: relative;
+}
+
+.followup-tabs button.active {
+    color: var(--primary);
+}
+
+.followup-tabs button.active::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 20%;
+    width: 60%;
+    height: 3px;
+    background: var(--primary);
+    border-radius: 6px;
+}
+
+/* ============================= */
+/* LIST */
+/* ============================= */
+
+.followup-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+}
+
+/* ============================= */
+/* FOLLOW-UP CARD */
+/* ============================= */
+
+.followup-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.08);
+    animation: cardSlide .35s ease;
+    transition: transform .25s ease, box-shadow .25s ease;
+}
+
+@keyframes cardSlide {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.followup-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 40px rgba(0,0,0,.14);
+}
+
+.followup-card h4 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.followup-card p {
+    font-size: 13px;
+    color: #555;
+    margin: 4px 0;
+}
+
+/* ============================= */
+/* ACTIONS */
+/* ============================= */
+
+.card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.card-actions button {
+    flex: 1;
+    padding: 9px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.card-actions button:first-child {
+    background: #f1f1f1;
+}
+
+.card-actions button:last-child {
+    background: var(--primary);
+    color: #fff;
+}
+
+.card-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(0,0,0,.18);
+}
+
+/* ============================= */
+/* EMPTY STATE */
+/* ============================= */
+
+.followup-empty {
+    text-align: center;
+    color: #777;
+    margin-top: 90px;
+    font-size: 14px;
+    animation: fadeIn .3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* notification badge */
+/* ============================= */
+/* NOTIFICATION BADGE */
+/* ============================= */
+
+.notification {
+    position: relative;
+    cursor: pointer;
+}
+
+.notif-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: #e53935;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    border-radius: 999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(229,57,53,.45);
+    transform: scale(0);
+    transition: transform .25s ease;
+}
+
+/* SHOW WHEN COUNT > 0 */
+.notif-badge.show {
+    transform: scale(1);
+    animation: badgePop .35s ease;
+}
+
+@keyframes badgePop {
+    0%   { transform: scale(.6); }
+    60%  { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+.mobile-menu-close {
+  display: none;
+}
+
+
+/* responsiveness */
+@media (min-width: 320px) and (max-width: 374px) {
+
+  /* ========================= */
+  /* NAVBAR */
+  /* ========================= */
+  .navbar {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    padding: 0 14px;
+  }
+
+  .top-strip {
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 46px;
+  }
+
+  /* ========================= */
+  /* MOBILE MENU PANEL */
+  /* ========================= */
+  .nav-center {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    z-index: 2000;
+  }
+
+  .nav-center.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: #f5f5f5;
+    transform: none;
+  }
+
+  .nav-item.active::after {
+    display: none;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 12px;
+  }
+
+  .notification img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-circle {
+    display: none;
+  }
+
+  /* ========================= */
+  /* HAMBURGER */
+  /* ========================= */
+  .mobile-menu-btn {
+    width: 28px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    height: 3px;
+    width: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+    .mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f2;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, transform .2s ease;
+    z-index: 2100;
+  }
+
+  .mobile-menu-close:hover {
+    background: #e5e5e5;
+    transform: scale(1.08);
+  }
+
+}
+
+
+@media (min-width: 375px) and (max-width: 424px) {
+
+  /* ========================= */
+  /* NAVBAR */
+  /* ========================= */
+  .navbar {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    padding: 0 14px;
+  }
+
+  .top-strip {
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 46px;
+  }
+
+  /* ========================= */
+  /* MOBILE MENU PANEL */
+  /* ========================= */
+  .nav-center {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    z-index: 2000;
+  }
+
+  .nav-center.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: #f5f5f5;
+    transform: none;
+  }
+
+  .nav-item.active::after {
+    display: none;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 12px;
+  }
+
+  .notification img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-circle {
+    display: none;
+  }
+
+  /* ========================= */
+  /* HAMBURGER */
+  /* ========================= */
+  .mobile-menu-btn {
+    width: 28px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    height: 3px;
+    width: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+    .mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f2;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, transform .2s ease;
+    z-index: 2100;
+  }
+
+  .mobile-menu-close:hover {
+    background: #e5e5e5;
+    transform: scale(1.08);
+  }
+
+}
+
+@media (min-width: 424px) and (max-width: 599px) {
+
+  /* ========================= */
+  /* NAVBAR */
+  /* ========================= */
+  .navbar {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    padding: 0 14px;
+  }
+
+  .top-strip {
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 46px;
+  }
+
+  /* ========================= */
+  /* MOBILE MENU PANEL */
+  /* ========================= */
+  .nav-center {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    z-index: 2000;
+  }
+
+  .nav-center.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: #f5f5f5;
+    transform: none;
+  }
+
+  .nav-item.active::after {
+    display: none;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 12px;
+  }
+
+  .notification img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-circle {
+    display: none;
+  }
+
+  /* ========================= */
+  /* HAMBURGER */
+  /* ========================= */
+  .mobile-menu-btn {
+    width: 28px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    height: 3px;
+    width: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+    .mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f2;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, transform .2s ease;
+    z-index: 2100;
+  }
+
+  .mobile-menu-close:hover {
+    background: #e5e5e5;
+    transform: scale(1.08);
+  }
+
+}
+
+@media (min-width: 600px) and (max-width: 767px) {
+
+  /* ========================= */
+  /* NAVBAR */
+  /* ========================= */
+  .navbar {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    padding: 0 14px;
+  }
+
+  .top-strip {
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 46px;
+  }
+
+  /* ========================= */
+  /* MOBILE MENU PANEL */
+  /* ========================= */
+  .nav-center {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    z-index: 2000;
+  }
+
+  .nav-center.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: #f5f5f5;
+    transform: none;
+  }
+
+  .nav-item.active::after {
+    display: none;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 12px;
+  }
+
+  .notification img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-circle {
+    display: none;
+  }
+
+  /* ========================= */
+  /* HAMBURGER */
+  /* ========================= */
+  .mobile-menu-btn {
+    width: 28px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    height: 3px;
+    width: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+    .mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f2;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, transform .2s ease;
+    z-index: 2100;
+  }
+
+  .mobile-menu-close:hover {
+    background: #e5e5e5;
+    transform: scale(1.08);
+  }
+
+}
+@media (min-width: 768px) and (max-width: 899px) {
+
+  /* ========================= */
+  /* NAVBAR */
+  /* ========================= */
+  .navbar {
+    height: 64px;
+    grid-template-columns: auto 1fr auto;
+    padding: 0 14px;
+  }
+
+  .top-strip {
+    height: 28px;
+    margin-bottom: 8px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 46px;
+  }
+
+  /* ========================= */
+  /* MOBILE MENU PANEL */
+  /* ========================= */
+  .nav-center {
+    position: fixed;
+    top: 10px;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transform: translateX(100%);
+    transition: transform .35s cubic-bezier(.4,0,.2,1);
+    z-index: 2000;
+  }
+
+  .nav-center.open {
+    transform: translateX(0);
+  }
+
+  .nav-menu {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 18px;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: row;
+    width: 100%;
+    padding: 14px 12px;
+    gap: 14px;
+    font-size: 15px;
+    border-radius: 12px;
+  }
+
+  .nav-item:hover {
+    background: #f5f5f5;
+    transform: none;
+  }
+
+  .nav-item.active::after {
+    display: none;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 12px;
+  }
+
+  .notification img {
+    width: 26px;
+    height: 26px;
+  }
+
+  .profile-circle {
+    display: none;
+  }
+
+  /* ========================= */
+  /* HAMBURGER */
+  /* ========================= */
+  .mobile-menu-btn {
+    width: 28px;
+    height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+  }
+
+  .mobile-menu-btn span {
+    height: 3px;
+    width: 100%;
+    background: var(--primary);
+    border-radius: 4px;
+  }
+  
+    .mobile-menu-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: #f2f2f2;
+    font-size: 22px;
+    font-weight: 600;
+    cursor: pointer;
+    color: #444;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .2s ease, transform .2s ease;
+    z-index: 2100;
+  }
+
+  .mobile-menu-close:hover {
+    background: #e5e5e5;
+    transform: scale(1.08);
+  }
+
+}
+@media (min-width: 899px) and (max-width: 1023px) {
+
+  /* ========================= */
+  /* NAVBAR LAYOUT */
+  /* ========================= */
+  .navbar {
+    height: 80px;
+    grid-template-columns: 130px 1fr 180px;
+    padding: 0 36px;
+  }
+
+  .top-strip {
+    height: 34px;
+    margin-bottom: 14px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 68px;
+  }
+
+  /* ========================= */
+  /* CENTER MENU (DESKTOP MODE) */
+  /* ========================= */
+  .nav-center {
+    position: static;
+    transform: none;
+    height: auto;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    align-items: center;
+    gap: 36px; /* slightly wider than 768–899 */
+    padding: 0;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: column;
+    font-size: 16px;
+  }
+
+  .nav-item img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-item.employee img {
+    width: 26px;
+  }
+
+  .nav-item:hover {
+    transform: translateY(-2px);
+  }
+
+  .nav-item.active::after {
+    bottom: -16px;
+    width: 24px;
+    height: 3px;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 16px;
+  }
+
+  .notification img {
+    width: 30px;
+    height: 30px;
+  }
+
+  .profile-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    display: flex;
+  }
+
+  /* ========================= */
+  /* DISABLE MOBILE CONTROLS */
+  /* ========================= */
+  .mobile-menu-btn {
+    display: none;
+  }
+
+  .mobile-menu-close {
+    display: none;
+  }
+
+}
+@media (min-width: 1023px) and (max-width: 1199px) {
+
+  /* ========================= */
+  /* NAVBAR LAYOUT */
+  /* ========================= */
+  .navbar {
+    height: 84px;
+    grid-template-columns: 150px 1fr 150px;
+    padding: 0 48px;
+  }
+
+  .top-strip {
+    height: 36px;
+    margin-bottom: 16px;
+  }
+
+  /* ========================= */
+  /* LOGO */
+  /* ========================= */
+  .nav-left .logo {
+    height: 72px;
+  }
+
+  /* ========================= */
+  /* CENTER MENU (DESKTOP) */
+  /* ========================= */
+  .nav-center {
+    position: static;
+    transform: none;
+    height: auto;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+  }
+
+  .nav-menu {
+    flex-direction: row;
+    align-items: center;
+    gap: 44px; /* relaxed spacing */
+    padding: 0;
+  }
+
+  /* ========================= */
+  /* MENU ITEMS */
+  /* ========================= */
+  .nav-item {
+    flex-direction: column;
+    font-size: 17px;
+  }
+
+  .nav-item img {
+    width: 22px;
+    height: 22px;
+  }
+
+  .nav-item.employee img {
+    width: 28px;
+  }
+
+  .nav-item:hover {
+    transform: translateY(-3px);
+  }
+
+  .nav-item.active::after {
+    bottom: -18px;
+    width: 28px;
+    height: 3px;
+  }
+
+  /* ========================= */
+  /* RIGHT SIDE ICONS */
+  /* ========================= */
+  .nav-right {
+    gap: 18px;
+  }
+
+  .notification img {
+    width: 32px;
+    height: 34px;
+  }
+
+  .profile-circle {
+    width: 34px;
+    height: 34px;
+    font-size: 13px;
+    display: flex;
+  }
+
+  /* ========================= */
+  /* DISABLE MOBILE CONTROLS */
+  /* ========================= */
+  .mobile-menu-btn {
+    display: none;
+  }
+
+  .mobile-menu-close {
+    display: none;
+  }
+
+}
+
