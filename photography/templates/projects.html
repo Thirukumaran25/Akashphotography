@@ -132,14 +132,14 @@
   <div id="boardView">
     <div class="projects-board flex gap-1.5 overflow-x-auto min-w-0 pb-4">
 
-      <div class="project-column w-[280px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="ASSIGNED">
+      <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="ASSIGNED">
         <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
           <span class="label bg-[#f7e6fb] text-[#9b2fae] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● To Be Assigned </span> 
           <span class="count text-[20px] font-medium text-[#888]">{{ assigned|length }}</span>
         </div>
 
         {% for p in assigned %}
-        <div class="project-card bg-white p-[14px] rounded-2xl mb-3.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] cursor-grab transition-transform duration-250 hover:-translate-y-[3px]" draggable="true" data-id="{{ p.id }}">
+        <div class="project-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] cursor-grab transition-transform duration-250 hover:-translate-y-[3px]" draggable="true" data-id="{{ p.id }}">
           <div class="code text-[12px] text-[#777]">AK {{ p.id }}</div>
           <h4 class="text-[18px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
           <hr class="pre-card-divider border-none border-t border-[#eee] my-2.5" />
@@ -170,14 +170,14 @@
         {% endfor %}
       </div>
 
-      <div class="project-column w-[280px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all precard" data-status="PRE">
+      <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all precard" data-status="PRE">
         <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
           <span class="label bg-[#e8edff] text-[#2b2bd8] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Pre Production</span> 
           <span class="count text-[20px] font-medium text-[#888]">{{ pre_cards|length }}</span>
         </div>
 
         {% for p in pre_cards %}
-        <div class="project-card pre-card bg-white p-[14px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)] cursor-pointer transition-transform duration-250 hover:-translate-y-[3px]" data-id="{{ p.id }}">
+        <div class="project-card pre-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)] cursor-pointer transition-transform duration-250 hover:-translate-y-[3px]" data-id="{{ p.id }}">
 
           <div class="pre-card-header flex justify-between items-center">
             <span class="pre-card-code text-[12px] text-[#666] font-semibold">AK {{ p.id }}</span>
@@ -222,14 +222,14 @@
         {% endfor %}
       </div>
 
-      <div class="project-column w-[280px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="SELECTION">
+      <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="SELECTION">
         <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
           <span class="label bg-[#fff8dc] text-[#c2b000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Selection </span>
           <span class="count text-[20px] font-medium text-[#888]">{{ selection|length }}</span>
         </div>
 
         {% for p in selection %}
-        <div class="project-card selection-card bg-white p-[14px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
+        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
 
           <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
 
@@ -275,14 +275,14 @@
       </div>
 
 
-      <div class="project-column w-[280px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="POST">
+      <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="POST">
         <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
           <span class="label bg-[#ffeaea] text-[#d60000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Post Production </span> 
           <span class="count text-[20px] font-medium text-[#888]">{{ post|length }}</span>
         </div>
 
         {% for p in post %}
-        <div class="project-card selection-card bg-white p-[14px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
+        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
 
           <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
 
@@ -319,14 +319,14 @@
         {% endfor %}
       </div>
 
-      <div class="project-column w-[280px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="COMPLETED">
+      <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="COMPLETED">
         <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
           <span class="label bg-[#e6fff0] text-[#0f8a42] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Completed </span> 
           <span class="count text-[20px] font-medium text-[#888]">{{ completed|length }}</span>
         </div>
 
          {% for p in completed %}
-        <div class="project-card selection-card bg-white p-[14px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
+        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
 
           <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
 

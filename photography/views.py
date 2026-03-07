@@ -7,36 +7,30 @@ from django.db.models import Q
 from datetime import date
 from .models import *
 import json
-from playwright.async_api import async_playwright
+from weasyprint import HTML
 from asgiref.sync import async_to_sync
 
 
-async def _generate_pdf_async(html_content):
-    async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True, args=['--no-sandbox'])
-        page = await browser.new_page()
-        await page.set_content(html_content, wait_until="networkidle")
-        pdf_bytes = await page.pdf(
-            format="A4",
-            print_background=True
-        )
-        
-        await browser.close()
-        return pdf_bytes
-
-# --- PDF ENDPOINT ---
 @csrf_exempt
 def generate_pdf(request):
-    """ Receives HTML from frontend and returns a generated PDF file """
+    """ Generates a PDF using WeasyPrint """
     if request.method == "POST":
         data = json.loads(request.body)
         html_content = data.get("html", "")
-        filename = data.get("filename", "Quotation.pdf")
-        pdf_bytes = async_to_sync(_generate_pdf_async)(html_content)
-        response = HttpResponse(pdf_bytes, content_type='application/pdf')
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-        
+        filename = data.get("filename", "Invoice.pdf")
+
+        try:
+            base_url = request.build_absolute_uri('/')
+            pdf_bytes = HTML(string=html_content, base_url=base_url).write_pdf()
+
+            response = HttpResponse(pdf_bytes, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
+            
+        except Exception as e:
+            print("WeasyPrint Error:", str(e))
+            return JsonResponse({"error": str(e)}, status=500)
+            
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 

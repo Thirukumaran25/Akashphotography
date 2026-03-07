@@ -326,29 +326,29 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
                 let sTotal = qty * cost;
                 subtotal += sTotal;
 
-                const deliverableItems = service.deliverables.map(d => `<li class="mt-1">• ${d.title}</li>`).join(''); 
+                const deliverableItems = service.deliverables.map(d => `<li class="mt-1" style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`).join(''); 
                 const teamItems = (service.team_names && service.team_names.length > 0) 
-                    ? service.team_names.map(t => `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold tracking-wide">${t}</div>`).join('') 
-                    : '<span class="text-gray-400 text-xs italic">Unassigned</span>';
+                    ? service.team_names.map(t => `<div style="background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">${t}</div>`).join('') 
+                    : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">Unassigned</span>';
 
                 rowsHtml += `
                 <tr>
-                    <td style="padding: 24px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
-                        <strong style="font-size: 15px; color:#111;">${service.service_name}</strong>
-                        <ul style="margin: 8px 0 0 0; padding: 0; list-style: none;">
+                    <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
+                        <strong style="font-size: 14px; color:#111;">${service.service_name}</strong>
+                        <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
                             ${deliverableItems}
                         </ul>
                     </td>
-                    <td>
-                        <div class="col-span-3 pr-2 pt-0.5"><div class="flex flex-wrap">${teamItems}</div></div>
+                    <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
+                        ${teamItems}
                     </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;">
+                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align: top;">
                         <span style="font-weight:bold;font-size:13px;">${qty}</span>
                     </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;">
+                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align: top;">
                         <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
                     </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;">
+                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align: top;">
                         <strong style="font-size:14px;color:#111;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
                     </td>
                 </tr>`;
@@ -358,16 +358,35 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
             const initials = clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
             const emailToUse = email || 'No email provided';
 
-            // Variables for your theme and images
-            const primaryColor = "#A32E37";
-            const secondaryColor = "#f0f8ff"; 
+            const primaryColor = "#A32e37";
             const textColor = "#333333";
             const logoUrl = `${window.location.origin}/static/images/logo.png`;
             const QutationUrl = `${window.location.origin}/static/images/Qutation.png`;
 
+            // 🌟 WRAP THE TEMPLATE IN STRICT HTML FOR WEASYPRINT
             const pdfTemplate = `
-            <div style="font-family:sans-serif; background:#fff; padding:30px; color:${textColor};">
-                
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    /* WeasyPrint specific page rules */
+                    @page {
+                        size: A4 portrait;
+                        margin: 0; /* Removes default margins so the header hits the edges */
+                    }
+                    body {
+                        font-family: Helvetica, Arial, sans-serif;
+                        color: ${textColor};
+                        margin: 0;
+                        padding: 0;
+                    }
+                    .content-wrapper {
+                        padding: 30px;
+                    }
+                </style>
+            </head>
+            <body>
                 <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
                     <div style="display:table-cell; vertical-align:middle; width:50%;">
                         <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
@@ -378,55 +397,58 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
                         <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">QUOTATION</h1>
                     </div>
                 </div>
-
-                <div style="margin-top: 20px; margin-bottom: 20px; width: 100%; text-align: center;">
-                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
-                </div>
-
-                <h2 style="font-size:26px; font-weight:800; color:#111; margin-bottom:25px; margin-top:20px;">Bill To</h2>
                 
-                <table style="width:100%; margin-bottom:35px; border-collapse:collapse;">
-                    <tr>
-                        <td style="width:60px; vertical-align:middle;">
-                            <div style="width:45px; height:45px; background:#111; color:#fff; border-radius:50%; text-align:center; line-height:45px; font-weight:bold; font-size:14px;">${initials}</div>
-                        </td>
-                        <td style="vertical-align:middle;">
-                            <div style="font-weight:800; font-size:16px; color:#111;">${displayName}</div>
-                            <div style="font-size:12px; color:#666; margin-top:4px;">${emailToUse}</div>
-                        </td>
-                    </tr>
-                </table>
+                <div class="content-wrapper">
+                    <div style="margin-bottom: 30px; width: 100%; text-align: center;">
+                        <img src="${QutationUrl}" alt="Quotation Banner" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                    </div>
 
-                <h3 style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px;">Services</h3>
-                
-                <div style="background:#f9f9f9; border-radius:8px; padding:20px;">
-                    <table style="width:100%; border-collapse:collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:33%;">Service</th>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:30%;">Team</th>
-                                <th style="text-align:center; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:5%;">Qty</th>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:20%;">Price</th>
-                                <th style="text-align:right; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:25%;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-
-                    <table style="width:100%; margin-top:30px; border-collapse:collapse;">
+                    <h2 style="font-size:26px; font-weight:800; color:#111; margin-bottom:25px; margin-top:0;">Bill To</h2>
+                    
+                    <table style="width:100%; margin-bottom:35px; border-collapse:collapse;">
                         <tr>
-                            <td style="width:50%;"></td>
-                            <td style="width:50%;">
-                                <table style="width:100%; font-size:14px; border-collapse:collapse;">
-                                    <tr><td style="padding-bottom:12px; color:#444;">Subtotal</td><td style="padding-bottom:12px; color:#111; font-weight:bold; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding-bottom:20px; color:#444;">Pre Paid Amount</td><td style="padding-bottom:20px; color:#111; font-weight:bold; text-align:right;">₹ 0</td></tr>
-                                    <tr><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px;">Total</td><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
-                                </table>
+                            <td style="width:60px; vertical-align:middle;">
+                                <div style="width:45px; height:45px; background:#111; color:#fff; border-radius:50%; text-align:center; line-height:45px; font-weight:bold; font-size:14px;">${initials}</div>
+                            </td>
+                            <td style="vertical-align:middle;">
+                                <div style="font-weight:800; font-size:16px; color:#111;">${displayName}</div>
+                                <div style="font-size:12px; color:#666; margin-top:4px;">${emailToUse}</div>
                             </td>
                         </tr>
                     </table>
+
+                    <h3 style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px;">Services</h3>
+                    
+                    <div style="background:#f9f9f9; border-radius:8px; padding:20px;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:33%;">Service</th>
+                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:30%;">Team</th>
+                                    <th style="text-align:center; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:5%;">Qty</th>
+                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:20%;">Price</th>
+                                    <th style="text-align:right; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:25%;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>${rowsHtml}</tbody>
+                        </table>
+
+                        <table style="width:100%; margin-top:30px; border-collapse:collapse;">
+                            <tr>
+                                <td style="width:50%;"></td>
+                                <td style="width:50%;">
+                                    <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                                        <tr><td style="padding-bottom:12px; color:#444;">Subtotal</td><td style="padding-bottom:12px; color:#111; font-weight:bold; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
+                                        <tr><td style="padding-bottom:20px; color:#444;">Pre Paid Amount</td><td style="padding-bottom:20px; color:#111; font-weight:bold; text-align:right;">₹ 0</td></tr>
+                                        <tr><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px;">Total</td><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
-            </div>`;
+            </body>
+            </html>`;
 
             const filename = `Quotation_${clientName.replace(/\s+/g, '_')}.pdf`;
 
