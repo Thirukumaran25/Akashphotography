@@ -9,29 +9,84 @@ from .models import *
 import json
 from weasyprint import HTML
 from asgiref.sync import async_to_sync
+from django.conf import settings
+import base64
+import os
+from django.contrib.staticfiles import finders
 
+
+def get_static_image_base64(relative_path):
+    """Convert a static file image to base64 data URI"""
+    full_path = os.path.join(settings.STATIC_ROOT, relative_path)
+    try:
+        with open(full_path, 'rb') as f:
+            encoded = base64.b64encode(f.read()).decode('utf-8')
+        ext = relative_path.rsplit('.', 1)[-1].lower()
+        mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png', 'gif': 'gif', 'svg': 'svg+xml'}.get(ext, 'png')
+        return f"data:image/{mime};base64,{encoded}"
+    except FileNotFoundError:
+        return ""
 
 @csrf_exempt
 def generate_pdf(request):
-    """ Generates a PDF using WeasyPrint """
     if request.method == "POST":
         data = json.loads(request.body)
         html_content = data.get("html", "")
         filename = data.get("filename", "Invoice.pdf")
 
         try:
-            base_url = request.build_absolute_uri('/')
-            pdf_bytes = HTML(string=html_content, base_url=base_url).write_pdf()
-
+            pdf_bytes = HTML(string=html_content).write_pdf()  # No base_url needed
             response = HttpResponse(pdf_bytes, content_type='application/pdf')
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
-            
         except Exception as e:
-            print("WeasyPrint Error:", str(e))
             return JsonResponse({"error": str(e)}, status=500)
-            
+
     return JsonResponse({"error": "Invalid request"}, status=400)
+
+
+def get_image_base64(request):
+    image_path = request.GET.get('path', '')
+
+    if '..' in image_path or image_path.startswith('/'):
+        return JsonResponse({"error": "Invalid path"}, status=400)
+
+    full_path = None
+
+    # Method 1: staticfiles finders (development)
+    found = finders.find(image_path)
+    if found:
+        full_path = found
+
+    # Method 2: STATIC_ROOT (production after collectstatic)
+    if not full_path:
+        candidate = os.path.join(settings.STATIC_ROOT, image_path)
+        if os.path.exists(candidate):
+            full_path = candidate
+
+    # Method 3: Check each STATICFILES_DIRS manually
+    if not full_path:
+        for static_dir in getattr(settings, 'STATICFILES_DIRS', []):
+            candidate = os.path.join(static_dir, image_path)
+            if os.path.exists(candidate):
+                full_path = candidate
+                break
+
+    if not full_path:
+        return JsonResponse({
+            "error": "Image not found",
+            "tried_static_root": str(getattr(settings, 'STATIC_ROOT', 'NOT SET')),
+            "path": image_path
+        }, status=404)
+
+    try:
+        with open(full_path, 'rb') as f:
+            encoded = base64.b64encode(f.read()).decode('utf-8')
+        ext = image_path.rsplit('.', 1)[-1].lower()
+        mime = {'jpg': 'jpeg', 'jpeg': 'jpeg', 'png': 'png', 'gif': 'gif', 'svg': 'svg+xml'}.get(ext, 'png')
+        return JsonResponse({"data_uri": f"data:image/{mime};base64,{encoded}"})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 

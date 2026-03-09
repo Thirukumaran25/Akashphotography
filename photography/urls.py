@@ -16,7 +16,7 @@ urlpatterns = [
     path('invoice/data/<int:invoice_id>/', get_invoice_data, name='get_invoice_data'),
     path('invoice/search-leads/', search_leads_for_invoice, name='search_leads_for_invoice'),
     path('invoice/generate-from-lead/', generate_invoice_from_lead, name='generate_invoice_from_lead'),
-
+    path('get-image-base64/', get_image_base64, name='get_image_base64'),
 
     path('sessions/', sessions, name='sessions'),
     path('team_members/', team_members, name='team_members'),

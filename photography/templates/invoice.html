@@ -253,180 +253,177 @@
     }
 
 
-   // 🌟 WEASYPRINT PDF DOWNLOAD LOGIC
-    function downloadInvoice(invoiceId, btnElement) {
-        const icon = btnElement.querySelector('i');
-        const originalClass = icon.className;
-        icon.className = "fas fa-spinner fa-spin text-red-600";
-        btnElement.disabled = true;
+   function downloadInvoice(invoiceId, btnElement) {
+    const icon = btnElement.querySelector('i');
+    const originalClass = icon.className;
+    icon.className = "fas fa-spinner fa-spin text-red-600";
+    btnElement.disabled = true;
 
-        fetch(`/invoice/data/${invoiceId}/`)
-            .then(res => res.json())
-            .then(data => {
-                
-                let rowsHtml = '';
-                data.services.forEach(service => {
-                    let deliverableItems = service.deliverables.map(d => `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d}</li>`).join('');
-                    
-                    rowsHtml += `
+    // ✅ Fetch logo as base64 + invoice data together
+    Promise.all([
+        fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
+        fetch(`/invoice/data/${invoiceId}/`).then(r => r.json())
+    ])
+    .then(([logoData, data]) => {
+
+
+        const logoUrl = logoData.data_uri || '';
+
+        let rowsHtml = '';
+        data.services.forEach(service => {
+            let deliverableItems = service.deliverables.map(d => `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d}</li>`).join('');
+
+            rowsHtml += `
+            <tr>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
+                    <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
+                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">${deliverableItems}</ul>
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;">
+                    <span style="font-weight:bold;font-size:13px;">${service.qty}</span>
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;">
+                    <span style="font-weight:bold;font-size:13px;">₹ ${service.price.toLocaleString('en-IN')}</span>
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;">
+                    <strong style="font-size:14px;color:#111;">₹ ${service.total_amount.toLocaleString('en-IN')}</strong>
+                </td>
+            </tr>`;
+        });
+
+        const displayName = data.project_name ? `${data.client_name}` : data.client_name;
+        const initials = data.client_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
+
+        const primaryColor = "#A32E37";
+        const textColor = "#333333";
+
+        const pdfTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @page {
+                    size: A4 portrait;
+                    margin: 0;
+                }
+                body {
+                    font-family: Helvetica, Arial, sans-serif;
+                    color: ${textColor};
+                    margin: 0;
+                    padding: 0;
+                }
+                .content-wrapper {
+                    padding: 30px;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
+                <div style="display:table-cell; vertical-align:middle; width:50%;">
+                    <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
+                        <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
+                    </div>
+                </div>
+                <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
+                    <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">INVOICE</h1>
+                </div>
+            </div>
+
+            <div class="content-wrapper">
+                <h2 style="font-size:15px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
+                <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
                     <tr>
-                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                            <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
-                            <ul style="margin:5px 0 0 0;padding:0;list-style:none;">${deliverableItems}</ul>
+                        <td style="width:60px;vertical-align:middle;">
+                            <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
                         </td>
-                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;">
-                            <span style="font-weight:bold;font-size:13px;">${service.qty}</span>
+                        <td style="vertical-align:middle;">
+                            <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
+                            <div style="font-size:12px;color:#666;margin-top:4px;">${data.email}</div>
                         </td>
-                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;">
-                            <span style="font-weight:bold;font-size:13px;">₹ ${service.price.toLocaleString('en-IN')}</span>
+                        <td style="text-align:right;vertical-align:middle;">
+                            <div style="font-size:18px;font-weight:900;color:#A9323D;">${data.invoice_number}</div>
+                            <div style="font-size:12px;color:#666;margin-top:4px;">Due: ${data.due_date}</div>
                         </td>
-                        <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;">
-                            <strong style="font-size:14px;color:#111;">₹ ${service.total_amount.toLocaleString('en-IN')}</strong>
-                        </td>
-                    </tr>`;
-                });
+                    </tr>
+                </table>
 
-                const displayName = data.project_name ? `${data.client_name}` : data.client_name;
-                const initials = data.client_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
-
-                const primaryColor = "#A32E37";
-                const textColor = "#333333";
-                const logoUrl = "{% static 'images/logo.png' %}";
-
-                // 🌟 WRAP THE TEMPLATE IN STRICT HTML FOR WEASYPRINT
-                const pdfTemplate = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="UTF-8">
-                    <style>
-                        /* WeasyPrint specific page rules */
-                        @page {
-                            size: A4 portrait;
-                            margin: 0; /* Removes default margins so the header hits the edges */
-                        }
-                        body {
-                            font-family: Helvetica, Arial, sans-serif;
-                            color: ${textColor};
-                            margin: 0;
-                            padding: 0;
-                        }
-                        .content-wrapper {
-                            padding: 30px;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
-                        <div style="display:table-cell; vertical-align:middle; width:50%;">
-                            <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
-                                <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
-                            </div>
-                        </div>
-                        <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
-                            <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">INVOICE</h1>
-                        </div>
-                    </div>
-                    
-                    <div class="content-wrapper">
-                        <h2 style="font-size:15px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
-                        <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+                <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
+                <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <thead>
                             <tr>
-                                <td style="width:60px;vertical-align:middle;">
-                                    <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
-                                </td>
-                                <td style="vertical-align:middle;">
-                                    <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
-                                    <div style="font-size:12px;color:#666;margin-top:4px;">${data.email}</div>
-                                </td>
-                                <td style="text-align:right;vertical-align:middle;">
-                                    <div style="font-size:18px;font-weight:900;color:#A9323D;">${data.invoice_number}</div>
-                                    <div style="font-size:12px;color:#666;margin-top:4px;">Due: ${data.due_date}</div>
-                                </td>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:45%;">Service</th>
+                                <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:15%;">Qty</th>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
+                                <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Amount</th>
                             </tr>
-                        </table>
-                        
-                        <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
-                        <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
-                            <table style="width:100%;border-collapse:collapse;">
-                                <thead>
-                                    <tr>
-                                        <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:45%;">Service</th>
-                                        <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:15%;">Qty</th>
-                                        <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
-                                        <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Amount</th>
-                                    </tr>
-                                </thead>
-                                <tbody>${rowsHtml}</tbody>
-                            </table>
-                            
-                            <table style="width:100%;margin-top:30px;border-collapse:collapse;">
-                                <tr>
-                                    <td style="width:50%;"></td>
-                                    <td style="width:50%;">
-                                        <table style="width:100%;font-size:14px;border-collapse:collapse;">
-                                            <tr><td style="padding-bottom:12px;color:#444;">Subtotal</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${data.subtotal.toLocaleString('en-IN')}</td></tr>
-                                            <tr><td style="padding-bottom:8px;color:#444;">Discount</td><td style="padding-bottom:8px;color:#111;font-weight:bold;text-align:right;">- ₹ ${data.discount_amount.toLocaleString('en-IN')}</td></tr>
-                                            <tr><td style="padding-bottom:12px;color:#444;">Tax Amount</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">+ ₹ ${data.tax_amount.toLocaleString('en-IN')}</td></tr>
-                                            <tr><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;">Total Amount</td><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;text-align:right;">₹ ${data.total_amount.toLocaleString('en-IN')}</td></tr>
-                                        </table>
-                                        
-                                        <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:20px;background:#f5fdf5;padding:15px;border-radius:8px;">
-                                            <tr><td style="padding:15px 10px 8px 15px;color:#666;">Pre Paid Amount</td><td style="padding:15px 15px 8px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.pre_paid_amount.toLocaleString('en-IN')}</td></tr>
-                                            <tr><td style="padding:0 10px 12px 15px;color:#666;">Paid Amounts</td><td style="padding:0 15px 12px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.paid_amount.toLocaleString('en-IN')}</td></tr>
-                                            <tr><td style="padding:12px 10px 15px 15px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;">Remaining Amount</td><td style="padding:12px 15px 15px 10px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;text-align:right;">₹ ${data.balance_due.toLocaleString('en-IN')}</td></tr>
-                                        </table>
-                                    </td>
-                                </tr>
-                            </table>
-                        </div>
-                    </div>
-                </body>
-                </html>`;
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
 
-                const filename = `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf`;
+                    <table style="width:100%;margin-top:30px;border-collapse:collapse;">
+                        <tr>
+                            <td style="width:50%;"></td>
+                            <td style="width:50%;">
+                                <table style="width:100%;font-size:14px;border-collapse:collapse;">
+                                    <tr><td style="padding-bottom:12px;color:#444;">Subtotal</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${data.subtotal.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding-bottom:8px;color:#444;">Discount</td><td style="padding-bottom:8px;color:#111;font-weight:bold;text-align:right;">- ₹ ${data.discount_amount.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding-bottom:12px;color:#444;">Tax Amount</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">+ ₹ ${data.tax_amount.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;">Total Amount</td><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;text-align:right;">₹ ${data.total_amount.toLocaleString('en-IN')}</td></tr>
+                                </table>
 
-                fetch('/generate-pdf/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken')
-                    },
-                    body: JSON.stringify({ html: pdfTemplate, filename: filename })
-                })
-                .then(res => {
-                    if (!res.ok) throw new Error("Server error generating PDF");
-                    return res.blob();
-                })
-                .then(blob => {
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-                    window.URL.revokeObjectURL(url);
+                                <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:20px;background:#f5fdf5;padding:15px;border-radius:8px;">
+                                    <tr><td style="padding:15px 10px 8px 15px;color:#666;">Pre Paid Amount</td><td style="padding:15px 15px 8px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.pre_paid_amount.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding:0 10px 12px 15px;color:#666;">Paid Amounts</td><td style="padding:0 15px 12px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.paid_amount.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding:12px 10px 15px 15px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;">Remaining Amount</td><td style="padding:12px 15px 15px 10px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;text-align:right;">₹ ${data.balance_due.toLocaleString('en-IN')}</td></tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </body>
+        </html>`;
 
-                    icon.className = "fas fa-check text-green-600";
-                    setTimeout(() => {
-                        icon.className = originalClass;
-                        btnElement.disabled = false;
-                    }, 2000);
-                })
-                .catch(err => {
-                    console.error("Backend PDF generation failed:", err);
-                    icon.className = originalClass;
-                    btnElement.disabled = false;
-                    alert("Failed to download PDF. Check console.");
-                });
-            })
-            .catch(err => {
-                console.error("Data Fetch error:", err);
+        const filename = `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf`;
+
+        return fetch('/generate-pdf/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ html: pdfTemplate, filename: filename })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Server error generating PDF");
+            return res.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            icon.className = "fas fa-check text-green-600";
+            setTimeout(() => {
                 icon.className = originalClass;
                 btnElement.disabled = false;
-            });
-    }
+            }, 2000);
+        });
+    })
+    .catch(err => {
+        console.error("PDF generation failed:", err);
+        icon.className = originalClass;
+        btnElement.disabled = false;
+        alert("Failed to download PDF. Check console.");
+    });
+}
 
     window.addEventListener('click', function(e) {
         const newModal = document.getElementById('newInvoiceModal');

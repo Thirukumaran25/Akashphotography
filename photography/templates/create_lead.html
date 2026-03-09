@@ -78,9 +78,9 @@
                         <button type="button" onclick="openQuotationModal()" class="flex-1 px-6 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-lg flex items-center justify-center gap-2 border border-gray-300 transition-colors shadow-sm">
                             <i class="fa-regular fa-file-lines"></i> View Quotation
                         </button>
-                        <button id="downloadQuoteBtn" type="button" onclick="downloadQuotationPDF()" class="flex-1 px-6 py-3 bg-[#A9323D] hover:bg-red-800 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
+                        {% comment %} <button id="downloadQuoteBtn" type="button" onclick="downloadQuotationPDF()" class="flex-1 px-6 py-3 bg-[#A9323D] hover:bg-red-800 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
                             <i class="fa-solid fa-download"></i> Download Quotation
-                        </button>
+                        </button> {% endcomment %}
                     </div>
 
                     <div id="deliverablesContainer" class="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[50px]"></div>
@@ -292,200 +292,186 @@ function handleFormSubmit(event) {
     generatePDFBackend(packageId, form, submitBtn, originalBtnText);
 }
 
-function downloadQuotationPDF() {
-    const packageId = document.getElementById("packageInput").value;
-    if (!packageId) { alert("Please select a package first."); return; }
-
-    const btn = document.getElementById("downloadQuoteBtn");
-    const originalText = btn.innerHTML;
-    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
-    btn.disabled = true;
-
-    const dummyForm = { submit: function() { btn.innerHTML = originalText; btn.disabled = false; } };
-    generatePDFBackend(packageId, dummyForm, btn, originalText);
-}
-
 function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
     const clientName = document.getElementById('clientNameInput').value || 'Client Name';
     const project = document.getElementById('projectNameInput').value || '';
     const email = document.getElementById('clientEmailInput').value || '';
 
-    fetch(`/get-package/${packageId}/`)
-        .then(res => res.json())
-        .then(data => {
-            if (!data.services || data.services.length === 0) {
-                form.submit(); return;
-            }
+    // ✅ Fetch both images as base64 + package data together
+    Promise.all([
+        fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
+        fetch('/get-image-base64/?path=images/Qutation.png').then(r => r.json()),
+        fetch(`/get-package/${packageId}/`).then(r => r.json())
+    ])
+    .then(([logoData, quotationData, data]) => {
+        if (!data.services || data.services.length === 0) {
+            form.submit(); return;
+        }
 
-            let rowsHtml = '';
-            let subtotal = 0;
+        const logoUrl = logoData.data_uri || '';
+        const QutationUrl = quotationData.data_uri || '';
 
-            data.services.forEach(service => {
-                let qty = parseFloat(service.qty) || 0;
-                let cost = parseFloat(service.cost) || 0;
-                let sTotal = qty * cost;
-                subtotal += sTotal;
+        let rowsHtml = '';
+        let subtotal = 0;
 
-                const deliverableItems = service.deliverables.map(d => `<li class="mt-1" style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`).join(''); 
-                const teamItems = (service.team_names && service.team_names.length > 0) 
-                    ? service.team_names.map(t => `<div style="background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">${t}</div>`).join('') 
-                    : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">Unassigned</span>';
+        data.services.forEach(service => {
+            let qty = parseFloat(service.qty) || 0;
+            let cost = parseFloat(service.cost) || 0;
+            let sTotal = qty * cost;
+            subtotal += sTotal;
 
-                rowsHtml += `
-                <tr>
-                    <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
-                        <strong style="font-size: 14px; color:#111;">${service.service_name}</strong>
-                        <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
-                            ${deliverableItems}
-                        </ul>
-                    </td>
-                    <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
-                        ${teamItems}
-                    </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align: top;">
-                        <span style="font-weight:bold;font-size:13px;">${qty}</span>
-                    </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align: top;">
-                        <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
-                    </td>
-                    <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align: top;">
-                        <strong style="font-size:14px;color:#111;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
-                    </td>
-                </tr>`;
-            });
+            const deliverableItems = service.deliverables.map(d => `<li class="mt-1" style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`).join('');
+            const teamItems = (service.team_names && service.team_names.length > 0)
+                ? service.team_names.map(t => `<div style="background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">${t}</div>`).join('')
+                : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">Unassigned</span>';
 
-            const displayName = project ? `${clientName} - ${project}` : clientName;
-            const initials = clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
-            const emailToUse = email || 'No email provided';
+            rowsHtml += `
+            <tr>
+                <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
+                    <strong style="font-size: 14px; color:#111;">${service.service_name}</strong>
+                    <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
+                        ${deliverableItems}
+                    </ul>
+                </td>
+                <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
+                    ${teamItems}
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align: top;">
+                    <span style="font-weight:bold;font-size:13px;">${qty}</span>
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align: top;">
+                    <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
+                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align: top;">
+                    <strong style="font-size:14px;color:#111;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
+                </td>
+            </tr>`;
+        });
 
-            const primaryColor = "#A32e37";
-            const textColor = "#333333";
-            const logoUrl = "{% static 'images/logo.png' %}";
-            const QutationUrl = "{% static 'images/Qutation.png' %}";
+        const displayName = project ? `${clientName} - ${project}` : clientName;
+        const initials = clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
+        const emailToUse = email || 'No email provided';
 
-            // 🌟 WRAP THE TEMPLATE IN STRICT HTML FOR WEASYPRINT
-            const pdfTemplate = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <meta charset="UTF-8">
-                <style>
-                    /* WeasyPrint specific page rules */
-                    @page {
-                        size: A4 portrait;
-                        margin: 0; /* Removes default margins so the header hits the edges */
-                    }
-                    body {
-                        font-family: Helvetica, Arial, sans-serif;
-                        color: ${textColor};
-                        margin: 0;
-                        padding: 0;
-                    }
-                    .content-wrapper {
-                        padding: 30px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
-                    <div style="display:table-cell; vertical-align:middle; width:50%;">
-                        <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
-                            <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
-                        </div>
-                    </div>
-                    <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
-                        <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">QUOTATION</h1>
+        const primaryColor = "#A32e37";
+        const textColor = "#333333";
+
+        const pdfTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @page {
+                    size: A4 portrait;
+                    margin: 0;
+                }
+                body {
+                    font-family: Helvetica, Arial, sans-serif;
+                    color: ${textColor};
+                    margin: 0;
+                    padding: 0;
+                }
+                .content-wrapper {
+                    padding: 30px;
+                }
+            </style>
+        </head>
+        <body>
+            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
+                <div style="display:table-cell; vertical-align:middle; width:50%;">
+                    <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
+                        <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
                     </div>
                 </div>
-                
-                <div class="content-wrapper">
-                    <div style="margin-bottom: 30px; width: 100%; text-align: center;">
-                        <img src="${QutationUrl}" alt="Quotation Banner" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
-                    </div>
+                <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
+                    <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">QUOTATION</h1>
+                </div>
+            </div>
 
-                    <h2 style="font-size:26px; font-weight:800; color:#111; margin-bottom:25px; margin-top:0;">Bill To</h2>
-                    
-                    <table style="width:100%; margin-bottom:35px; border-collapse:collapse;">
+            <div class="content-wrapper">
+                <div style="margin-bottom: 30px; width: 100%; text-align: center;">
+                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                </div>
+
+                <h2 style="font-size:26px; font-weight:800; color:#111; margin-bottom:25px; margin-top:0;">Bill To</h2>
+
+                <table style="width:100%; margin-bottom:35px; border-collapse:collapse;">
+                    <tr>
+                        <td style="width:60px; vertical-align:middle;">
+                            <div style="width:45px; height:45px; background:#111; color:#fff; border-radius:50%; text-align:center; line-height:45px; font-weight:bold; font-size:14px;">${initials}</div>
+                        </td>
+                        <td style="vertical-align:middle;">
+                            <div style="font-weight:800; font-size:16px; color:#111;">${displayName}</div>
+                            <div style="font-size:12px; color:#666; margin-top:4px;">${emailToUse}</div>
+                        </td>
+                    </tr>
+                </table>
+
+                <h3 style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px;">Services</h3>
+
+                <div style="background:#f9f9f9; border-radius:8px; padding:20px;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:33%;">Service</th>
+                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:30%;">Team</th>
+                                <th style="text-align:center; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:5%;">Qty</th>
+                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:20%;">Price</th>
+                                <th style="text-align:right; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:25%;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rowsHtml}</tbody>
+                    </table>
+
+                    <table style="width:100%; margin-top:30px; border-collapse:collapse;">
                         <tr>
-                            <td style="width:60px; vertical-align:middle;">
-                                <div style="width:45px; height:45px; background:#111; color:#fff; border-radius:50%; text-align:center; line-height:45px; font-weight:bold; font-size:14px;">${initials}</div>
-                            </td>
-                            <td style="vertical-align:middle;">
-                                <div style="font-weight:800; font-size:16px; color:#111;">${displayName}</div>
-                                <div style="font-size:12px; color:#666; margin-top:4px;">${emailToUse}</div>
+                            <td style="width:50%;"></td>
+                            <td style="width:50%;">
+                                <table style="width:100%; font-size:14px; border-collapse:collapse;">
+                                    <tr><td style="padding-bottom:12px; color:#444;">Subtotal</td><td style="padding-bottom:12px; color:#111; font-weight:bold; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
+                                    <tr><td style="padding-bottom:20px; color:#444;">Pre Paid Amount</td><td style="padding-bottom:20px; color:#111; font-weight:bold; text-align:right;">₹ 0</td></tr>
+                                    <tr><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px;">Total</td><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
+                                </table>
                             </td>
                         </tr>
                     </table>
-
-                    <h3 style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px;">Services</h3>
-                    
-                    <div style="background:#f9f9f9; border-radius:8px; padding:20px;">
-                        <table style="width:100%; border-collapse:collapse;">
-                            <thead>
-                                <tr>
-                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:33%;">Service</th>
-                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:30%;">Team</th>
-                                    <th style="text-align:center; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:5%;">Qty</th>
-                                    <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:20%;">Price</th>
-                                    <th style="text-align:right; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:25%;">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rowsHtml}</tbody>
-                        </table>
-
-                        <table style="width:100%; margin-top:30px; border-collapse:collapse;">
-                            <tr>
-                                <td style="width:50%;"></td>
-                                <td style="width:50%;">
-                                    <table style="width:100%; font-size:14px; border-collapse:collapse;">
-                                        <tr><td style="padding-bottom:12px; color:#444;">Subtotal</td><td style="padding-bottom:12px; color:#111; font-weight:bold; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
-                                        <tr><td style="padding-bottom:20px; color:#444;">Pre Paid Amount</td><td style="padding-bottom:20px; color:#111; font-weight:bold; text-align:right;">₹ 0</td></tr>
-                                        <tr><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px;">Total</td><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
                 </div>
-            </body>
-            </html>`;
+            </div>
+        </body>
+        </html>`;
 
-            const filename = `Quotation_${clientName.replace(/\s+/g, '_')}.pdf`;
+        const filename = `Quotation_${clientName.replace(/\s+/g, '_')}.pdf`;
 
-            fetch('/generate-pdf/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: JSON.stringify({ html: pdfTemplate, filename: filename })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error("Server error generating PDF");
-                return res.blob();
-            })
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                window.URL.revokeObjectURL(url);
-
-                submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success! Saving...';
-                setTimeout(() => { form.submit(); }, 1500); 
-            })
-            .catch(err => {
-                console.error("Backend PDF generation failed:", err);
-                form.submit(); 
-            });
+        return fetch('/generate-pdf/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ html: pdfTemplate, filename: filename })
         })
-        .catch(err => {
-            console.error("Data Fetch error:", err);
-            form.submit();
+        .then(res => {
+            if (!res.ok) throw new Error("Server error generating PDF");
+            return res.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+
+            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success! Saving...';
+            setTimeout(() => { form.submit(); }, 1500);
         });
+    })
+    .catch(err => {
+        console.error("PDF generation failed:", err);
+        form.submit();
+    });
 }
 
 function openQuotationModal() {
