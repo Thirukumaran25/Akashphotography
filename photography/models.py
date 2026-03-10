@@ -18,7 +18,7 @@ class ProjectDetail(models.Model):
     mobile_number = models.CharField(max_length=15)
     project_address = models.TextField()
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField( blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ASSIGNED')
     assigned_employees = models.ManyToManyField('Employee', blank=True, related_name='assigned_projects')
     created_at = models.DateTimeField(auto_now_add=True)

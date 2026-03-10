@@ -196,7 +196,7 @@
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
                             <span class="text-[13px] text-gray-700">
                                 {% if lead.project %}
-                                    {{ lead.project.start_date|date:"d M, Y" }} – {{ lead.project.end_date|date:"d M, Y" }}
+                                    {{ lead.project.start_date|date:"d M, Y" }}
                                 {% else %}
                                     Dates TBD
                                 {% endif %}
@@ -427,7 +427,7 @@ function downloadQuotationPDF() {
                     <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
                 </td>
                 <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align:top;">
-                    <strong style="font-size:14px;color:#111;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
+                    <strong style="font-weight:bold;font-size:13px;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
                 </td>
             </tr>`;
         });
@@ -484,12 +484,12 @@ function downloadQuotationPDF() {
 
                 <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
 
-                <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
+                <div style="background:#f9f9f9;border-radius:8px;padding:10px;">
                     <table style="width:100%;border-collapse:collapse;">
                         <thead>
                             <tr>
                                 <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:33%;">Service</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Persons</th>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Team</th>
                                 <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:5%;">Qty</th>
                                 <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
                                 <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:25%;">Amount</th>
