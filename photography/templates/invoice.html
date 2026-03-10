@@ -259,14 +259,11 @@
     icon.className = "fas fa-spinner fa-spin text-red-600";
     btnElement.disabled = true;
 
-    // ✅ Fetch logo as base64 + invoice data together
     Promise.all([
         fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
         fetch(`/invoice/data/${invoiceId}/`).then(r => r.json())
     ])
     .then(([logoData, data]) => {
-
-
         const logoUrl = logoData.data_uri || '';
 
         let rowsHtml = '';
@@ -319,7 +316,7 @@
             </style>
         </head>
         <body>
-            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
+            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:40px; box-sizing:border-box;">
                 <div style="display:table-cell; vertical-align:middle; width:50%;">
                     <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
                         <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">

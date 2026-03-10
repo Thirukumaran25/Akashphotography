@@ -8,7 +8,6 @@ from datetime import date
 from .models import *
 import json
 from weasyprint import HTML
-from asgiref.sync import async_to_sync
 from django.conf import settings
 import base64
 import os
@@ -88,8 +87,6 @@ def get_image_base64(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
-
-
 def home(request):
     today = date.today()
     Lead.objects.filter(status='NEW', follow_up_date__lte=today).update(status='FOLLOW_UP')
@@ -144,7 +141,6 @@ def update_lead_status(request):
 
 
 def projects(request):
-    # Helper function to format projects for the Kanban board
     def format_projects(queryset):
         formatted_list = []
         for proj in queryset:
@@ -153,7 +149,6 @@ def projects(request):
             start_str = proj.start_date.strftime('%d %b, %Y') if proj.start_date else 'TBD'
             end_str = proj.end_date.strftime('%d %b, %Y') if proj.end_date else 'TBD'
             
-            # Get initials of assigned team members
             team = [{"initials": "".join([p[0] for p in m.name.split()])[:2].upper()} for m in proj.assigned_employees.all()]
             
             formatted_list.append({
@@ -245,7 +240,6 @@ def team_members(request):
 
 def create_lead(request):
     if request.method == "POST":
-        # 1. Save Project Details
         project = ProjectDetail.objects.create(
             project_name=request.POST.get("project_name"),
             mobile_number=request.POST.get("project_mobile"),
@@ -254,11 +248,9 @@ def create_lead(request):
             end_date=request.POST.get("end_date")
         )
 
-        # 2. Get the selected Package
         package_id = request.POST.get("package")
         package = Package.objects.filter(id=package_id).first() if package_id else None
 
-        # 3. Create the Lead and link everything
         Lead.objects.create(
             name=request.POST.get("name"),
             mobile_number=request.POST.get("mobile_number"),
@@ -266,22 +258,21 @@ def create_lead(request):
             address=request.POST.get("address") or None,
             lead_source=request.POST.get("lead_source") or 'Other',
             follow_up_date=request.POST.get("follow_up_date") or None,
-            status='NEW', # Automatically goes to the NEW column
+            status='NEW', 
             package=package,
-            project=project # Links to the project we just created
+            project=project
         )
         return redirect('home')
 
     packages = Package.objects.all()
     teams = Team.objects.all()
     
-    # 🌟 NEW: Fetch all available deliverables to send to the dropdown
     available_deliverables = Deliverable.objects.all()
+    available_persons = Person.objects.all()
 
     packages_with_total = []
 
     for pkg in packages:
-        # Utilize the @property we created in the model
         packages_with_total.append({
             "id": pkg.id,
             "package_name": pkg.package_name,
@@ -291,7 +282,8 @@ def create_lead(request):
     return render(request, "create_lead.html",{
         "packages": packages_with_total,
         "teams": teams,
-        "available_deliverables": available_deliverables, # Sent to frontend
+        "available_deliverables": available_deliverables, 
+        "available_persons": available_persons,
     })
 
 
@@ -299,20 +291,18 @@ def create_lead(request):
 def save_package(request):
     if request.method == "POST":
         data = json.loads(request.body)
-        package_id = data.get("package_id")  # None if new
+        package_id = data.get("package_id")
         name = data["package_name"]
         services = data["services"]
 
         if package_id:
-            # Update existing package
             package = Package.objects.get(id=package_id)
             package.package_name = name
             package.save()
-            package.services.all().delete()  # clear old services
+            package.services.all().delete()
         else:
             package = Package.objects.create(package_name=name)
 
-        # Save new services
         for s in services:
             ps = PackageService.objects.create(
                 package=package,
@@ -320,14 +310,10 @@ def save_package(request):
                 qty=s["qty"],
                 cost=s["cost"],
             )
-            # Assign multiple teams (ManyToMany)
-            if "teams" in s:
-                ps.teams.set(s["teams"])
-                
-            # 🌟 NEW: Link the selected Deliverable models using IDs
+            if "person_ids" in s:
+                ps.persons.set(Person.objects.filter(id__in=s["person_ids"]))
             if "deliverable_ids" in s:
-                deliverables_qs = Deliverable.objects.filter(id__in=s["deliverable_ids"])
-                ps.deliverables.set(deliverables_qs)
+                ps.deliverables.set(Deliverable.objects.filter(id__in=s["deliverable_ids"]))
 
         return JsonResponse({"status": "success", "id": package.id, "name": package.package_name})
 
@@ -340,12 +326,14 @@ def get_package(request, pk):
             "service_name": s.service_name,
             "qty": s.qty,
             "cost": s.cost,
-            # 🌟 NEW: Send Deliverables as a list of dictionaries so JS has the price data
             "deliverables": [
-                {"id": d.id, "title": d.title, "price": float(d.price)} for d in s.deliverables.all()
+                {"id": d.id, "title": d.title, "price": float(d.price)} 
+                for d in s.deliverables.all()
             ],
-            "teams": list(s.teams.values_list("id", flat=True)),
-            "team_names": list(s.teams.values_list("name", flat=True)),
+            "persons": [
+                {"id": p.id, "name": p.name, "price": float(p.price)} 
+                for p in s.persons.all()
+            ],
         })
     return JsonResponse({"name": package.package_name, "services": services})
 
@@ -376,32 +364,30 @@ def update_lead_status(request):
                 lead.project.status = 'ASSIGNED'
                 lead.project.save()
 
-                if lead.package and not hasattr(lead, 'invoice'):
-                    count = Lead.objects.count() + 100
-                    invoice_number = f"AK-{count}"
-                    due_date = lead.project.start_date
-
-                    new_invoice = Invoice.objects.create(
-                        lead=lead, 
-                        invoice_number=invoice_number,
-                        due_date=due_date,
+                if lead.package:
+                    invoice, created = Invoice.objects.get_or_create(
+                        lead=lead,
+                        defaults={
+                            "invoice_number": f"AK-{Lead.objects.count() + 100}",
+                            "due_date": lead.project.start_date,
+                        }
                     )
 
-                    for pkg_service in lead.package.services.all():
-                        invoice_service = InvoiceService.objects.create(
-                            invoice=new_invoice,
-                            service_name=pkg_service.service_name,
-                            qty=pkg_service.qty,
-                            price=pkg_service.cost
-                        )
-                        
-                        if pkg_service.deliverables.exists():
-                            invoice_service.deliverables.set(pkg_service.deliverables.all())
-                
-                return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
+                    if created:
+                        for pkg_service in lead.package.services.all():
+                            invoice_service = InvoiceService.objects.create(
+                                invoice=invoice,
+                                service_name=pkg_service.service_name,
+                                qty=pkg_service.qty,
+                                price=pkg_service.cost
+                            )
+                            if pkg_service.deliverables.exists():
+                                invoice_service.deliverables.set(pkg_service.deliverables.all())
+                            if pkg_service.persons.exists():
+                                invoice_service.persons.set(pkg_service.persons.all())
 
+                return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
             return JsonResponse({"success": True})
-            
     return JsonResponse({"success": False}, status=400)
 
 
@@ -451,6 +437,8 @@ def create_invoice(request, lead_id):
     lead = get_object_or_404(Lead, id=lead_id)
     invoice = get_object_or_404(Invoice, lead=lead)
     available_deliverables = Deliverable.objects.all()
+    available_persons = Person.objects.all()
+
     context = {
         'lead': lead,
         'invoice': invoice,
@@ -460,6 +448,7 @@ def create_invoice(request, lead_id):
         'tax_amount': invoice.tax_amount,
         'pre_paid': invoice.pre_paid_amount,
         'available_deliverables': available_deliverables,
+        'available_persons': available_persons,
     }
     return render(request, "create_invoice.html", context)
 
@@ -475,8 +464,7 @@ def log_payment(request):
         reference = request.POST.get("reference", "")
         
         invoice = get_object_or_404(Invoice, id=invoice_id)
-        
-        # Log the payment with all fields from the modal
+
         PaymentRecord.objects.create(
             invoice=invoice, 
             amount=amount, 
@@ -484,8 +472,7 @@ def log_payment(request):
             date=payment_date,
             reference=reference
         )
-        
-        # Check total payments vs total dues to automatically update status
+
         all_payments = invoice.payments.aggregate(total=Sum('amount'))['total'] or 0.00
         remaining_due = float(invoice.grand_total) - float(all_payments)
         
@@ -535,11 +522,15 @@ def save_invoice(request):
                     deliverables_qs = Deliverable.objects.filter(id__in=deliverable_ids)
                     new_service.deliverables.set(deliverables_qs)
 
+                person_ids = s_data.get("person_ids", []) 
+                if person_ids:
+                    new_service.persons.set(Person.objects.filter(id__in=person_ids))
             return JsonResponse({"status": "success", "invoice_id": invoice.id})
             
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
+
 
 
 @csrf_exempt
@@ -588,6 +579,9 @@ def generate_invoice_from_lead(request):
                     )
                     if pkg_service.deliverables.exists():
                         invoice_service.deliverables.set(pkg_service.deliverables.all())
+                    if pkg_service.persons.exists():                          # ✅ add this
+                        invoice_service.persons.set(pkg_service.persons.all())
+
         return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
     return JsonResponse({"success": False}, status=400)
 
@@ -657,3 +651,35 @@ def search_leads_for_invoice(request):
         })
         
     return JsonResponse({"results": results})
+
+
+@csrf_exempt
+def add_person(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        name = data.get("name", "").strip()
+        price = data.get("price", 0)
+        if not name:
+            return JsonResponse({"error": "Name required"}, status=400)
+        person = Person.objects.create(name=name, price=price)
+        return JsonResponse({"id": person.id, "name": person.name, "price": float(person.price)})
+    return JsonResponse({"error": "Invalid"}, status=400)
+
+@csrf_exempt
+def add_deliverable_quick(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        title = data.get("title", "").strip()
+        price = data.get("price", 0)
+        if not title:
+            return JsonResponse({"error": "Title required"}, status=400)
+        d = Deliverable.objects.create(title=title, price=price)
+        return JsonResponse({"id": d.id, "title": d.title, "price": float(d.price)})
+    return JsonResponse({"error": "Invalid"}, status=400)
+
+
+def get_persons(request):
+    persons = list(Person.objects.values('id', 'name', 'price'))
+    for p in persons:
+        p['price'] = float(p['price'])
+    return JsonResponse({"persons": persons})

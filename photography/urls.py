@@ -24,6 +24,10 @@ urlpatterns = [
     path('leads/', create_lead, name='create_lead'),
     path('leads/update-status/', update_lead_status, name='update_lead_status'),
     
+    path('get-persons/', get_persons, name='get_persons'),
+    path('add-person/', add_person, name='add_person'),
+    path('add-deliverable-quick/', add_deliverable_quick, name='add_deliverable_quick'),
+
     path("save-package/",save_package,name="save_package"),
     path("get-package/<int:pk>/",get_package,name="get_package"),
     path("delete-package/<int:pk>/", delete_package, name="delete_package"),

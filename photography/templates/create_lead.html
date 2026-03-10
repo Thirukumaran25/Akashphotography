@@ -29,10 +29,11 @@
                         <option value="Direct">Direct</option>
                         <option value="Other">Other</option>
                     </select>
-                    <input type="date" name="follow_up_date" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+                    <label class="block text-gray-600 mb-1">Follow Up Date</label>
+                    <input type="date" name="follow_up_date"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
                 </div>
             </div>
-
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 class="text-lg font-semibold mb-4 text-gray-800">Projects Details</h3>
                 <div class="space-y-3">
@@ -162,10 +163,10 @@
             <thead class="bg-gray-100">
                 <tr>
                     <th class="p-2 border text-left">Service</th>
-                    <th class="p-2 border text-left">Team</th>
+                    <th class="p-2 border text-left">Persons</th>
                     <th class="p-2 border text-left w-1/3">Deliverables</th>
                     <th class="p-2 border text-center">Qty</th>
-                    <th class="p-2 border text-left">Cost (Base + Items)</th>
+                    <th class="p-2 border text-left">Cost</th>
                     <th class="p-2 border text-center">Subtotal</th>
                     <th class="p-2 border text-center"></th>
                 </tr>
@@ -184,12 +185,17 @@
 <script>
 let currentPackageData = [];
 let selectedPackageId = null;
-
-const availableDeliverables = [
+let allPersons = [];
+let allDeliverables = [
     {% for d in available_deliverables %}
         { id: "{{ d.id }}", title: "{{ d.title|escapejs }}", price: parseFloat("{{ d.price }}") },
     {% endfor %}
 ];
+
+
+fetch('/get-persons/')
+    .then(r => r.json())
+    .then(data => { allPersons = data.persons; });
 
 function getCookie(name) {
     let cookieValue = null;
@@ -204,91 +210,469 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-} 
+}
+
+function buildPersonDropdown() {
+    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 person-select" onchange="handlePersonSelect(this)">
+        <option value="" disabled selected>+ Select Person...</option>`;
+    allPersons.forEach(p => {
+        html += `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">
+            ${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}
+        </option>`;
+    });
+    html += `<option value="__new__">➕ Add New Person...</option>`;
+    html += `</select>`;
+
+    html += `
+    <div class="new-person-form hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded space-y-1">
+        <input type="text" placeholder="Person Name" class="new-person-name border p-1.5 rounded w-full text-xs">
+        <input type="number" placeholder="Price ₹" class="new-person-price border p-1.5 rounded w-full text-xs">
+        <button type="button" onclick="saveNewPerson(this)" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Save & Add</button>
+        <button type="button" onclick="this.closest('.new-person-form').classList.add('hidden')" class="text-xs text-gray-500 ml-2">Cancel</button>
+    </div>`;
+    return html;
+}
+
+function buildDeliverableDropdown() {
+    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 deliverable-select" onchange="handleDeliverableSelect(this)">
+        <option value="" disabled selected>+ Select Deliverable...</option>`;
+    allDeliverables.forEach(d => {
+        html += `<option value="${d.id}" data-price="${d.price}">${d.title} (₹${parseFloat(d.price).toLocaleString('en-IN')})</option>`;
+    });
+    html += `<option value="__new__">➕ Add New Deliverable...</option>`;
+    html += `</select>`;
+
+    html += `
+    <div class="new-deliverable-form hidden mt-2 p-2 bg-green-50 border border-green-200 rounded space-y-1">
+        <input type="text" placeholder="Deliverable Title" class="new-deliverable-title border p-1.5 rounded w-full text-xs">
+        <input type="number" placeholder="Price ₹" class="new-deliverable-price border p-1.5 rounded w-full text-xs">
+        <button type="button" onclick="saveNewDeliverable(this)" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700">Save & Add</button>
+        <button type="button" onclick="this.closest('.new-deliverable-form').classList.add('hidden')" class="text-xs text-gray-500 ml-2">Cancel</button>
+    </div>`;
+    return html;
+}
+
+function addServiceRow() {
+    let table = document.getElementById("serviceTable");
+    let row = `
+    <tr>
+        <td class="p-2 border align-top">
+            <input type="text" class="service border p-2 w-full rounded text-sm" placeholder="Service Name">
+        </td>
+
+        <td class="p-2 border person-cell align-top min-w-[160px]">
+            <div class="person-list flex flex-col gap-1.5 mb-1"></div>
+            <div class="person-subtotal text-[10px] text-blue-700 font-bold mb-1"></div>
+            ${buildPersonDropdown()}
+        </td>
+
+        <td class="p-2 border deliverables-cell align-top">
+            <div class="deliverables-list flex flex-col gap-1.5 mb-1"></div>
+            ${buildDeliverableDropdown()}
+        </td>
+
+        <td class="p-2 border align-top">
+            <input type="number" class="qty border p-2 w-16 text-center rounded" value="1" oninput="calculateSubtotal(this)">
+        </td>
+        <td class="p-2 border align-top">
+            <input type="number" class="base-cost hidden" value="0">
+            <input type="number" class="cost border p-2 w-24 rounded" value="0" oninput="handleManualCostChange(this)">
+        </td>
+        <td class="p-2 border subtotal text-center align-top font-bold pt-4 text-[#A9323D]">₹0</td>
+        <td class="p-2 border align-top pt-3 text-center">
+            <button type="button" onclick="removeRow(this)" class="text-red-600 font-bold hover:scale-125 transition">&times;</button>
+        </td>
+    </tr>`;
+    table.insertAdjacentHTML("beforeend", row);
+}
+
+// ✅ Handle person dropdown change
+function handlePersonSelect(selectEl) {
+    const val = selectEl.value;
+    if (val === '__new__') {
+        selectEl.value = '';
+        selectEl.closest('.person-cell').querySelector('.new-person-form').classList.remove('hidden');
+        return;
+    }
+    if (!val) return;
+
+    const opt = selectEl.options[selectEl.selectedIndex];
+    const id = opt.value;
+    const name = opt.dataset.name;
+    const price = parseFloat(opt.dataset.price);
+    const cell = selectEl.closest('.person-cell');
+    const list = cell.querySelector('.person-list');
+
+    if (list.querySelector(`[data-id="${id}"]`)) { selectEl.value = ''; return; }
+
+    list.insertAdjacentHTML('beforeend', `
+        <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${id}" data-price="${price}">
+            <span class="font-semibold text-blue-800">${name}</span>
+            <div class="flex items-center gap-1.5">
+                <span class="text-blue-600 font-bold">₹${price.toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removePerson(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+            </div>
+        </div>
+    `);
+    selectEl.value = '';
+    recalculateRowCost(selectEl.closest('tr'));
+}
+
+// ✅ Save new person to DB and auto-add to row
+function saveNewPerson(btn) {
+    const form = btn.closest('.new-person-form');
+    const name = form.querySelector('.new-person-name').value.trim();
+    const price = parseFloat(form.querySelector('.new-person-price').value) || 0;
+    if (!name) { alert('Name required'); return; }
+
+    fetch('/add-person/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ name, price })
+    })
+    .then(r => r.json())
+    .then(p => {
+        // Add to global list
+        allPersons.push(p);
+
+        // Add option to ALL person dropdowns
+        document.querySelectorAll('.person-select').forEach(sel => {
+            const newOpt = document.createElement('option');
+            newOpt.value = p.id;
+            newOpt.dataset.price = p.price;
+            newOpt.dataset.name = p.name;
+            newOpt.text = `${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}`;
+            sel.insertBefore(newOpt, sel.querySelector('[value="__new__"]'));
+        });
+
+        // Auto-add pill to current row
+        const cell = btn.closest('.person-cell');
+        const list = cell.querySelector('.person-list');
+        list.insertAdjacentHTML('beforeend', `
+            <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${p.id}" data-price="${p.price}">
+                <span class="font-semibold text-blue-800">${p.name}</span>
+                <div class="flex items-center gap-1.5">
+                    <span class="text-blue-600 font-bold">₹${parseFloat(p.price).toLocaleString('en-IN')}</span>
+                    <button type="button" onclick="removePerson(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                </div>
+            </div>
+        `);
+
+        form.classList.add('hidden');
+        form.querySelector('.new-person-name').value = '';
+        form.querySelector('.new-person-price').value = '';
+        recalculateRowCost(btn.closest('tr'));
+    });
+}
+
+function removeDeliverable(btn) {
+    const row = btn.closest('tr');
+    btn.closest('.deliverable-item').remove();
+    recalculateRowCost(row);
+}
+
+function removePerson(btn) {
+    const row = btn.closest('tr');
+    btn.closest('.person-item').remove();
+    recalculateRowCost(row);
+}
+
+
+function handleDeliverableSelect(selectEl) {
+    const val = selectEl.value;
+    if (val === '__new__') {
+        selectEl.value = '';
+        selectEl.closest('.deliverables-cell').querySelector('.new-deliverable-form').classList.remove('hidden');
+        return;
+    }
+    if (!val) return;
+
+    const opt = selectEl.options[selectEl.selectedIndex];
+    const id = opt.value;
+    const title = opt.text.split(' (₹')[0];
+    const price = parseFloat(opt.dataset.price);
+    const cell = selectEl.closest('.deliverables-cell');
+    const list = cell.querySelector('.deliverables-list');
+
+    if (list.querySelector(`[data-id="${id}"]`)) { selectEl.value = ''; return; }
+
+    list.insertAdjacentHTML('beforeend', `
+        <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" data-id="${id}" data-price="${price}">
+            <span class="font-semibold text-gray-800">${title}</span>
+            <div class="flex items-center gap-2">
+                <span class="text-gray-500 font-bold">₹${price.toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+            </div>
+        </div>
+    `);
+    selectEl.value = '';
+    recalculateRowCost(selectEl.closest('tr'));
+}
+
+
+function saveNewDeliverable(btn) {
+    const form = btn.closest('.new-deliverable-form');
+    const title = form.querySelector('.new-deliverable-title').value.trim();
+    const price = parseFloat(form.querySelector('.new-deliverable-price').value) || 0;
+    if (!title) { alert('Title required'); return; }
+
+    fetch('/add-deliverable-quick/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ title, price })
+    })
+    .then(r => r.json())
+    .then(d => {
+        allDeliverables.push(d);
+
+        // Add option to ALL deliverable dropdowns
+        document.querySelectorAll('.deliverable-select').forEach(sel => {
+            const newOpt = document.createElement('option');
+            newOpt.value = d.id;
+            newOpt.dataset.price = d.price;
+            newOpt.text = `${d.title} (₹${parseFloat(d.price).toLocaleString('en-IN')})`;
+            sel.insertBefore(newOpt, sel.querySelector('[value="__new__"]'));
+        });
+
+        // Auto-add pill to current row
+        const cell = btn.closest('.deliverables-cell');
+        const list = cell.querySelector('.deliverables-list');
+        list.insertAdjacentHTML('beforeend', `
+            <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" data-id="${d.id}" data-price="${d.price}">
+                <span class="font-semibold text-gray-800">${d.title}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-gray-500 font-bold">₹${parseFloat(d.price).toLocaleString('en-IN')}</span>
+                    <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                </div>
+            </div>
+        `);
+
+        form.classList.add('hidden');
+        form.querySelector('.new-deliverable-title').value = '';
+        form.querySelector('.new-deliverable-price').value = '';
+        recalculateRowCost(btn.closest('tr'));
+    });
+}
+
+
+function recalculateRowCost(row) {
+    const baseCostInput = row.querySelector('.base-cost');
+    const displayCostInput = row.querySelector('.cost');
+    let baseCost = parseFloat(baseCostInput.value) || 0;
+
+    let personsTotal = 0;
+    row.querySelectorAll('.person-item').forEach(item => {
+        personsTotal += parseFloat(item.dataset.price) || 0;  // ✅ parseFloat
+    });
+
+    let deliverablesTotal = 0;
+    row.querySelectorAll('.deliverable-item').forEach(item => {
+        deliverablesTotal += parseFloat(item.dataset.price) || 0;  // ✅ parseFloat
+    });
+
+    displayCostInput.value = (baseCost + personsTotal + deliverablesTotal).toFixed(2);
+
+    const personSubtotalEl = row.querySelector('.person-subtotal');
+    if (personSubtotalEl) {
+        personSubtotalEl.textContent = personsTotal > 0
+            ? `Persons: ₹${personsTotal.toLocaleString('en-IN')}`
+            : '';
+    }
+
+    calculateSubtotal(displayCostInput);
+}
+
+function handleManualCostChange(input) {
+    const row = input.closest('tr');
+    const baseCostInput = row.querySelector('.base-cost');
+    let totalCost = parseFloat(input.value) || 0;
+    let personsTotal = 0;
+    let deliverablesTotal = 0;
+    row.querySelectorAll('.person-item').forEach(i => personsTotal += parseFloat(i.dataset.price) || 0);
+    row.querySelectorAll('.deliverable-item').forEach(i => deliverablesTotal += parseFloat(i.dataset.price) || 0);
+    baseCostInput.value = totalCost - personsTotal - deliverablesTotal;
+    calculateSubtotal(input);
+}
+
+function calculateSubtotal(input) {
+    let row = input.closest("tr");
+    let qty = parseFloat(row.querySelector(".qty").value) || 0;
+    let cost = parseFloat(row.querySelector(".cost").value) || 0;
+    row.querySelector(".subtotal").innerText = "₹" + (qty * cost).toLocaleString('en-IN');
+    updateGrandTotal();
+}
+
+function updateGrandTotal() {
+    let grand = 0;
+    document.querySelectorAll(".subtotal").forEach(c => {
+        grand += Number(c.innerText.replace(/[₹,]/g, ""));
+    });
+    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ " + grand.toLocaleString('en-IN');
+}
+
+function removeRow(button) {
+    button.closest("tr").remove();
+    updateGrandTotal();
+}
+
+function saveServices() {
+    let packageId = document.getElementById("packageIdModalInput").value || null;
+    let packageName = document.getElementById("packageNameInput").value;
+    if (!packageName) { alert("Package Name required"); return; }
+
+    let services = [];
+    document.querySelectorAll("#serviceTable tr").forEach(row => {
+        let serviceName = row.querySelector(".service").value;
+        if (!serviceName) return;
+
+        // ✅ Collect person IDs
+        let personIds = Array.from(row.querySelectorAll(".person-item")).map(item => parseInt(item.dataset.id));
+        let deliverableIds = Array.from(row.querySelectorAll(".deliverable-item")).map(item => parseInt(item.dataset.id));
+        let qty = row.querySelector(".qty").value;
+        let cost = row.querySelector(".cost").value;
+
+        services.push({ service_name: serviceName, person_ids: personIds, deliverable_ids: deliverableIds, qty, cost });
+    });
+
+    fetch("/save-package/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+        body: JSON.stringify({ package_id: packageId, package_name: packageName, services })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") location.reload();
+        else alert("Error saving package");
+    });
+}
+
+
+function editPackage(id) {
+    fetch(`/get-package/${id}/`).then(res => res.json()).then(data => {
+        document.getElementById("packageIdModalInput").value = id;
+        document.getElementById("packageNameInput").value = data.name;
+        document.getElementById("serviceTable").innerHTML = "";
+
+        data.services.forEach(s => {
+            addServiceRow();
+            let row = document.getElementById("serviceTable").lastElementChild;
+            row.querySelector(".service").value = s.service_name;
+            row.querySelector(".qty").value = s.qty;
+
+            let personsTotal = s.persons.reduce((sum, p) => sum + parseFloat(p.price), 0);
+            let deliverablesTotal = s.deliverables.reduce((sum, d) => sum + parseFloat(d.price), 0);
+            
+    
+            row.querySelector(".base-cost").value = parseFloat(s.cost) - personsTotal - deliverablesTotal;
+            row.querySelector(".cost").value = parseFloat(s.cost);
+
+            let personList = row.querySelector(".person-list");
+            s.persons.forEach(p => {
+                personList.insertAdjacentHTML('beforeend', `
+                    <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" 
+                         data-id="${p.id}" data-price="${parseFloat(p.price)}">
+                        <span class="font-semibold text-blue-800">${p.name}</span>
+                        <div class="flex items-center gap-1.5">
+                            <span class="text-blue-600 font-bold">₹${parseFloat(p.price).toLocaleString('en-IN')}</span>
+                            <button type="button" onclick="removePerson(this)" 
+                                class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                        </div>
+                    </div>
+                `);
+            });
+
+            let delivContainer = row.querySelector(".deliverables-list");
+                s.deliverables.forEach(d => {
+                    const dPrice = parseFloat(d.price);
+                    delivContainer.insertAdjacentHTML('beforeend', `
+                        <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" 
+                            data-id="${d.id}" data-price="${dPrice}">
+                            <span class="font-semibold text-gray-800">${d.title}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-500 font-bold">₹${dPrice.toLocaleString('en-IN')}</span>
+                                <button type="button" onclick="removeDeliverable(this)" 
+                                    class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                            </div>
+                        </div>
+                    `);
+                });
+            calculateSubtotal(row.querySelector(".cost"));
+        });
+        openModalForEdit();
+    });
+}
+
 
 function selectPackage(packageId, cardElement) {
     document.getElementById("packageInput").value = packageId;
     selectedPackageId = packageId;
-
-    const allCards = document.querySelectorAll("#packageContainer > div");
-    allCards.forEach(c => {
+    document.querySelectorAll("#packageContainer > div").forEach(c => {
         c.classList.remove("border-red-500", "bg-red-50");
         c.classList.add("border-gray-200", "bg-white");
     });
     cardElement.classList.remove("border-gray-200", "bg-white");
     cardElement.classList.add("border-red-500", "bg-red-50");
-
     loadPackageDeliverables(packageId);
 }
 
-function loadPackageDeliverables(packageId){
+function loadPackageDeliverables(packageId) {
     fetch(`/get-package/${packageId}/`)
         .then(res => res.json())
         .then(data => {
             currentPackageData = data.services || [];
-            
             const container = document.getElementById("deliverablesContainer");
             const quoteList = document.getElementById("quoteServicesList");
             container.innerHTML = "";
             quoteList.innerHTML = "";
-            
             let subtotal = 0;
 
             data.services.forEach(service => {
                 service.deliverables.forEach(d => {
                     const span = document.createElement("span");
                     span.className = "bg-white border px-3 py-1 rounded-full text-xs text-gray-600";
-                    span.innerText = `${d.title} ×`; 
+                    span.innerText = `${d.title} ×`;
                     container.appendChild(span);
                 });
 
                 const serviceTotal = parseFloat(service.qty) * parseFloat(service.cost);
                 subtotal += serviceTotal;
 
-                const deliverableItems = service.deliverables.map(d => `<li class="mt-1">• ${d.title}</li>`).join(''); 
-                const teamItems = (service.team_names && service.team_names.length > 0) 
-                    ? service.team_names.map(t => `<div class="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold tracking-wide">${t}</div>`).join('') 
-                    : '<span class="text-gray-400 text-xs italic">Unassigned</span>';
+                const deliverableItems = service.deliverables.map(d => `<li class="mt-1">• ${d.title}</li>`).join('');
+                const personItems = (service.persons && service.persons.length > 0)
+                    ? service.persons.map(p => `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold">${p.name} ₹${parseFloat(p.price).toLocaleString('en-IN')}</div>`).join('')
+                    : '<span class="text-gray-400 text-xs italic">No persons assigned</span>';
 
-                const rowHtml = `
+                quoteList.insertAdjacentHTML("beforeend", `
                     <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 last:border-0">
                         <div class="col-span-4 pr-2">
                             <p class="font-bold text-[14px] text-gray-900">${service.service_name}</p>
                             <ul class="text-gray-500 text-[12px] ml-1 mt-1.5 leading-relaxed">${deliverableItems}</ul>
                         </div>
-                        <div class="col-span-3 pr-2 pt-0.5"><div class="flex flex-wrap">${teamItems}</div></div>
-                        <div class="col-span-1 text-center"><div class="bg-white border border-gray-200 rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${service.qty}</div></div>
-                        <div class="col-span-2"><div class="bg-white border border-gray-200 rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium whitespace-nowrap text-xs">₹ ${parseFloat(service.cost).toLocaleString('en-IN')}</div></div>
+                        <div class="col-span-3 pr-2 pt-0.5"><div class="flex flex-wrap">${personItems}</div></div>
+                        <div class="col-span-1 text-center"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${service.qty}</div></div>
+                        <div class="col-span-2"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium whitespace-nowrap text-xs">₹ ${parseFloat(service.cost).toLocaleString('en-IN')}</div></div>
                         <div class="col-span-2 text-right"><div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${serviceTotal.toLocaleString('en-IN')}</div></div>
                     </div>
-                `;
-                quoteList.insertAdjacentHTML("beforeend", rowHtml);
+                `);
             });
 
-            const formattedTotal = subtotal.toLocaleString('en-IN');
-            document.getElementById("subTotal").innerText = `₹ ${formattedTotal}`;
-            document.getElementById("totalAmount").innerText = `₹ ${formattedTotal}`;
-            document.getElementById("quoteSubtotal").innerText = `₹ ${formattedTotal}`;
-            document.getElementById("quoteTotal").innerText = `₹ ${formattedTotal}`;
+            const fmt = subtotal.toLocaleString('en-IN');
+            document.getElementById("subTotal").innerText = `₹ ${fmt}`;
+            document.getElementById("totalAmount").innerText = `₹ ${fmt}`;
+            document.getElementById("quoteSubtotal").innerText = `₹ ${fmt}`;
+            document.getElementById("quoteTotal").innerText = `₹ ${fmt}`;
         });
 }
 
-// 🌟 NEW PUPPETEER LOGIC 🌟
 function handleFormSubmit(event) {
-    event.preventDefault(); 
+    event.preventDefault();
     const form = event.target;
     const packageId = document.getElementById("packageInput").value;
     const submitBtn = form.querySelector('button[type="submit"]');
-
-    if (!packageId) {
-        form.submit();
-        return;
-    }
-
+    if (!packageId) { form.submit(); return; }
     const originalBtnText = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...';
     submitBtn.disabled = true;
-    
     generatePDFBackend(packageId, form, submitBtn, originalBtnText);
 }
 
@@ -297,7 +681,6 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
     const project = document.getElementById('projectNameInput').value || '';
     const email = document.getElementById('clientEmailInput').value || '';
 
-    // ✅ Fetch both images as base64 + package data together
     Promise.all([
         fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
         fetch('/get-image-base64/?path=images/Qutation.png').then(r => r.json()),
@@ -320,29 +703,36 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
             let sTotal = qty * cost;
             subtotal += sTotal;
 
-            const deliverableItems = service.deliverables.map(d => `<li class="mt-1" style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`).join('');
-            const teamItems = (service.team_names && service.team_names.length > 0)
-                ? service.team_names.map(t => `<div style="background:#e0e7ff; color:#3730a3; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">${t}</div>`).join('')
-                : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">Unassigned</span>';
+            const deliverableItems = service.deliverables.map(d =>
+                `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`
+            ).join('');
+
+            const personItems = (service.persons && service.persons.length > 0)
+                ? service.persons.map(p =>
+                    `<div style="background:#dbeafe; color:#1d4ed8; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">
+                        ${p.name}
+                    </div>`
+                ).join('')
+                : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">No persons</span>';
 
             rowsHtml += `
             <tr>
-                <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
-                    <strong style="font-size: 14px; color:#111;">${service.service_name}</strong>
-                    <ul style="margin: 5px 0 0 0; padding: 0; list-style: none;">
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
+                    <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
+                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">
                         ${deliverableItems}
                     </ul>
                 </td>
-                <td style="padding: 15px 10px; border-bottom: 1px solid #eaeaea; vertical-align: top;">
-                    ${teamItems}
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
+                    ${personItems}
                 </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align: top;">
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align:top;">
                     <span style="font-weight:bold;font-size:13px;">${qty}</span>
                 </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align: top;">
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
                     <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
                 </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align: top;">
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align:top;">
                     <strong style="font-size:14px;color:#111;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
                 </td>
             </tr>`;
@@ -351,7 +741,6 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
         const displayName = project ? `${clientName} - ${project}` : clientName;
         const initials = clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
         const emailToUse = email || 'No email provided';
-
         const primaryColor = "#A32e37";
         const textColor = "#333333";
 
@@ -361,76 +750,75 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
         <head>
             <meta charset="UTF-8">
             <style>
-                @page {
-                    size: A4 portrait;
-                    margin: 0;
-                }
-                body {
-                    font-family: Helvetica, Arial, sans-serif;
-                    color: ${textColor};
-                    margin: 0;
-                    padding: 0;
-                }
-                .content-wrapper {
-                    padding: 30px;
-                }
+                @page { size: A4 portrait; margin: 0; }
+                body { font-family: Helvetica, Arial, sans-serif; color: ${textColor}; margin: 0; padding: 0; }
+                .content-wrapper { padding: 30px; }
             </style>
         </head>
         <body>
-            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:0 40px; box-sizing:border-box;">
-                <div style="display:table-cell; vertical-align:middle; width:50%;">
-                    <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
-                        <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
+            <div style="background:${primaryColor};height:128px;width:100%;display:table;padding: 40px;box-sizing:border-box;">
+                <div style="display:table-cell;vertical-align:middle;width:50%;">
+                    <div style="background:#fff;width:64px;height:64px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
+                        <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
                     </div>
                 </div>
-                <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
-                    <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">QUOTATION</h1>
+                <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
+                    <h1 style="color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;margin:0;">QUOTATION</h1>
                 </div>
             </div>
 
             <div class="content-wrapper">
-                <div style="margin-bottom: 30px; width: 100%; text-align: center;">
-                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width: 100%; height: auto; object-fit: contain; border-radius: 8px;">
+                <div style="margin-bottom:30px;width:100%;text-align:center;">
+                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
                 </div>
 
-                <h2 style="font-size:26px; font-weight:800; color:#111; margin-bottom:25px; margin-top:0;">Bill To</h2>
+                <h2 style="font-size:26px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
 
-                <table style="width:100%; margin-bottom:35px; border-collapse:collapse;">
+                <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
                     <tr>
-                        <td style="width:60px; vertical-align:middle;">
-                            <div style="width:45px; height:45px; background:#111; color:#fff; border-radius:50%; text-align:center; line-height:45px; font-weight:bold; font-size:14px;">${initials}</div>
+                        <td style="width:60px;vertical-align:middle;">
+                            <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
                         </td>
                         <td style="vertical-align:middle;">
-                            <div style="font-weight:800; font-size:16px; color:#111;">${displayName}</div>
-                            <div style="font-size:12px; color:#666; margin-top:4px;">${emailToUse}</div>
+                            <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
+                            <div style="font-size:12px;color:#666;margin-top:4px;">${emailToUse}</div>
                         </td>
                     </tr>
                 </table>
 
-                <h3 style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px;">Services</h3>
+                <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
 
-                <div style="background:#f9f9f9; border-radius:8px; padding:20px;">
-                    <table style="width:100%; border-collapse:collapse;">
+                <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
+                    <table style="width:100%;border-collapse:collapse;">
                         <thead>
                             <tr>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:33%;">Service</th>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:30%;">Team</th>
-                                <th style="text-align:center; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:5%;">Qty</th>
-                                <th style="text-align:left; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:20%;">Price</th>
-                                <th style="text-align:right; padding:0 10px 10px; border-bottom:1px solid #ddd; font-size:11px; color:#777; width:25%;">Amount</th>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:33%;">Service</th>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Persons</th>
+                                <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:5%;">Qty</th>
+                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
+                                <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:25%;">Amount</th>
                             </tr>
                         </thead>
                         <tbody>${rowsHtml}</tbody>
                     </table>
 
-                    <table style="width:100%; margin-top:30px; border-collapse:collapse;">
+                    <table style="width:100%;margin-top:30px;border-collapse:collapse;">
                         <tr>
                             <td style="width:50%;"></td>
                             <td style="width:50%;">
-                                <table style="width:100%; font-size:14px; border-collapse:collapse;">
-                                    <tr><td style="padding-bottom:12px; color:#444;">Subtotal</td><td style="padding-bottom:12px; color:#111; font-weight:bold; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding-bottom:20px; color:#444;">Pre Paid Amount</td><td style="padding-bottom:20px; color:#111; font-weight:bold; text-align:right;">₹ 0</td></tr>
-                                    <tr><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px;">Total</td><td style="padding-top:15px; border-top:1px solid #ddd; font-weight:900; font-size:18px; text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td></tr>
+                                <table style="width:100%;font-size:14px;border-collapse:collapse;">
+                                    <tr>
+                                        <td style="padding-bottom:12px;color:#444;">Subtotal</td>
+                                        <td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-bottom:20px;color:#444;">Pre Paid Amount</td>
+                                        <td style="padding-bottom:20px;color:#111;font-weight:bold;text-align:right;">₹ 0</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;">Total</td>
+                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
+                                    </tr>
                                 </table>
                             </td>
                         </tr>
@@ -493,251 +881,28 @@ function closeQuotationModal() {
     document.body.style.overflow = 'auto';
 }
 
-function openModal(){ document.getElementById("packageModal").classList.remove("hidden"); }
-function closeModal(){ document.getElementById("packageModal").classList.add("hidden"); }
-
-function addServiceRow(){
-    let table = document.getElementById("serviceTable");
-    let deliverableDropdownHtml = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2" onchange="handleDeliverableSelect(this)">
-        <option value="" disabled selected>+ Select Deliverable...</option>`;
-    availableDeliverables.forEach(d => {
-        deliverableDropdownHtml += `<option value="${d.id}" data-price="${d.price}">${d.title} (₹${d.price.toLocaleString('en-IN')})</option>`;
-    });
-    deliverableDropdownHtml += `</select>`;
-
-    let teamDropdownHtml = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2" onchange="handleTeamSelect(this)">
-        <option value="" disabled selected>+ Select Team...</option>
-        {% for t in teams %}
-        <option value="{{t.id}}">{{t.name}}</option>
-        {% endfor %}
-    </select>`;
-
-    let row = `
-    <tr>
-        <td class="p-2 border align-top">
-            <input type="text" class="service border p-2 w-full rounded" placeholder="Service Name">
-        </td>
-        
-        <td class="p-2 border team-cell align-top min-w-[140px]">
-            <div class="team-list flex flex-wrap gap-1.5"></div>
-            ${teamDropdownHtml}
-        </td>
-
-        <td class="p-2 border deliverables-cell align-top">
-            <div class="deliverables-list flex flex-col gap-1.5"></div>
-            ${deliverableDropdownHtml}
-        </td>
-        
-        <td class="p-2 border align-top"><input type="number" class="qty border p-2 w-16 text-center rounded" value="1" oninput="calculateSubtotal(this)"></td>
-        <td class="p-2 border align-top">
-            <input type="number" class="base-cost hidden" value="0">
-            <input type="number" class="cost border p-2 w-24 rounded" value="0" oninput="handleManualCostChange(this)">
-        </td>
-        <td class="p-2 border subtotal text-center align-top font-bold pt-4 text-[#A9323D]">₹0</td>
-        <td class="p-2 border align-top pt-3 text-center"><button type="button" onclick="removeRow(this)" class="text-red-600 font-bold hover:scale-125 transition">&times;</button></td>
-    </tr>`;
-    table.insertAdjacentHTML("beforeend", row);
+function openModal(){ 
+    document.getElementById("packageIdModalInput").value = "";
+    document.getElementById("packageNameInput").value = "";
+    document.getElementById("serviceTable").innerHTML = "";
+    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ 0";
+    document.getElementById("packageModal").classList.remove("hidden"); 
 }
 
-function handleTeamSelect(selectElement) {
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    if (!selectedOption.value) return;
 
-    const id = selectedOption.value;
-    const name = selectedOption.text;
-    const cell = selectElement.closest('.team-cell');
-    const list = cell.querySelector('.team-list');
+function openModalForEdit(){ 
+    document.getElementById("packageModal").classList.remove("hidden"); 
+} 
 
-    if (list.querySelector(`[data-id="${id}"]`)) {
-        selectElement.selectedIndex = 0;
-        return; 
-    }
+function closeModal() { document.getElementById("packageModal").classList.add("hidden"); }
 
-    const pillHtml = `
-        <div class="team-item flex items-center gap-1.5 bg-[#e8edff] text-[#2b2bd8] border border-[#d0d9ff] px-2 py-1 rounded shadow-sm text-[10px] font-bold" data-id="${id}">
-            <span>${name}</span>
-            <button type="button" onclick="this.closest('.team-item').remove()" class="text-[#2b2bd8] hover:text-red-600 hover:scale-125 transition">&times;</button>
-        </div>
-    `;
-    list.insertAdjacentHTML('beforeend', pillHtml);
-    selectElement.selectedIndex = 0;
+
+function deletePackage(id, btn) {
+    if (!confirm("Delete this package?")) return;
+    fetch(`/delete-package/${id}/`, { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") } })
+        .then(res => res.json()).then(data => { if (data.status === "success") location.reload(); });
 }
 
-function handleDeliverableSelect(selectElement) {
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    if (!selectedOption.value) return;
-
-    const id = selectedOption.value;
-    const title = selectedOption.text.split(' (₹')[0]; 
-    const price = parseFloat(selectedOption.dataset.price);
-
-    const cell = selectElement.closest('.deliverables-cell');
-    const list = cell.querySelector('.deliverables-list');
-
-    const pillHtml = `
-        <div class="deliverable-item flex justify-between items-center bg-[#f9f9f9] border border-gray-200 p-2 rounded shadow-sm text-xs" data-id="${id}" data-price="${price}">
-            <span class="font-semibold text-gray-800">${title}</span>
-            <div class="flex items-center gap-2">
-                <span class="text-gray-500 font-bold">₹${price.toLocaleString('en-IN')}</span>
-                <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:text-white hover:bg-red-500 rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
-            </div>
-        </div>
-    `;
-    list.insertAdjacentHTML('beforeend', pillHtml);
-    selectElement.selectedIndex = 0; 
-    recalculateRowCost(selectElement.closest('tr'));
-}
-
-function removeDeliverable(btn) {
-    const row = btn.closest('tr');
-    btn.closest('.deliverable-item').remove();
-    recalculateRowCost(row);
-}
-
-function recalculateRowCost(row) {
-    const baseCostInput = row.querySelector('.base-cost');
-    const displayCostInput = row.querySelector('.cost');
-    
-    let baseCost = parseFloat(baseCostInput.value) || 0;
-    let deliverablesTotal = 0;
-
-    row.querySelectorAll('.deliverable-item').forEach(item => {
-        deliverablesTotal += parseFloat(item.dataset.price) || 0;
-    });
-
-    displayCostInput.value = baseCost + deliverablesTotal;
-    calculateSubtotal(displayCostInput);
-}
-
-function handleManualCostChange(input) {
-    const row = input.closest('tr');
-    const baseCostInput = row.querySelector('.base-cost');
-    let totalCost = parseFloat(input.value) || 0;
-    let deliverablesTotal = 0;
-    row.querySelectorAll('.deliverable-item').forEach(item => {
-        deliverablesTotal += parseFloat(item.dataset.price) || 0;
-    });
-    
-    baseCostInput.value = totalCost - deliverablesTotal;
-    calculateSubtotal(input);
-}
-
-function calculateSubtotal(input){
-    let row = input.closest("tr");
-    let qty = parseFloat(row.querySelector(".qty").value) || 0;
-    let cost = parseFloat(row.querySelector(".cost").value) || 0;
-    row.querySelector(".subtotal").innerText = "₹" + (qty * cost).toLocaleString('en-IN');
-    updateGrandTotal();
-}
-
-function updateGrandTotal(){
-    let grand=0;
-    document.querySelectorAll(".subtotal").forEach(c => {
-        grand += Number(c.innerText.replace(/[₹,]/g, ""));
-    });
-    document.getElementById("grandTotal").innerText="Service Total Cost: ₹ " + grand.toLocaleString('en-IN');
-}
-
-function removeRow(button){
-    let row = button.closest("tr");
-    if(row) row.remove();
-    updateGrandTotal();
-}
-
-function saveServices(){
-    let packageId = document.getElementById("packageIdModalInput").value || null; 
-    let packageName = document.getElementById("packageNameInput").value;
-    if(!packageName) { alert("Package Name required"); return; }
-    
-    let services = [];
-    document.querySelectorAll("#serviceTable tr").forEach(row => {
-        let serviceName = row.querySelector(".service").value;
-        if(!serviceName) return; 
-        
-        let selectedTeams = Array.from(row.querySelectorAll(".team-item")).map(item => parseInt(item.dataset.id));
-        let deliverableIds = Array.from(row.querySelectorAll(".deliverable-item")).map(item => parseInt(item.dataset.id));
-        
-        let qty = row.querySelector(".qty").value;
-        let cost = row.querySelector(".cost").value;
-
-        services.push({
-            service_name: serviceName,
-            teams: selectedTeams, 
-            deliverable_ids: deliverableIds, 
-            qty: qty,
-            cost: cost
-        });
-    });
-
-    fetch("/save-package/", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
-        body: JSON.stringify({ package_id: packageId, package_name: packageName, services: services })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "success") location.reload();
-        else alert("Error saving package");
-    });
-}
-
-function editPackage(id){
-    fetch(`/get-package/${id}/`).then(res => res.json()).then(data => {
-        document.getElementById("packageIdModalInput").value = id;
-        document.getElementById("packageNameInput").value = data.name;
-        document.getElementById("serviceTable").innerHTML = "";
-        
-        data.services.forEach(s => {
-            addServiceRow();
-            let row = document.getElementById("serviceTable").lastElementChild;
-            row.querySelector(".service").value = s.service_name;
-            row.querySelector(".qty").value = s.qty;
-            row.querySelector(".cost").value = s.cost;
-            
-            let itemsSum = s.deliverables.reduce((sum, d) => sum + d.price, 0);
-            row.querySelector(".base-cost").value = s.cost - itemsSum;
-
-            let teamContainer = row.querySelector(".team-list");
-            teamContainer.innerHTML = "";
-            s.teams.forEach((teamId, index) => {
-                let teamName = s.team_names[index];
-                const pillHtml = `
-                    <div class="team-item flex items-center gap-1.5 bg-[#e8edff] text-[#2b2bd8] border border-[#d0d9ff] px-2 py-1 rounded shadow-sm text-[10px] font-bold" data-id="${teamId}">
-                        <span>${teamName}</span>
-                        <button type="button" onclick="this.closest('.team-item').remove()" class="text-[#2b2bd8] hover:text-red-600 hover:scale-125 transition">&times;</button>
-                    </div>
-                `;
-                teamContainer.insertAdjacentHTML('beforeend', pillHtml);
-            });
-
-            let delivContainer = row.querySelector(".deliverables-list");
-            delivContainer.innerHTML = "";
-            s.deliverables.forEach(d => {
-                const pillHtml = `
-                    <div class="deliverable-item flex justify-between items-center bg-[#f9f9f9] border border-gray-200 p-2 rounded shadow-sm text-xs" data-id="${d.id}" data-price="${d.price}">
-                        <span class="font-semibold text-gray-800">${d.title}</span>
-                        <div class="flex items-center gap-2">
-                            <span class="text-gray-500 font-bold">₹${d.price.toLocaleString('en-IN')}</span>
-                            <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:text-white hover:bg-red-500 rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
-                        </div>
-                    </div>
-                `;
-                delivContainer.insertAdjacentHTML('beforeend', pillHtml);
-            });
-
-            calculateSubtotal(row.querySelector(".cost"));
-        });
-        openModal();
-    });
-}
-
-function deletePackage(id, btn){
-    if(!confirm("Delete this package?")) return;
-    fetch(`/delete-package/${id}/`,{method:"POST", headers:{"X-CSRFToken":getCookie("csrftoken")}})
-    .then(res=>res.json()).then(data=>{
-        if(data.status==="success") location.reload();
-    });
-}
-new Sortable(document.getElementById("serviceTable"),{animation:150});
+new Sortable(document.getElementById("serviceTable"), { animation: 150 });
 </script>
 {% endblock %}

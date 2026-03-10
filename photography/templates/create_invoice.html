@@ -27,6 +27,7 @@
             {% csrf_token %}
             <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
 
+            <!-- Bill To -->
             <div class="space-y-6">
                 <div class="flex justify-between items-center mb-5">
                     <h2 class="text-[20px] font-bold text-black m-0">Bill To</h2>
@@ -51,14 +52,17 @@
                 </div>
             </div>
 
+            <!-- Services -->
             <div class="space-y-4">
                 <h3 class="text-[18px] font-bold text-black mb-4">Services</h3>
                 
-                <div class="bg-[#fafafa] rounded-xl p-6 lg:p-8 border border-gray-100">
+                <div class="bg-[#fafafa] rounded-xl p-4 lg:p-4 border border-gray-100">
+                    <!-- Header -->
                     <div class="grid grid-cols-12 gap-4 text-[12px] font-bold text-gray-500 mb-4 uppercase tracking-wide px-2">
-                        <div class="col-span-5">SERVICE</div>
-                        <div class="col-span-2 text-center">QTY</div>
-                        <div class="col-span-3">PRICE</div>
+                        <div class="col-span-4">SERVICE</div>
+                        <div class="col-span-3">PERSONS</div>
+                        <div class="col-span-1 text-center">QTY</div>
+                        <div class="col-span-2">PRICE</div>
                         <div class="col-span-2 text-right">AMOUNT</div>
                     </div>
 
@@ -67,7 +71,8 @@
                         <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group" data-service-id="{{ service.id }}">
                             <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
 
-                            <div class="col-span-5 pr-4">
+                            <!-- Service + Deliverables -->
+                            <div class="col-span-4 pr-4">
                                 <input type="text" name="service_name[]" value="{{ service.service_name }}" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="Service Name">
                                 <div class="invoice-deliverables-cell">
                                     <div class="deliverables-list flex flex-col gap-1 ml-2">
@@ -83,15 +88,42 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-span-2 flex justify-center pt-0.5">
+
+                            <!-- ✅ Persons — from InvoiceService.persons snapshot -->
+                            <div class="col-span-3">
+                                <div class="persons-list flex flex-col gap-1">
+                                    {% for p in service.persons.all %}
+                                    <div class="person-item flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-0.5 text-[10px] font-bold text-blue-700"
+                                         data-id="{{ p.id }}" data-price="{{ p.price }}">
+                                        <span class="truncate mr-1">{{ p.name }}</span>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <span class="text-blue-400">₹{{ p.price|floatformat:0 }}</span>
+                                            <button type="button" onclick="removeInvoicePerson(this)" class="text-red-400 hover:text-red-600 ml-0.5"><i class="fas fa-times text-[9px]"></i></button>
+                                        </div>
+                                    </div>
+                                    {% empty %}
+                                    <span class="text-gray-300 text-[10px] italic no-persons-label">No persons</span>
+                                    {% endfor %}
+                                </div>
+                                <button type="button" onclick="openPersonPickerFor(this)" class="mt-1.5 text-blue-500 hover:text-blue-700 text-[10px] font-bold flex items-center gap-1">
+                                    <i class="fas fa-plus text-[8px]"></i> Add Person
+                                </button>
+                            </div>
+
+                            <!-- Qty -->
+                            <div class="col-span-1 flex justify-center pt-0.5">
                                 <input type="number" name="qty[]" value="{{ service.qty }}" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
                             </div>
-                            <div class="col-span-3 pt-0.5">
+
+                            <!-- Price -->
+                            <div class="col-span-2 pt-0.5">
                                 <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
                                     <span class="text-gray-400">₹</span>
                                     <input type="number" name="price[]" value="{{ service.price|floatformat:0 }}" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
                                 </div>
                             </div>
+
+                            <!-- Amount -->
                             <div class="col-span-2 text-right pt-2.5">
                                 <div class="row-subtotal font-bold text-[15px] text-gray-900">₹{{ service.total_amount|floatformat:0 }}</div>
                             </div>
@@ -108,13 +140,13 @@
                         </button>
                     </div>
 
+                    <!-- Totals -->
                     <div class="flex justify-end mt-10 border-t border-gray-200 pt-8">
                         <div class="w-full max-w-[340px] space-y-4">
-                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
-                                <p>Subtotal</p>
+                            <div class="flex justify-between font-black items-center text-[20px] text-gray-800 ">
+                                <p>Total</p>
                                 <p id="invoiceSubtotal" class="font-bold text-black">₹ {{ subtotal|floatformat:0 }}</p>
                             </div>
-                            
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Discount</p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
@@ -122,7 +154,6 @@
                                     <input type="number" name="discount_amount" value="{{ invoice.discount_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
                                 </div>
                             </div>
-
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Tax Rate</p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
@@ -130,12 +161,10 @@
                                     <span class="text-gray-400">%</span>
                                 </div>
                             </div>
-
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Tax Amount</p>
                                 <p id="invoiceTaxAmount" class="font-bold text-black">₹ {{ tax_amount|floatformat:0 }}</p>
                             </div>
-
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Pre Paid Amount</p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
@@ -143,9 +172,8 @@
                                     <input type="number" name="pre_paid_amount" value="{{ invoice.pre_paid_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
                                 </div>
                             </div>
-                            
                             <div class="border-t border-gray-300 pt-4 flex justify-between font-black text-[16px] text-black">
-                                <p>Total Due</p>
+                                <p>Outstanding Balance</p>
                                 <p id="invoiceGrandTotal">₹ {{ grand_total|floatformat:0 }}</p>
                             </div>
                         </div>
@@ -153,6 +181,7 @@
                 </div>
             </div>
 
+            <!-- Payments -->
             <div class="space-y-4 pt-4 border-t border-gray-100">
                 <div class="flex justify-between items-center">
                     <h3 class="text-[18px] font-bold text-black">Payments</h3>
@@ -160,7 +189,6 @@
                         <i class="fa-regular fa-credit-card"></i> Add Payment
                     </button>
                 </div>
-
                 {% if invoice.payments.all %}
                 <div class="border border-gray-200 rounded-lg overflow-hidden bg-white">
                     <table class="w-full text-left text-[13px]">
@@ -191,6 +219,7 @@
                 {% endif %}
             </div>
 
+            <!-- Notes + Due Date -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-3">
                     <h3 class="text-[15px] font-bold text-black">Notes</h3>
@@ -214,27 +243,23 @@
     </div>
 </div>
 
+<!-- Payment Modal -->
 <div id="paymentModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
-        
         <div class="flex justify-between items-center mb-6">
             <h3 class="font-bold text-xl text-[#0b2b46]">Make Payment</h3>
             <button type="button" onclick="closePaymentModal()" class="text-gray-400 hover:text-red-600 text-2xl leading-none">&times;</button>
         </div>
-        
         <form id="paymentForm" onsubmit="submitPayment(event)" class="space-y-5">
             <input type="hidden" id="pay_invoice_id" value="{{ invoice.id }}">
-            
             <div>
                 <label class="block text-[13px] font-bold text-[#0b2b46] mb-1.5">Payment Date</label>
                 <input type="date" id="pay_date" required class="w-full border border-gray-300 rounded p-2.5 text-[14px] text-gray-700 outline-none focus:border-green-600 transition" value="{% now 'Y-m-d' %}">
             </div>
-
             <div>
                 <label class="block text-[13px] font-bold text-[#0b2b46] mb-1.5">Payment Reference Id</label>
                 <input type="text" id="pay_ref" class="w-full border border-gray-300 rounded p-2.5 text-[14px] text-gray-700 outline-none focus:border-green-600 transition" placeholder="e.g. UTR or Txn ID">
             </div>
-
             <div>
                 <label class="block text-[13px] font-bold text-[#0b2b46] mb-2.5">Payment Mode</label>
                 <div class="flex flex-wrap items-center gap-4 text-[13px] text-gray-700">
@@ -244,26 +269,21 @@
                     <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="pay_mode" value="Others" class="accent-green-600 w-4 h-4"> Others</label>
                 </div>
             </div>
-
             <div class="pt-2 border-t border-gray-100">
                 <label class="block text-[13px] font-bold text-[#0b2b46] mb-2.5">Payment Type</label>
                 <div class="flex items-center gap-6 text-[13px] text-gray-700 mb-3">
                     <label class="flex items-center gap-1.5 cursor-pointer">
-                        <input type="radio" name="pay_type" value="partial" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()" checked> 
-                        Partial Pay
+                        <input type="radio" name="pay_type" value="partial" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()" checked> Partial Pay
                     </label>
                     <label class="flex items-center gap-1.5 cursor-pointer text-[#A9323D] font-bold">
-                        <input type="radio" name="pay_type" value="full" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()"> 
-                        Full Pay (<span id="modalBalanceDisplay">₹0</span>)
+                        <input type="radio" name="pay_type" value="full" class="accent-green-600 w-4 h-4" onchange="togglePaymentType()"> Full Pay (<span id="modalBalanceDisplay">₹0</span>)
                     </label>
                 </div>
-                
                 <div class="flex items-center border border-gray-300 rounded overflow-hidden focus-within:border-green-600 transition">
                     <span class="bg-gray-50 px-4 py-2.5 text-[13px] text-gray-500 font-bold border-r border-gray-300">INR</span>
                     <input type="number" id="pay_amount" required class="w-full p-2.5 text-[14px] outline-none transition-colors" placeholder="Enter amount" min="1">
                 </div>
             </div>
-
             <div class="flex justify-center gap-4 mt-8 pt-4">
                 <button type="button" onclick="closePaymentModal()" class="px-8 py-2.5 bg-gray-100 text-gray-700 rounded shadow-sm font-bold text-[14px] hover:bg-gray-200 transition">Cancel</button>
                 <button type="submit" id="btnSubmitPayment" class="px-10 py-2.5 bg-[#16a34a] text-white rounded shadow-sm font-bold text-[14px] hover:bg-green-700 transition">Add Payment</button>
@@ -272,12 +292,12 @@
     </div>
 </div>
 
+<!-- Deliverable Picker Modal -->
 <div id="deliverableDropdownModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
         <button type="button" onclick="closeDeliverableDropdown()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
         <h3 class="font-black text-xl mb-2">Select a Deliverable</h3>
         <p class="text-sm text-gray-500 mb-6">Clicking an item will add it to the last active service row.</p>
-        
         <div id="deliverableListItems" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar pr-1">
             {% for d in available_deliverables %}
             <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition" onclick="selectSnapshotDeliverable('{{ d.id }}', '{{ d.title|escapejs }}', '{{ d.price }}')">
@@ -289,8 +309,27 @@
     </div>
 </div>
 
+<!-- ✅ Person Picker Modal — rendered from Django, no fetch needed -->
+<div id="personPickerModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative" onclick="event.stopPropagation()">
+        <button type="button" onclick="closePersonPicker()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+        <h3 class="font-black text-xl mb-2">Select a Person</h3>
+        <p class="text-sm text-gray-500 mb-4">Person's price will be added to the service cost.</p>
+        <div class="space-y-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
+            {% for p in available_persons %}
+            <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-blue-50 cursor-pointer transition"
+                 onclick="selectInvoicePerson('{{ p.id }}', '{{ p.name|escapejs }}', '{{ p.price }}')">
+                <p class="font-bold text-sm text-gray-800">{{ p.name }}</p>
+                <p class="font-black text-blue-600 text-[15px]">₹ {{ p.price|floatformat:0 }}</p>
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-4">No persons found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 <script>
-// --- CSRF Helper ---
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== "") {
@@ -304,38 +343,79 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-} 
+}
+
+
+// ✅ PERSON PICKER — no fetch, Django rendered
+
+let activePersonRow = null;
+
+function openPersonPickerFor(btn) {
+    activePersonRow = btn.closest('.invoice-service-row');
+    document.getElementById('personPickerModal').classList.remove('hidden');
+}
+
+function closePersonPicker() {
+    document.getElementById('personPickerModal').classList.add('hidden');
+    activePersonRow = null;
+}
+
+function selectInvoicePerson(id, name, price) {
+    if (!activePersonRow) return;
+    const pPrice = parseFloat(price);
+    const personsList = activePersonRow.querySelector('.persons-list');
+    const noLabel = personsList.querySelector('.no-persons-label');
+    if (noLabel) noLabel.remove();
+    if (personsList.querySelector(`[data-id="${id}"]`)) {
+        closePersonPicker();
+        return;
+    }
+
+    personsList.insertAdjacentHTML('beforeend', `
+        <div class="person-item flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-0.5 text-[10px] font-bold text-blue-700"
+             data-id="${id}" data-price="${pPrice}">
+            <span class="truncate mr-1">${name}</span>
+            <div class="flex items-center gap-1 shrink-0">
+                <span class="text-blue-400">₹${pPrice.toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeInvoicePerson(this)" class="text-red-400 hover:text-red-600 ml-0.5"><i class="fas fa-times text-[9px]"></i></button>
+            </div>
+        </div>
+    `);
+
+    const priceInput = activePersonRow.querySelector('input.price');
+    priceInput.value = (parseFloat(priceInput.value) || 0) + pPrice;
+    calculateTotals();
+    closePersonPicker();
+}
+
+function removeInvoicePerson(btn) {
+    const row = btn.closest('.invoice-service-row');
+    const item = btn.closest('.person-item');
+    const pPrice = parseFloat(item.dataset.price) || 0;
+
+    const priceInput = row.querySelector('input.price');
+    priceInput.value = Math.max(0, (parseFloat(priceInput.value) || 0) - pPrice);
+
+    item.remove();
+    calculateTotals();
+}
 
 // ==========================================
-// 🌟 NEW: PAYMENT MODAL LOGIC
+// PAYMENT MODAL
 // ==========================================
 function openPaymentModal() {
-    // 1. Ensure latest totals are calculated
     calculateTotals();
-    
-    // 2. Fetch the Grand Total directly from the UI
-    let grandTotalText = document.getElementById("invoiceGrandTotal").innerText;
-    let grandTotal = parseFloat(grandTotalText.replace(/[₹, ]/g, "")) || 0;
-    
-    // 3. Sum up all previous payments from the HTML table
+    let grandTotal = parseFloat(document.getElementById("invoiceGrandTotal").innerText.replace(/[₹, ]/g, "")) || 0;
     let totalPaidSoFar = 0;
     document.querySelectorAll(".payment-amount-val").forEach(td => {
         totalPaidSoFar += parseFloat(td.innerText.replace(/[₹, ]/g, "")) || 0;
     });
-    
-    // 4. Calculate exactly what is left
-    let balanceDue = grandTotal - totalPaidSoFar;
-    if (balanceDue < 0) balanceDue = 0;
-    
-    // 5. Store balance on the modal and update UI display
+    let balanceDue = Math.max(0, grandTotal - totalPaidSoFar);
     document.getElementById("paymentModal").dataset.balance = balanceDue;
     document.getElementById("modalBalanceDisplay").innerText = `₹ ${balanceDue.toLocaleString('en-IN')}`;
-    
-    // Reset form default state
     document.getElementById("paymentForm").reset();
     document.getElementById("pay_amount").readOnly = false;
     document.getElementById("pay_amount").classList.remove("bg-gray-100");
-    
     document.getElementById("paymentModal").classList.remove("hidden");
 }
 
@@ -343,15 +423,13 @@ function closePaymentModal() {
     document.getElementById("paymentModal").classList.add("hidden");
 }
 
-// Auto-fill amount based on radio selection
 function togglePaymentType() {
     const isFullPay = document.querySelector('input[name="pay_type"]:checked').value === 'full';
     const amountInput = document.getElementById("pay_amount");
     const balance = parseFloat(document.getElementById("paymentModal").dataset.balance) || 0;
-    
     if (isFullPay) {
         amountInput.value = balance;
-        amountInput.readOnly = true; // Lock the input so they can't change it if they selected Full
+        amountInput.readOnly = true;
         amountInput.classList.add("bg-gray-100", "text-gray-500", "font-bold");
     } else {
         amountInput.value = '';
@@ -365,7 +443,6 @@ function submitPayment(e) {
     const btn = document.getElementById("btnSubmitPayment");
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
     btn.disabled = true;
-
     const data = new URLSearchParams({
         invoice_id: document.getElementById("pay_invoice_id").value,
         amount: document.getElementById("pay_amount").value,
@@ -373,36 +450,21 @@ function submitPayment(e) {
         date: document.getElementById("pay_date").value,
         reference: document.getElementById("pay_ref").value
     });
-
     fetch("/invoice/log-payment/", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCookie("csrftoken") },
         body: data
     })
     .then(res => res.json())
     .then(resData => {
-        if(resData.success) {
-            // Instantly refreshes to show the new table row and correct remaining balance
-            location.reload(); 
-        } else {
-            alert("Error adding payment.");
-            btn.innerHTML = "Add Payment";
-            btn.disabled = false;
-        }
+        if (resData.success) { location.reload(); }
+        else { alert("Error adding payment."); btn.innerHTML = "Add Payment"; btn.disabled = false; }
     })
-    .catch(err => {
-        console.error(err);
-        btn.innerHTML = "Add Payment";
-        btn.disabled = false;
-    });
+    .catch(err => { console.error(err); btn.innerHTML = "Add Payment"; btn.disabled = false; });
 }
 
-
 // ==========================================
-// INVOICE CALCULATIONS & EDITOR LOGIC
+// INVOICE CALCULATIONS
 // ==========================================
 function calculateTotals() {
     let subtotal = 0;
@@ -413,21 +475,19 @@ function calculateTotals() {
         row.querySelector(".row-subtotal").innerText = `₹ ${lineTotal.toLocaleString('en-IN')}`;
         subtotal += lineTotal;
     });
-    
     document.getElementById("invoiceSubtotal").innerText = `₹ ${subtotal.toLocaleString('en-IN')}`;
-    
     const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
     const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
     const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
-    
-    const postDiscountAmount = subtotal - discount;
-    const calculatedTax = postDiscountAmount * (taxRate / 100);
-    document.getElementById("invoiceTaxAmount").innerText = `₹ ${Math.round(calculatedTax).toLocaleString('en-IN')}`;
-    
-    const grandTotal = postDiscountAmount + calculatedTax - prepaid;
-    document.getElementById("invoiceGrandTotal").innerText = `₹ ${Math.round(grandTotal).toLocaleString('en-IN')}`;
+    const postDiscount = subtotal - discount;
+    const tax = postDiscount * (taxRate / 100);
+    document.getElementById("invoiceTaxAmount").innerText = `₹ ${Math.round(tax).toLocaleString('en-IN')}`;
+    document.getElementById("invoiceGrandTotal").innerText = `₹ ${Math.round(postDiscount + tax - prepaid).toLocaleString('en-IN')}`;
 }
 
+// ==========================================
+// SERVICE ROW EDITOR
+// ==========================================
 let activeDeliverableRow = null;
 
 document.addEventListener('focusin', function(e) {
@@ -441,16 +501,22 @@ function addNewServiceRow() {
     const rowHtml = `
     <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group">
         <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
-        <div class="col-span-5 pr-4">
+        <div class="col-span-4 pr-4">
             <input type="text" name="service_name[]" value="" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="New Service Name">
             <div class="invoice-deliverables-cell">
                 <div class="deliverables-list flex flex-col gap-1 ml-2"></div>
             </div>
         </div>
-        <div class="col-span-2 flex justify-center pt-0.5">
+        <div class="col-span-3">
+            <div class="persons-list flex flex-col gap-1"></div>
+            <button type="button" onclick="openPersonPickerFor(this)" class="mt-1.5 text-blue-500 hover:text-blue-700 text-[10px] font-bold flex items-center gap-1">
+                <i class="fas fa-plus text-[8px]"></i> Add Person
+            </button>
+        </div>
+        <div class="col-span-1 flex justify-center pt-0.5">
             <input type="number" name="qty[]" value="1" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
         </div>
-        <div class="col-span-3 pt-0.5">
+        <div class="col-span-2 pt-0.5">
             <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
                 <span class="text-gray-400">₹</span>
                 <input type="number" name="price[]" value="0" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
@@ -460,7 +526,6 @@ function addNewServiceRow() {
             <div class="row-subtotal font-bold text-[15px] text-gray-900">₹0</div>
         </div>
     </div>`;
-    
     container.insertAdjacentHTML('beforeend', rowHtml);
     activeDeliverableRow = container.lastElementChild;
     calculateTotals();
@@ -472,13 +537,10 @@ function removeServiceRow(btn) {
 }
 
 function launchDeliverableDropdown() {
-    if(!activeDeliverableRow) {
+    if (!activeDeliverableRow) {
         const rows = document.querySelectorAll('.invoice-service-row');
-        if(rows.length > 0) activeDeliverableRow = rows[rows.length - 1];
-        else {
-            alert("Please add a service item first.");
-            return;
-        }
+        if (rows.length > 0) activeDeliverableRow = rows[rows.length - 1];
+        else { alert("Please add a service item first."); return; }
     }
     document.getElementById("deliverableDropdownModal").classList.remove("hidden");
 }
@@ -490,7 +552,7 @@ function closeDeliverableDropdown() {
 function selectSnapshotDeliverable(id, title, price) {
     if (!activeDeliverableRow) return;
     const deliverablesContainer = activeDeliverableRow.querySelector(".deliverables-list");
-    const pillHtml = `
+    deliverablesContainer.insertAdjacentHTML('beforeend', `
         <div class="deliverable-item flex justify-between items-center text-[12px] text-gray-600" data-id="${id}" data-price="${price}">
             <span class="flex items-center gap-2"><span class="text-[8px] text-gray-400">•</span> ${title}</span>
             <div class="flex items-center gap-2">
@@ -498,32 +560,27 @@ function selectSnapshotDeliverable(id, title, price) {
                 <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
             </div>
         </div>
-    `;
-    deliverablesContainer.insertAdjacentHTML('beforeend', pillHtml);
+    `);
     const priceInput = activeDeliverableRow.querySelector('input.price');
-    const currentPrice = parseFloat(priceInput.value) || 0;
-    const deliverablePrice = parseFloat(price);
-    
-    priceInput.value = (currentPrice + deliverablePrice).toFixed(0);
+    priceInput.value = ((parseFloat(priceInput.value) || 0) + parseFloat(price)).toFixed(0);
     calculateTotals();
     closeDeliverableDropdown();
 }
 
 function removeSnapshotDeliverable(btn) {
-    const deliverableItem = btn.closest(".deliverable-item");
-    const deliverablePrice = parseFloat(deliverableItem.dataset.price);
-    const priceInput = btn.closest(".invoice-service-row").querySelector('input.price');
-    const currentPrice = parseFloat(priceInput.value) || 0;
-    
-    priceInput.value = (currentPrice - deliverablePrice).toFixed(0);
-    deliverableItem.remove();
+    const row = btn.closest(".invoice-service-row");
+    const item = btn.closest(".deliverable-item");
+    const priceInput = row.querySelector('input.price');
+    priceInput.value = Math.max(0, (parseFloat(priceInput.value) || 0) - parseFloat(item.dataset.price)).toFixed(0);
+    item.remove();
     calculateTotals();
 }
 
-// Ensure the form gets correctly saved
+// ==========================================
+// FORM SUBMIT
+// ==========================================
 document.getElementById("invoiceEditorForm").addEventListener("submit", function(e) {
-    e.preventDefault(); 
-    
+    e.preventDefault();
     const submitBtn = this.querySelector('button[type="submit"]');
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> SAVING INVOICE...';
     submitBtn.disabled = true;
@@ -531,54 +588,36 @@ document.getElementById("invoiceEditorForm").addEventListener("submit", function
     let services = [];
     document.querySelectorAll(".invoice-service-row").forEach(row => {
         let serviceName = row.querySelector('input[name="service_name[]"]').value;
-        if (!serviceName) return; 
-
-        let qty = row.querySelector('input.qty').value;
-        let price = row.querySelector('input.price').value;
-        let deliverableIds = Array.from(row.querySelectorAll(".deliverable-item")).map(item => parseInt(item.dataset.id));
-
+        if (!serviceName) return;
         services.push({
             service_name: serviceName,
-            deliverable_ids: deliverableIds, 
-            qty: qty,
-            price: price
+            deliverable_ids: Array.from(row.querySelectorAll(".deliverable-item")).map(i => parseInt(i.dataset.id)),
+            person_ids: Array.from(row.querySelectorAll(".person-item")).map(i => parseInt(i.dataset.id)),  // ✅
+            qty: row.querySelector('input.qty').value,
+            price: row.querySelector('input.price').value
         });
     });
-
-    const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
-    const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
-    const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
-    const notes = document.querySelector('textarea[name="notes"]').value;
-    const dueDate = document.querySelector('input[name="due_date"]').value;
-
-    const data = {
-        invoice_id: this.querySelector('input[name="invoice_id"]').value,
-        services: services,
-        discount_amount: discount,
-        tax_rate: taxRate,
-        pre_paid_amount: prepaid,
-        notes: notes,
-        due_date: dueDate
-    };
 
     fetch("/save-invoice/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
-        body: JSON.stringify(data)
+        body: JSON.stringify({
+            invoice_id: this.querySelector('input[name="invoice_id"]').value,
+            services,
+            discount_amount: parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0,
+            tax_rate: parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0,
+            pre_paid_amount: parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0,
+            notes: document.querySelector('textarea[name="notes"]').value,
+            due_date: document.querySelector('input[name="due_date"]').value
+        })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.status === "success") {
-            location.href = "/invoice/list/";
-        } else {
-            alert("Error saving invoice: " + (data.message || "Unknown error"));
-            submitBtn.innerHTML = 'Save Invoice';
-            submitBtn.disabled = false;
-        }
+        if (data.status === "success") { location.href = "/invoice/list/"; }
+        else { alert("Error saving invoice: " + (data.message || "Unknown error")); submitBtn.innerHTML = 'Save Invoice'; submitBtn.disabled = false; }
     });
 });
 
-// Run once on load
 calculateTotals();
 </script>
 {% endblock %}

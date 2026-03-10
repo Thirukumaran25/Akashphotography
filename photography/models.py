@@ -94,10 +94,17 @@ class Package(models.Model):
         return self.package_name
 
 
+class Person(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.name} (₹{self.price})"
+
 class PackageService(models.Model):
     package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name="services")
     service_name = models.CharField(max_length=255)
-    teams = models.ManyToManyField(Team, blank=True) 
+    persons = models.ManyToManyField('Person', blank=True)
     deliverables = models.ManyToManyField(Deliverable, blank=True)
     qty = models.IntegerField(default=1)
     cost = models.FloatField(default=0)
@@ -183,7 +190,6 @@ class Invoice(models.Model):
 
     @property
     def tax_amount(self):
-        # Tax is applied AFTER discount
         post_discount = self.subtotal - float(self.discount_amount)
         return post_discount * (float(self.tax_rate) / 100)
 
@@ -200,7 +206,7 @@ class InvoiceService(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='services')
     service_name = models.CharField(max_length=200, help_text="e.g., Engagement, Drone")
     qty = models.IntegerField(default=1)
-    
+    persons = models.ManyToManyField('Person', blank=True)
     price = models.DecimalField(max_digits=12, decimal_places=2) 
     deliverables = models.ManyToManyField('Deliverable', blank=True)
     
@@ -221,3 +227,5 @@ class PaymentRecord(models.Model):
 
     def __str__(self):
         return f"Payment ₹{self.amount} for Invoice {self.invoice.invoice_number}"
+    
+
