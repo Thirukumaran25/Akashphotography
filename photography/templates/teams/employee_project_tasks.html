@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Tasks - {{ project.project_name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-[1000px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen bg-[#fafafa]">
+
+    <div class="flex items-center gap-4 mb-8">
+        <a href="{% url 'employee_projects' %}" class="w-10 h-10 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-800 hover:bg-gray-50 hover:shadow-sm transition">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-[24px] font-black text-gray-900">
+            Project Detail: <span class="font-bold text-gray-600">AK {{ project.id|stringformat:"03d" }} – {{ project.project_name }}</span>
+        </h1>
+    </div>
+
+    {# Progress summary bar #}
+    {% with total=my_tasks.count completed=my_tasks|dictsortreversed:"status" %}
+    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-8 flex items-center gap-6" id="progress-summary">
+        <div class="shrink-0">
+            <span class="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center font-bold text-[13px]">{{ initials|default:"ME" }}</span>
+        </div>
+        <div class="flex-1">
+            <p class="text-[13px] font-bold text-gray-700 mb-2">
+                Your task progress:
+                <span id="progress-text">
+                    {{ my_tasks.filter.status__COMPLETED|default:"0" }} /
+                    {% with total_count=my_tasks.count %}{{ total_count }}{% endwith %} tasks complete
+                </span>
+            </p>
+            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
+                <div id="progress-bar" class="bg-black h-2 rounded-full transition-all duration-500"
+                     style="width: 0%"></div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+
+    <div class="mb-10">
+        <div class="bg-[#FFF0F0] border border-[#fecaca] rounded-t-xl px-6 py-4">
+            <h2 class="text-[#A9323D] font-bold text-[16px] flex justify-between items-center">
+                Your Assigned Tasks
+                <i class="fas fa-chevron-up text-sm"></i>
+            </h2>
+        </div>
+
+        <div class="bg-white border border-t-0 border-gray-200 rounded-b-xl overflow-hidden shadow-sm">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="text-[12px] text-gray-500 border-b border-gray-200 bg-[#fafafa]">
+                        <th class="py-3 px-6 font-semibold">Task Name</th>
+                        <th class="py-3 px-6 font-semibold">Due Date</th>
+                        <th class="py-3 px-6 font-semibold">Status</th>
+                        <th class="py-3 px-6 text-right font-semibold">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in my_tasks %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition" id="task-row-{{ task.id }}">
+
+                        <td class="py-4 px-6 text-[14px] font-bold text-gray-800">
+                            <div class="flex items-center gap-3">
+                                <i class="far {% if task.status == 'COMPLETED' %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %}" id="icon-{{ task.id }}"></i>
+                                {{ task.task_name }}
+                            </div>
+                        </td>
+
+                        <td class="py-4 px-6 text-[13px] font-bold text-gray-600">
+                            <div class="flex items-center gap-2">
+                                <div class="w-5 h-5 bg-black rounded-full text-white flex items-center justify-center text-[8px]">{{ initials|default:"ME" }}</div>
+                                {{ task.due_date|date:"d-m-Y"|default:"TBD" }}
+                            </div>
+                        </td>
+
+                        <td class="py-4 px-6">
+                            <span id="status-pill-{{ task.id }}"
+                                class="px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm
+                                {% if task.status == 'OPEN' %}bg-[#00E640] text-white
+                                {% elif task.status == 'ON_HOLD' %}bg-[#FFC107] text-gray-900
+                                {% elif task.status == 'COMPLETED' %}bg-gray-200 text-gray-500
+                                {% endif %}">
+                                {{ task.get_status_display }}
+                            </span>
+                        </td>
+
+                        <td class="py-4 px-6 text-right">
+                            {# FIX: show button for both OPEN and ON_HOLD tasks #}
+                            {% if task.status != 'COMPLETED' %}
+                            <button id="btn-{{ task.id }}"
+                                    onclick="markComplete('{{ task.id }}')"
+                                    class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
+                                Mark as Complete
+                            </button>
+                            {% else %}
+                            <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
+                                <i class="fas fa-check-circle"></i> Done
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="py-12 text-center text-gray-400 font-medium">You have no tasks assigned in this project.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // FIX: get CSRF token from cookie (required for POST requests)
+    function getCsrf() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) {
+                return decodeURIComponent(c.substring(name.length + 1));
+            }
+        }
+        return '';
+    }
+
+    // Initialise progress bar on page load
+    let totalTasks = {{ my_tasks.count }};
+    let completedTasks = {{ my_tasks|length }};  {# will be overridden below #}
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Count completed tasks from rendered rows
+        completedTasks = document.querySelectorAll('[id^="status-pill-"]')
+            ? [...document.querySelectorAll('[id^="status-pill-"]')]
+                .filter(el => el.innerText.trim() === 'Completed').length
+            : 0;
+        updateProgressBar(completedTasks, totalTasks);
+    });
+
+    function updateProgressBar(completed, total) {
+        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+        const bar = document.getElementById('progress-bar');
+        const txt = document.getElementById('progress-text');
+        if (bar) bar.style.width = pct + '%';
+        if (txt) txt.innerText = `${completed} / ${total} tasks complete`;
+    }
+
+    function markComplete(taskId) {
+        const btn = document.getElementById(`btn-${taskId}`);
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        }
+
+        fetch(`/api/task/${taskId}/complete/`, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                // FIX: include CSRF token so Django doesn't reject the POST
+                'X-CSRFToken': getCsrf(),
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Update status pill
+                const pill = document.getElementById(`status-pill-${taskId}`);
+                if (pill) {
+                    pill.innerText = 'Completed';
+                    pill.className = 'px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm bg-gray-200 text-gray-500';
+                }
+
+                // Update row icon
+                const icon = document.getElementById(`icon-${taskId}`);
+                if (icon) {
+                    icon.className = 'far fa-check-circle text-green-500';
+                }
+
+                // Replace button with "Done" checkmark
+                if (btn) {
+                    btn.outerHTML = `
+                        <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
+                            <i class="fas fa-check-circle"></i> Done
+                        </span>`;
+                }
+
+                // FIX: use counts returned from the server for accurate progress
+                if (data.total_tasks !== undefined) {
+                    updateProgressBar(data.completed_tasks, data.total_tasks);
+                } else {
+                    // Fallback: count from DOM
+                    const donePills = [...document.querySelectorAll('[id^="status-pill-"]')]
+                        .filter(el => el.innerText.trim() === 'Completed').length;
+                    updateProgressBar(donePills, totalTasks);
+                }
+
+            } else {
+                alert('Error: ' + (data.message || 'Could not complete task.'));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Mark as Complete';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = 'Mark as Complete';
+            }
+        });
+    }
+</script>
+{% endblock %}

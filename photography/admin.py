@@ -45,11 +45,8 @@ class PackageAdmin(admin.ModelAdmin):
 
 
 class PackageServiceAdmin(admin.ModelAdmin):
-    list_display = ('service_name', 'package', 'display_teams', 'qty', 'cost')
+    list_display = ('service_name', 'package', 'qty', 'cost')
 
-    def display_teams(self, obj):
-        return ", ".join([t.name for t in obj.teams.all()])
-    display_teams.short_description = "Teams"
 
 admin.site.register(PackageService, PackageServiceAdmin)
 
@@ -59,3 +56,26 @@ class DeliverableAdmin(admin.ModelAdmin):
     list_display = ('title', 'price') 
     search_fields = ('title',)        
     list_filter = ('price',)
+
+
+@admin.register(Task)
+class TaskAdmin(admin.ModelAdmin):
+    list_display = ('task_name', 'project', 'assigned_to', 'phase', 'status', 'due_date')
+    list_filter = ('status', 'phase', 'project', 'assigned_to')
+    search_fields = ('task_name', 'category')
+
+
+
+@admin.register(TaskCategory)
+class TaskCategoryAdmin(admin.ModelAdmin):
+    search_fields = ('name',)
+
+@admin.register(TaskList)
+class TaskListAdmin(admin.ModelAdmin):
+    list_display = ('task_name', 'get_category_name', 'phase')
+    list_filter = ('phase', 'category')
+    search_fields = ('task_name', 'category__name')
+    
+    def get_category_name(self, obj):
+        return obj.category.name if obj.category else "—"
+    get_category_name.short_description = 'Category'

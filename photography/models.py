@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 # Create your models here.
 
@@ -46,7 +47,7 @@ class Team(models.Model):
 
 
 class Employee(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='employee_profile')
     team = models.ForeignKey(
         Team, 
         on_delete=models.SET_NULL, 
@@ -160,6 +161,115 @@ class Lead(models.Model):
     def __str__(self):
         return f"{self.name} - {self.mobile_number}"
 
+
+
+class TaskCategory(models.Model):
+    """ Allows you to select existing categories or add new ones on the fly """
+    name = models.CharField(max_length=255, unique=True)
+
+    class Meta:
+        verbose_name = "Task Category"
+        verbose_name_plural = "Task Categories"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class TaskList(models.Model):
+    """ Master list of all possible tasks that can be assigned to projects """
+    
+    PHASE_CHOICES = [
+        ('PRE', 'PRE PRODUCTION'),
+        ('SELECTION', 'SELECTION'),
+        ('POST', 'POST PRODUCTION'),
+    ]
+
+    phase = models.CharField(
+        max_length=20, 
+        choices=PHASE_CHOICES, 
+        default='PRE'
+    )
+    
+    # 🌟 FIX: Now a ForeignKey. This makes it a dropdown in the admin panel.
+    # null=True, blank=True means if you leave it empty, it just falls under the Phase.
+    category = models.ForeignKey(
+        TaskCategory, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True,
+        help_text="Select a category, click '+' to add a new one, or leave blank to place directly under the Phase."
+    )
+    
+    task_name = models.CharField(
+        max_length=255,
+        help_text="e.g., 'Create Excel Sheet', 'Photo Gallery Link', etc."
+    )
+
+    class Meta:
+        ordering = ['phase', 'category__name', 'task_name']
+        verbose_name = "Task List"
+        verbose_name_plural = "Task List"
+
+    def __str__(self):
+        category_display = self.category.name if self.category else "General (No Category)"
+        return f"[{self.get_phase_display()}] {category_display} - {self.task_name}"
+
+class Task(models.Model):
+    PHASE_CHOICES = [
+        ('PRE', 'PRE PRODUCTION'),
+        ('SELECTION', 'SELECTION'),
+        ('POST', 'POST PRODUCTION'),
+    ]
+    
+    STATUS_CHOICES = [
+        ('OPEN', 'Open'),
+        ('ON_HOLD', 'On Hold'),
+        ('COMPLETED', 'Completed'),
+    ]
+
+    project = models.ForeignKey(
+        'ProjectDetail', 
+        on_delete=models.CASCADE, 
+        related_name='tasks'
+    )
+    phase = models.CharField(
+        max_length=20, 
+        choices=PHASE_CHOICES, 
+        default='PRE'
+    )
+    category = models.CharField(
+        max_length=255, 
+        help_text="e.g., 'Planning & Wedding Coordination' or 'Pre Wedding Shoot'"
+    )
+    task_name = models.CharField(max_length=255)
+    
+    assigned_to = models.ForeignKey(
+        'Employee', 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='assigned_tasks'
+    )
+    due_date = models.DateField(null=True, blank=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default='ON_HOLD'
+    )
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['phase', 'category', 'due_date']
+        verbose_name = "Task"
+        verbose_name_plural = "Tasks"
+
+    def __str__(self):
+        emp_name = self.assigned_to.name if self.assigned_to else "Unassigned"
+        return f"{self.task_name} ({emp_name}) - {self.project.project_name}"
+    
 
 
 class Invoice(models.Model):

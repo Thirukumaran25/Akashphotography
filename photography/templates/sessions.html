@@ -1,89 +1,306 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Sessions{% endblock %}
+{% block title %}Sessions Management{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/sessions.css' %}">
-<link rel="stylesheet" href="{% static 'css/team_assign_inline.css' %}">
-<link rel="stylesheet" href="{% static 'css/task_assign.css' %}">
-<input type="hidden" id="csrf_token" value="{{ csrf_token }}">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<div class="sessions-wrapper">
+<style>
+    body { font-family: "Inter", sans-serif; background-color: #ffffff; }
+</style>
 
-  <div class="sessions-header">
-    <div class="session-tabs">
-      <span class="{% if active_tab == 'upcoming' %}active{% endif %}" data-tab="upcoming">Upcoming Event</span>
-      <span class="{% if active_tab == 'past' %}active{% endif %}" data-tab="past">Past Event</span>
-      <span class="{% if active_tab == 'future' %}active{% endif %}" data-tab="future">To be decided</span>
-      <button class="refresh-btn">⟳</button>
-    </div>
-  </div>
-
-  {% for month, projects in grouped_projects.items %}
-  <div class="session-month">
-    <h3 class="month-title">{{ month }}</h3>
-
-    {% for p in projects %}
-    <div class="session-card
-      {% if p.status == 'COMPLETED' %}completed
-      {% elif p.status == 'ASSIGNED' %}pending
-      {% else %}assigned{% endif %}"
-      data-id="{{ p.id }}">
-
-      <div class="session-date">
-        <div class="weekday">{{ p.lead.event_start_date|date:"D" }}</div>
-        <div class="day">{{ p.lead.event_start_date|date:"d" }}</div>
-      </div>
-
-      <div class="session-divider"></div>
-
-      <div class="session-info">
-        <div class="time-location">
-          ⏰ {{ p.lead.event_start_session }} – {{ p.lead.event_end_session }}<br>
-          📍 {{ p.lead.event_location }}
+<div class="max-w-[1400px] mx-auto p-2 min-h-screen">
+    <div class="flex justify-center mb-10 mt-4">
+        <div class="bg-[#fafafa] px-2 py-2 rounded-full flex items-center gap-1 shadow-sm border border-gray-100">
+            <button class="px-6 py-2.5 rounded-full bg-[#FFF0F0] text-[#A9323D] font-bold text-[14px] whitespace-nowrap transition">
+                Upcoming Event
+            </button>
+            <button class="px-6 py-2.5 rounded-full hover:bg-gray-100 text-gray-700 font-bold text-[14px] whitespace-nowrap transition">
+                Past Event
+            </button>
+            <button class="px-6 py-2.5 rounded-full hover:bg-gray-100 text-gray-700 font-bold text-[14px] whitespace-nowrap transition">
+                To be decided
+            </button>
         </div>
+    </div>
 
+    <div class="max-w-5xl mx-auto space-y-12">
+        {% for month, projects in grouped_projects.items %}
         <div>
-          <div class="event-title">
-            <strong>{{ p.lead.event_type }}</strong><br>
-            {{ p.client_name }}
-          </div>
+            <h2 class="text-[22px] font-black text-gray-900 mb-6 px-2">{{ month }}</h2>
+            
+            <div class="space-y-5">
+                {% for proj in projects %}
+                
+                <div class="{% if not proj.assigned_employees.exists %}bg-[#FFF0F0]{% else %}bg-[#FFFFEC]{% endif %} rounded-[24px] px-8 py-6 flex flex-col md:flex-row items-center gap-2 shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer relative" 
+                     onclick="openAssignModal('{{ proj.id }}')">
+                    
+                    <div class="flex flex-col items-center justify-center w-16 shrink-0">
+                        <span class="text-[15px] text-gray-900 font-bold mb-1">{{ proj.start_date|date:"D" }}</span>
+                        <span class="text-[34px] font-black text-gray-900 leading-none tracking-tight">{{ proj.start_date|date:"d" }}</span>
+                    </div>
 
-          {% if p.status == 'ASSIGNED' %}
-            <button class="assign-link" data-project="{{ p.id }}">+ Assign Team</button>
-          {% else %}
-            <div class="team-avatars">
-              {% for t in p.team_assignments.all %}
-                <span class="avatar">{{ t.member.user.first_name|slice:":1"|upper }}</span>
-              {% endfor %}
+                    <div class="hidden md:block w-px h-12 bg-gray-800 mx-8 opacity-40"></div>
+
+                    <div class="flex flex-col space-y-3 w-full md:w-[320px] shrink-0">
+                        <div class="flex items-center gap-2.5 text-[13px] text-gray-800 font-medium">
+                            <i class="far fa-clock text-[14px]"></i> 
+                            <span>05:00am - 11:00am</span>
+                        </div>
+                        <div class="flex items-center gap-2.5 text-[13px] text-gray-800 font-medium">
+                            <i class="fas fa-map-marker-alt text-[14px]"></i> 
+                            <span class="truncate pr-4">{{ proj.project_address|default:"Grand palace, Bengaluru, Karnataka" }}</span>
+                        </div>
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-center space-y-3 min-w-0 w-full mt-4 md:mt-0">
+                        <h3 class="font-bold text-gray-900 text-[18px] truncate pr-4" title="{{ proj.project_name }}">
+                            {{ proj.project_name }}
+                        </h3>
+                        
+                        <div class="flex items-center h-8">
+                            {% if proj.assigned_employees.exists %}
+                                <div class="flex -space-x-2.5">
+                                    {% for emp in proj.assigned_employees.all|slice:":5" %}
+                                    <div class="w-8 h-8 rounded-full bg-[#111] text-white flex items-center justify-center font-bold text-[10px] border-2 {% if not proj.assigned_employees.exists %}border-[#FFF0F0]{% else %}border-[#FFFFEC]{% endif %} shadow-sm z-10" title="{{ emp.name }}">
+                                        {{ emp.name.split.0|slice:":1" }}{{ emp.name.split.1|slice:":1" }}
+                                    </div>
+                                    {% endfor %}
+                                    {% if proj.assigned_employees.count > 5 %}
+                                    <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-700 flex items-center justify-center font-bold text-[10px] border-2 {% if not proj.assigned_employees.exists %}border-[#FFF0F0]{% else %}border-[#FFFFEC]{% endif %} z-0">
+                                        +{{ proj.assigned_employees.count|add:"-5" }}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% else %}
+                                <button class="bg-white/70 hover:bg-white text-gray-500 font-semibold text-[13px] px-5 py-1.5 rounded-full transition shadow-sm border border-gray-100 flex items-center gap-1.5">
+                                    <span class="text-gray-400 text-lg leading-none mt-[-2px]">+</span> Assign Team
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-auto flex justify-end mt-4 md:mt-0 shrink-0 md:ml-4">
+                        {% if proj.assigned_employees.exists %}
+                            <span class="px-6 py-2 rounded-full bg-[#FCE815] text-white text-[14px] font-bold shadow-sm whitespace-nowrap">
+                                In-Progress
+                            </span>
+                        {% else %}
+                            <span class="px-8 py-2 rounded-full bg-[#E60000] text-white text-[14px] font-bold shadow-sm whitespace-nowrap">
+                                Pending
+                            </span>
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% endfor %}
             </div>
-          {% endif %}
         </div>
-      </div>
-
-      <div class="session-status">
-        {% if p.status == 'COMPLETED' %}
-          <span class="badge completed">Completed</span>
-        {% elif p.status == 'ASSIGNED' %}
-          <span class="badge pending">Pending</span>
-        {% else %}
-          <span class="badge progress">In-Progress</span>
-        {% endif %}
-      </div>
+        {% endfor %}
 
     </div>
-    {% endfor %}
-  </div>
-  {% endfor %}
-
 </div>
 
-<!-- 🔥 SINGLE POPUP INSTANCE -->
-{% include "partials/team_assign.html" %}
+<div id="assignTeamModal" class="hidden fixed inset-0 bg-black/50 z-[5000] flex items-center justify-center p-4">
+    <div class="bg-[#f9fafb] rounded-[24px] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto relative p-10 font-['Inter',sans-serif]" onclick="event.stopPropagation()">
+        
+        <button type="button" onclick="closeAssignModal()" class="absolute top-6 right-6 text-gray-400 hover:text-red-600 text-2xl leading-none">&times;</button>
 
-<!-- 🔥 SINGLE TASK POPUP (same as projects) -->
-{% include "partials/task_assign.html" %}
+        <div id="modalContent" class="space-y-8">
+            
+            <div class="space-y-4">
+                <h3 class="font-bold text-gray-900 text-[17px]">Projects Details</h3>
+                <div class="bg-gray-100 border border-gray-200 rounded-2xl p-5 space-y-3">
+                    <div class="relative"><i class="far fa-copy absolute left-4 top-3.5 text-gray-500"></i><input id="modalProjectName" type="text" class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-800 font-medium outline-none" readonly></div>
+                    <div class="relative"><i class="fas fa-map-marker-alt absolute left-4 top-3.5 text-gray-500"></i><input id="modalProjectAddress" type="text" class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-800 font-medium outline-none" readonly></div>
+                    <div class="flex items-center border border-gray-300 rounded-lg p-2.5 bg-white">
+                        <span class="flex items-center gap-2 text-sm text-gray-800 font-medium pl-2">
+                            <i class="far fa-calendar-alt text-gray-500"></i> 
+                            Event Date: <span id="modalStartDate">30/01/2026</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
 
-<script src="{% static 'js/sessions.js' %}"></script>
-<script src="{% static 'js/global.js' %}"></script>
+            <div class="space-y-4">
+                <h3 class="font-bold text-gray-900 text-[17px]">Team Members</h3>
+                <div class="bg-gray-100 border border-gray-200 rounded-2xl p-5 space-y-5">
+                    
+                    <div class="flex justify-center items-center gap-8 p-3 border border-gray-300 rounded-lg bg-white text-[13px] font-bold">
+                        <div class="text-[#A9323D] flex items-center gap-2"><i class="fas fa-check font-normal"></i> Available Team Members</div>
+                        <div class="text-gray-700 flex items-center gap-2"><i class="fas fa-check font-normal"></i> Booked on Other Sessions</div>
+                    </div>
+
+                    <div id="teamPillLists" class="border border-gray-300 rounded-xl p-5 bg-white space-y-6">
+                        </div>
+
+                    <div class="pt-2 border-t border-gray-200">
+                        <label class="block text-[14px] font-bold text-gray-900 mb-2">Deadline</label>
+                        <input type="date" id="modalDeadlineDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-800 font-medium outline-none focus:border-red-400 transition cursor-pointer bg-white shadow-sm">
+                    </div>
+
+                    <button id="sendNotificationsBtn" type="button" onclick="submitTeamAssignment()" class="w-full bg-[#A9323D] text-white py-3.5 rounded-lg font-bold text-[15px] flex items-center justify-center gap-2 hover:bg-red-800 transition shadow-md mt-2">
+                        <i class="far fa-paper-plane"></i> Send Notifications
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+            let cookies = document.cookie.split(";");
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + "=")) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    let currentProjectId = null;
+    let selectedEmployeesSet = new Set();
+
+    function openAssignModal(projectId) {
+        currentProjectId = projectId;
+        selectedEmployeesSet.clear(); 
+
+        fetch(`/sessions/api/details/${projectId}/`)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('modalProjectName').value = data.project.name;
+                document.getElementById('modalProjectAddress').value = data.project.address;
+                document.getElementById('modalStartDate').innerText = data.project.start_date;
+                
+                // Clear the deadline field when opening
+                document.getElementById('modalDeadlineDate').value = '';
+
+                renderTeamMemberPills(data.availability);
+
+                document.getElementById('assignTeamModal').classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; 
+            })
+            .catch(err => {
+                console.error("Error fetching project details:", err);
+                alert("Failed to load project details.");
+            });
+    }
+
+    // 🌟 FIX: Bulletproof HTML String Rendering for 100% Clickability
+    function renderTeamMemberPills(availabilityData) {
+        const container = document.getElementById('teamPillLists');
+        let htmlContent = '';
+
+        for (const [teamName, members] of Object.entries(availabilityData)) {
+            htmlContent += `
+                <div class="space-y-2.5">
+                    <h4 class="font-bold text-gray-900 text-[14px]">${teamName}</h4>
+                    <div class="flex flex-wrap gap-3 py-1">
+            `;
+
+            members.forEach(emp => {
+                const isBooked = emp.is_booked;
+                const title = emp.name + (isBooked ? ' (Booked on other session)' : ' (Available)');
+                const baseClass = isBooked ? 'booked-member bg-gray-800' : 'bg-[#111]';
+                
+                // If booked, add the red notification dot
+                const redDotHtml = isBooked ? `<div class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#A9323D] border-2 border-white pointer-events-none shadow-md z-10"></div>` : '';
+
+                // Using standard HTML button guarantees the onClick will work flawlessly
+                htmlContent += `
+                    <button type="button" 
+                            data-id="${emp.id}" 
+                            title="${title}"
+                            onclick="toggleMemberSelection(this, ${emp.id})"
+                            class="emp-pill w-10 h-10 rounded-lg text-white flex items-center justify-center font-bold text-[13px] tracking-wide cursor-pointer transition-all relative outline-none shadow-sm ${baseClass}">
+                        <span class="pointer-events-none">${emp.initials}</span>
+                        ${redDotHtml}
+                    </button>
+                `;
+            });
+
+            htmlContent += `</div></div>`;
+        }
+        
+        container.innerHTML = htmlContent;
+    }
+
+    // 🌟 FIX: Updated style logic for the new button structure
+    function toggleMemberSelection(pillElement, employeeId) {
+        if (selectedEmployeesSet.has(employeeId)) {
+            selectedEmployeesSet.delete(employeeId);
+            pillElement.classList.remove('selected-pill');
+            pillElement.style.boxShadow = 'none'; 
+            pillElement.style.transform = 'scale(1)';
+        } else {
+            selectedEmployeesSet.add(employeeId);
+            pillElement.classList.add('selected-pill');
+            pillElement.style.transform = 'scale(1.1)';
+            
+            // Use direct box-shadow so it isn't hidden by containers
+            if (pillElement.classList.contains('booked-member')) {
+                pillElement.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #A9323D'; 
+            } else {
+                pillElement.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #16a34a'; 
+            }
+        }
+    }
+
+    function submitTeamAssignment() {
+        if (!currentProjectId) return;
+        if (selectedEmployeesSet.size === 0) {
+            alert("Please select at least one team member.");
+            return;
+        }
+
+        const btn = document.getElementById('sendNotificationsBtn');
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        const deadline = document.getElementById('modalDeadlineDate').value;
+
+        const data = {
+            project_id: currentProjectId,
+            employee_ids: Array.from(selectedEmployeesSet),
+            deadline_date: deadline // Send deadline to backend just in case you need to save it later
+        };
+
+        fetch('/sessions/api/save/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken') 
+            },
+            body: JSON.stringify(data)
+        })
+        .then(res => res.json())
+        .then(result => {
+            if (result.status === 'success') {
+                location.reload();
+            } else {
+                alert("Error saving assignment: " + result.message);
+                btn.innerHTML = '<i class="far fa-paper-plane"></i> Send Notifications';
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error("Error submitting assignment:", err);
+            btn.innerHTML = '<i class="far fa-paper-plane"></i> Send Notifications';
+            btn.disabled = false;
+        });
+    }
+
+    function closeAssignModal() {
+        document.getElementById('assignTeamModal').classList.add('hidden');
+        document.body.style.overflow = 'auto'; 
+        currentProjectId = null;
+    }
+</script>
 {% endblock %}

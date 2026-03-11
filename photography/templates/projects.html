@@ -9,159 +9,305 @@
 <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
 <style>
-    body { overflow-x: hidden; overflow-y: auto; font-family: "Inter", sans-serif; background: #fff; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
-    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  body { overflow-x: hidden; overflow-y: auto; font-family: "Inter", sans-serif; background: #fff; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes fadeSlide { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-    @keyframes overlayFade { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes panelSpringIn { 0% { transform: translateX(100%); } 70% { transform: translateX(-6px); } 100% { transform: translateX(0); } }
-    @keyframes fadeDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes sectionIn { to { opacity: 1; transform: translateY(0); } }
-    @keyframes popupScale { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
-    @keyframes pulseIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    @keyframes chipPop { 50% { transform: scale(1.08); } }
+  @keyframes fadeIn    { from { opacity:0; transform:translateY(6px); }  to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeSlide { from { opacity:0; transform:translateY(6px); }  to { opacity:1; transform:translateY(0); } }
+  @keyframes overlayFade   { from { opacity:0; } to { opacity:1; } }
+  @keyframes panelSpringIn { 0%{transform:translateX(100%)} 70%{transform:translateX(-6px)} 100%{transform:translateX(0)} }
+  @keyframes fadeDown  { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes sectionIn { to   { opacity:1; transform:translateY(0); } }
+  @keyframes popupScale{ from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
+  @keyframes pulseIn   { from { transform:scale(0.95); opacity:0; } to { transform:scale(1); opacity:1; } }
+  @keyframes chipPop   { 50%  { transform:scale(1.08); } }
 
-    .filter-overlay { animation: overlayFade 0.35s ease forwards; }
-    .filter-panel { animation: panelSpringIn 0.55s cubic-bezier(.22,1.2,.36,1) forwards; }
-    .filter-header { animation: fadeDown 0.4s ease 0.15s both; }
-    .filter-section { opacity: 0; transform: translateY(12px); animation: sectionIn 0.45s ease forwards; }
-    .filter-section:nth-of-type(1) { animation-delay: .18s; }
-    .filter-section:nth-of-type(2) { animation-delay: .26s; }
-    .filter-section:nth-of-type(3) { animation-delay: .34s; }
-    .filter-section:nth-of-type(4) { animation-delay: .42s; }
-    .filter-chips input:checked + span, .filter-chips input:checked { animation: chipPop 0.25s ease; }
-    
-    .assign-popup { animation: fadeIn 0.35s ease forwards; }
-    .popup-box { animation: popupScale 0.45s cubic-bezier(.4,0,.2,1); }
-    
-    .view-active { display: block; }
-    #boardView, #listView, .overview-wrapper { animation: fadeSlide 0.35s ease; }
-    
-    .project-card.dragging { opacity: 0.4; }
-    .project-column.hover { outline: 2px dashed #999; background: #ffecec; }
+  .filter-overlay  { animation: overlayFade 0.35s ease forwards; }
+  .filter-panel    { animation: panelSpringIn 0.55s cubic-bezier(.22,1.2,.36,1) forwards; }
+  .filter-header   { animation: fadeDown 0.4s ease 0.15s both; }
+  .filter-section  { opacity:0; transform:translateY(12px); animation: sectionIn 0.45s ease forwards; }
+  .filter-section:nth-of-type(1){ animation-delay:.18s }
+  .filter-section:nth-of-type(2){ animation-delay:.26s }
+  .filter-section:nth-of-type(3){ animation-delay:.34s }
+  .filter-section:nth-of-type(4){ animation-delay:.42s }
+
+  .assign-popup  { animation: fadeIn 0.35s ease forwards; }
+  .popup-box     { animation: popupScale 0.45s cubic-bezier(.4,0,.2,1); }
+
+  .project-card.dragging  { opacity: 0.4; }
+  .project-column.hover   { outline: 2px dashed #999; background: #ffecec; }
+
+  /* ============================================================
+     TASK TABLE — pixel-perfect match to screenshot
+  ============================================================ */
+  .tt-wrap { width:100%; overflow-x:auto; font-family:'Inter',sans-serif; }
+  .tt-table {
+    width:100%; border-collapse:collapse; min-width:820px;
+    font-size:13px; color:#222;
+  }
+
+  /* Header */
+  .tt-head th {
+    padding:11px 14px; text-align:left; font-size:13px; font-weight:700;
+    color:#555; border-bottom:2px solid #111; white-space:nowrap;
+    background:#fff; position:sticky; top:0; z-index:5;
+  }
+
+  /* Category stripe */
+  .tt-cat-row td {
+    padding:9px 14px; font-size:13.5px; font-weight:700; color:#111;
+    background:#f8f8f8;
+    border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;
+  }
+
+  /* Task row */
+  .tt-row td { padding:10px 14px; border-bottom:1px solid #f0f0f0; vertical-align:middle; background:#fff; }
+  .tt-row:hover td { background:#fafafa; }
+
+  /* Task ID */
+  .tt-id { font-size:12px; color:#888; font-weight:600; font-family:monospace; white-space:nowrap; }
+
+  /* Task name inline-edit */
+  .tt-name {
+    font-size:13.5px; font-weight:500; color:#111; outline:none;
+    display:block; min-width:120px; border-bottom:1px solid transparent;
+    transition:border-color .15s;
+  }
+  .tt-name:hover { border-bottom-color:#ddd; }
+  .tt-name:focus { border-bottom-color:#888; }
+
+  /* Avatar */
+  .t-avatar {
+    display:inline-flex; align-items:center; justify-content:center;
+    width:30px; height:30px; border-radius:50%;
+    background:#111; color:#fff; font-size:11px; font-weight:700; flex-shrink:0;
+  }
+  .t-assignee-label { font-size:13px; font-weight:500; color:#222; }
+
+  /* Assignee dropdown wrapper */
+  .tt-dd-wrap { position:relative; display:inline-block; }
+  .tt-dd-trigger {
+    display:flex; align-items:center; gap:8px; cursor:pointer;
+    padding:3px 6px; border-radius:8px; transition:background .1s;
+  }
+  .tt-dd-trigger:hover { background:#f0f0f0; }
+  .tt-dd-menu {
+    display:none; position:absolute; top:calc(100% + 4px); left:0;
+    background:#fff; border:1px solid #e5e7eb; border-radius:10px;
+    box-shadow:0 8px 28px rgba(0,0,0,.13); min-width:200px; z-index:200; overflow:hidden;
+  }
+  .tt-dd-wrap:hover .tt-dd-menu { display:block; }
+  .tt-dd-item {
+    display:flex; align-items:center; gap:8px; padding:9px 14px;
+    font-size:13px; cursor:pointer; transition:background .1s;
+  }
+  .tt-dd-item:hover { background:#f5f5f5; }
+
+  /* Status pill */
+  .t-pill {
+    display:inline-block; padding:4px 16px; border-radius:6px;
+    font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer;
+  }
+  .t-pill-open      { background:#22c55e; color:#fff; }
+  .t-pill-on_hold   { background:#facc15; color:#333; }
+  .t-pill-completed { background:#e5e7eb; color:#555; }
+
+  /* Date inputs */
+  .tt-date {
+    border:none; background:transparent; font-size:12.5px; color:#444;
+    font-family:inherit; cursor:pointer; width:100%; outline:none;
+  }
+  .tt-date:focus { border-bottom:1px solid #aaa; }
+
+  /* Progress slider */
+  .t-progress-track {
+    position:relative; height:3px; background:#e5e7eb;
+    border-radius:99px; width:100%; min-width:80px;
+  }
+  .t-progress-fill {
+    position:absolute; left:0; top:0; bottom:0;
+    border-radius:99px; transition:width .4s ease;
+  }
+  .t-progress-dot {
+    position:absolute; top:50%; transform:translate(-50%,-50%);
+    width:10px; height:10px; border-radius:50%;
+    border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15);
+    transition:left .4s ease;
+  }
+
+  /* Action buttons */
+  .tt-btn {
+    background:none; border:none; cursor:pointer; font-size:15px;
+    padding:3px 5px; border-radius:5px; transition:background .1s; line-height:1;
+  }
+  .tt-btn:hover { background:#f0f0f0; }
+  .tt-btn-save   { color:#16a34a; }
+  .tt-btn-del    { color:#aaa; }
+  .tt-btn-del:hover { color:#ef4444; }
+
+  /* Add task row */
+  .tt-add-row td { padding:8px 14px 14px; background:#fff; border-bottom:2px solid #e9e9e9; }
+  .tt-add-inner  { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .tt-tpl-select {
+    border:1px solid #d1d5db; border-radius:8px; padding:6px 10px;
+    font-size:12.5px; outline:none; min-width:240px; background:#fff;
+    color:#333; font-family:inherit;
+  }
+  .tt-tpl-select:focus { border-color:#111; }
+  .tt-add-btn {
+    background:#a12b2b; color:#fff; border:none; border-radius:7px;
+    padding:7px 18px; font-size:12px; font-weight:700; cursor:pointer;
+    font-family:inherit; transition:background .15s, transform .1s;
+  }
+  .tt-add-btn:hover { background:#851e1e; transform:translateY(-1px); }
+  .tt-custom-btn {
+    background:none; border:none; font-size:12px; font-weight:600;
+    color:#999; cursor:pointer; font-family:inherit; text-decoration:underline;
+  }
+  .tt-custom-btn:hover { color:#111; }
+
+  /* Empty phase */
+  .tt-empty td { padding:10px 14px; color:#bbb; font-size:13px; font-style:italic; }
+
+  /* Scrollbar for task container */
+  #taskContainer::-webkit-scrollbar        { width:5px; height:5px; }
+  #taskContainer::-webkit-scrollbar-track  { background:#f0f0f0; border-radius:99px; }
+  #taskContainer::-webkit-scrollbar-thumb  { background:#ccc; border-radius:99px; }
+  #taskContainer::-webkit-scrollbar-thumb:hover { background:#aaa; }
 </style>
 
+<!-- ═══════════════════════════════════════════════════
+     FILTER PANEL
+════════════════════════════════════════════════════ -->
 <div class="filter-overlay fixed inset-0 bg-black/45 hidden justify-end z-[10000]" id="filterOverlay">
   <div class="filter-panel w-[380px] h-full bg-white p-6 shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col translate-x-full font-['Inter']">
 
     <div class="filter-header flex justify-between items-center">
       <h3 class="text-[22px] font-bold m-0">Filters</h3>
-      <button class="filter-close bg-black text-white border-none w-[30px] h-[30px] rounded-lg text-[18px] cursor-pointer transition-all duration-200 hover:rotate-90 hover:scale-105 hover:shadow-[0_6px_16px_rgba(0,0,0,0.35)] active:scale-90 flex justify-center items-center" onclick="closeFilter()">×</button>
+      <button class="filter-close bg-black text-white border-none w-[30px] h-[30px] rounded-lg text-[18px] cursor-pointer transition-all duration-200 hover:rotate-90 hover:scale-105 flex justify-center items-center" onclick="closeFilter()">×</button>
     </div>
 
     <div class="flex-1 overflow-y-auto pr-2 no-scrollbar">
+
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Month & Year</label>
-        <div class="month-year-picker flex items-center justify-between bg-[#f5f5f5] p-3 rounded-[14px]">
-          <button class="nav-btn bg-black text-white border-none w-8 h-8 rounded-lg cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_14px_rgba(0,0,0,0.25)] active:scale-95" onclick="prevMonth()">‹</button>
-          <div class="month-display text-[16px] font-bold" id="monthLabel">January</div>
-          <div class="year-picker flex items-center gap-2 font-bold">
-            <button class="nav-btn small bg-black text-white border-none w-[26px] h-[26px] text-[14px] rounded-lg cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_14px_rgba(0,0,0,0.25)] active:scale-95" onclick="prevYear()">‹</button>
+        <div class="flex items-center justify-between bg-[#f5f5f5] p-3 rounded-[14px]">
+          <button class="bg-black text-white border-none w-8 h-8 rounded-lg cursor-pointer hover:-translate-y-0.5 hover:shadow-md active:scale-95" onclick="prevMonth()">‹</button>
+          <div class="text-[16px] font-bold" id="monthLabel">January</div>
+          <div class="flex items-center gap-2 font-bold">
+            <button class="bg-black text-white border-none w-[26px] h-[26px] text-[14px] rounded-lg cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="prevYear()">‹</button>
             <span id="yearLabel">2026</span>
-            <button class="nav-btn small bg-black text-white border-none w-[26px] h-[26px] text-[14px] rounded-lg cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_14px_rgba(0,0,0,0.25)] active:scale-95" onclick="nextYear()">›</button>
+            <button class="bg-black text-white border-none w-[26px] h-[26px] text-[14px] rounded-lg cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="nextYear()">›</button>
           </div>
-          <button class="nav-btn bg-black text-white border-none w-8 h-8 rounded-lg cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_6px_14px_rgba(0,0,0,0.25)] active:scale-95" onclick="nextMonth()">›</button>
+          <button class="bg-black text-white border-none w-8 h-8 rounded-lg cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="nextMonth()">›</button>
         </div>
       </div>
 
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Custom Date Range</label>
-        <div class="date-range flex items-center gap-2 mt-2">
-          <input type="date" id="fromDate" class="flex-1 p-2 rounded-lg border border-[#ccc] text-[13px] outline-none transition-all duration-200 focus:border-[#9f2727] focus:shadow-[0_0_0_3px_rgba(159,39,39,0.18)]">
-          <span></span>
-          <input type="date" id="toDate" class="flex-1 p-2 rounded-lg border border-[#ccc] text-[13px] outline-none transition-all duration-200 focus:border-[#9f2727] focus:shadow-[0_0_0_3px_rgba(159,39,39,0.18)]">
+        <div class="flex items-center gap-2 mt-2">
+          <input type="date" id="fromDate" class="flex-1 p-2 rounded-lg border border-[#ccc] text-[13px] outline-none focus:border-[#9f2727]">
+          <span>—</span>
+          <input type="date" id="toDate" class="flex-1 p-2 rounded-lg border border-[#ccc] text-[13px] outline-none focus:border-[#9f2727]">
         </div>
       </div>
 
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Project Status</label>
-        <div class="filter-chips flex flex-wrap gap-3 mt-2">
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="checkbox" value="PRE" class="mr-1.5 accent-[#9e2a2f]"> Pre</label>
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="checkbox" value="SELECTION" class="mr-1.5 accent-[#9e2a2f]"> Selection</label>
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="checkbox" value="POST" class="mr-1.5 accent-[#9e2a2f]"> Post</label>
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="checkbox" value="COMPLETED" class="mr-1.5 accent-[#9e2a2f]"> Completed</label>
+        <div class="flex flex-wrap gap-3 mt-2">
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="checkbox" value="PRE"       class="mr-1.5 accent-[#9e2a2f]"> Pre</label>
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="checkbox" value="SELECTION" class="mr-1.5 accent-[#9e2a2f]"> Selection</label>
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="checkbox" value="POST"      class="mr-1.5 accent-[#9e2a2f]"> Post</label>
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="checkbox" value="COMPLETED" class="mr-1.5 accent-[#9e2a2f]"> Completed</label>
         </div>
       </div>
 
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Completion</label>
-        <div class="filter-chips flex flex-wrap gap-3 mt-2">
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="radio" name="completion" value="ALL" checked class="mr-1.5 accent-[#9e2a2f]"> All</label>
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="radio" name="completion" value="COMPLETED" class="mr-1.5 accent-[#9e2a2f]"> Completed</label>
-          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:bg-[#eaeaea] hover:shadow-[0_4px_10px_rgba(0,0,0,0.12)]"><input type="radio" name="completion" value="PENDING" class="mr-1.5 accent-[#9e2a2f]"> Pending</label>
+        <div class="flex flex-wrap gap-3 mt-2">
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="radio" name="completion" value="ALL"       checked class="mr-1.5 accent-[#9e2a2f]"> All</label>
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="radio" name="completion" value="COMPLETED"       class="mr-1.5 accent-[#9e2a2f]"> Completed</label>
+          <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="radio" name="completion" value="PENDING"         class="mr-1.5 accent-[#9e2a2f]"> Pending</label>
         </div>
       </div>
     </div>
 
-    <div class="filter-actions mt-auto flex justify-between pt-4">
-      <button class="reset-btn bg-[#eee] border-none px-[22px] py-2.5 rounded-[10px] font-semibold cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(0,0,0,0.18)] active:scale-95" onclick="resetFilter()">Clear All</button>
-      <button class="apply-btn bg-[#9f2727] text-white border-none px-[28px] py-2.5 rounded-[10px] font-semibold cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-[0_10px_20px_rgba(0,0,0,0.18)] active:scale-95" onclick="applyFilter()">Apply Filters</button>
+    <div class="mt-auto flex justify-between pt-4">
+      <button class="bg-[#eee] border-none px-[22px] py-2.5 rounded-[10px] font-semibold cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="resetFilter()">Clear All</button>
+      <button class="bg-[#9f2727] text-white border-none px-[28px] py-2.5 rounded-[10px] font-semibold cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="applyFilter()">Apply Filters</button>
     </div>
-
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     MAIN WRAPPER
+════════════════════════════════════════════════════ -->
 <div class="projects-wrapper p-[30px] max-w-[1500px] mx-auto min-w-0">
+
+  <!-- Header + toolbar -->
   <div class="project-header mt-[-30px] bg-[#fafafa] p-5 mb-5 rounded-xl min-w-0">
 
-    <h2 class="page-title text-[28px] font-semibold m-[0_0_18px_50px] text-black relative after:content-[''] after:block after:w-[95px] after:h-[3px] after:bg-black after:mt-1.5 after:transition-all after:duration-350 hover:after:w-[140px]">Projects</h2>
+    <h2 class="page-title text-[28px] font-semibold m-[0_0_18px_50px] text-black relative
+               after:content-[''] after:block after:w-[95px] after:h-[3px] after:bg-black after:mt-1.5
+               after:transition-all after:duration-350 hover:after:w-[140px]">Projects</h2>
 
-    <div class="project-toolbar flex items-center gap-[34px] px-8 py-3.5 ml-[18px] [&>div]:transition-transform [&>div]:duration-250 hover:[&>div]:-translate-y-[3px] [&>div]:flex [&>div]:items-center [&>div]:gap-1.5 [&>div]:cursor-pointer [&>div]:relative [&>div]:pb-2 [&>div::before]:content-[''] [&>div::before]:absolute [&>div::before]:left-1/2 [&>div::before]:-bottom-1.5 [&>div::before]:w-0 [&>div::before]:h-[2px] [&>div::before]:bg-[#c62828] [&>div::before]:transition-all [&>div::before]:duration-300 [&>div::before]:-translate-x-1/2 hover:[&>div::before]:w-[80%] [&>div:has(span.active)_span]:text-[#c62828] [&>div:has(span.active)_img]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] [&>div:has(span.active)::after]:content-[''] [&>div:has(span.active)::after]:absolute [&>div:has(span.active)::after]:left-0 [&>div:has(span.active)::after]:-bottom-1.5 [&>div:has(span.active)::after]:w-full [&>div:has(span.active)::after]:h-[3px] [&>div:has(span.active)::after]:bg-[#c62828] [&>div:has(span.active)::after]:rounded-sm">
+    <div class="project-toolbar flex items-center gap-[34px] px-8 py-3.5 ml-[18px]
+                [&>div]:transition-transform [&>div]:duration-250 hover:[&>div]:-translate-y-[3px]
+                [&>div]:flex [&>div]:items-center [&>div]:gap-1.5 [&>div]:cursor-pointer
+                [&>div]:relative [&>div]:pb-2
+                [&>div::before]:content-[''] [&>div::before]:absolute [&>div::before]:left-1/2
+                [&>div::before]:-bottom-1.5 [&>div::before]:w-0 [&>div::before]:h-[2px]
+                [&>div::before]:bg-[#c62828] [&>div::before]:transition-all [&>div::before]:duration-300
+                [&>div::before]:-translate-x-1/2 hover:[&>div::before]:w-[80%]">
       <div>
-        <img src="{% static 'images/boardview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0"> 
-        <span class="active text-[15px] font-medium text-black"> Board View</span>
-      </div>
-      <div> 
-        <img src="{% static 'images/listview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0"> 
-        <span class="text-[15px] font-medium text-black"> List View</span>
+        <img src="{% static 'images/boardview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0">
+        <span class="active text-[15px] font-medium text-black">Board View</span>
       </div>
       <div>
-        <img src="{% static 'images/overview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0"> 
-        <span class="text-[15px] font-medium text-black"> Projects Overview</span>
+        <img src="{% static 'images/listview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0">
+        <span class="text-[15px] font-medium text-black">List View</span>
       </div>
-      <div> 
-        <img src="{% static 'images/filter.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0"> 
-        <span class="text-[15px] font-medium text-black"> Filters</span>
+      <div>
+        <img src="{% static 'images/overview.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0">
+        <span class="text-[15px] font-medium text-black">Projects Overview</span>
+      </div>
+      <div>
+        <img src="{% static 'images/filter.svg' %}" class="w-[18px] h-[18px] object-contain filter brightness-0">
+        <span class="text-[15px] font-medium text-black">Filters</span>
       </div>
     </div>
   </div>
 
+  <!-- ── BOARD VIEW ── -->
   <div id="boardView">
     <div class="projects-board flex gap-1.5 overflow-x-auto min-w-0 pb-4">
 
+      <!-- To Be Assigned -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="ASSIGNED">
-        <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
-          <span class="label bg-[#f7e6fb] text-[#9b2fae] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● To Be Assigned </span> 
-          <span class="count text-[20px] font-medium text-[#888]">{{ assigned|length }}</span>
+        <div class="column-head flex items-center gap-[19px] mb-[15px]">
+          <span class="bg-[#f7e6fb] text-[#9b2fae] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● To Be Assigned</span>
+          <span class="text-[20px] font-medium text-[#888]">{{ assigned|length }}</span>
         </div>
-
         {% for p in assigned %}
-        <div class="project-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] cursor-grab transition-transform duration-250 hover:-translate-y-[3px]" draggable="true" data-id="{{ p.id }}">
-          <div class="code text-[12px] text-[#777]">AK {{ p.id }}</div>
+        <div class="project-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_6px_20px_rgba(0,0,0,0.06)] cursor-grab transition-transform duration-250 hover:-translate-y-[3px]"
+             draggable="true" data-id="{{ p.id }}">
+          <div class="text-[12px] text-[#777]">AK {{ p.id }}</div>
           <h4 class="text-[18px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
-          <hr class="pre-card-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="selection-event text-[13px] flex flex-col gap-1">
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="text-[13px] flex flex-col gap-1">
             <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
-              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70 inline-block">
-              {{ p.event_type }}
+              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70">{{ p.event_type }}
             </span>
             <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
-              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70 inline-block">
-              {{ p.start_date }} – {{ p.end_date }}
+              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-
-          <div class="task-row flex mt-2 gap-2">
-            <span class="badge new bg-[#ffeaea] text-[#d60000] text-[11px] px-2 py-1 rounded-lg w-[40px] text-center">New</span>
-            <span class="badge gray bg-[#f2f2f2] text-[#9a9a9a] border border-[#d0d0d0] text-[11px] px-2 py-1 rounded-lg w-[90px] text-center -ml-[30px] z-[-1] relative left-6">00/50 Tasks</span>
+          <div class="flex mt-2 gap-2">
+            <span class="bg-[#ffeaea] text-[#d60000] text-[11px] px-2 py-1 rounded-lg w-[40px] text-center">New</span>
+            <span class="bg-[#f2f2f2] text-[#9a9a9a] border border-[#d0d0d0] text-[11px] px-2 py-1 rounded-lg w-[90px] text-center -ml-[30px] z-[-1] relative left-6">00/50 Tasks</span>
           </div>
-
-          <div class="avatars flex gap-1 mt-2.5">
-            <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
+          <div class="flex gap-1 mt-2.5">
             <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
             <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
             <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
@@ -170,184 +316,116 @@
         {% endfor %}
       </div>
 
+      <!-- Pre Production -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all precard" data-status="PRE">
-        <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
-          <span class="label bg-[#e8edff] text-[#2b2bd8] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Pre Production</span> 
-          <span class="count text-[20px] font-medium text-[#888]">{{ pre_cards|length }}</span>
+        <div class="column-head flex items-center gap-[19px] mb-[15px]">
+          <span class="bg-[#e8edff] text-[#2b2bd8] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Pre Production</span>
+          <span class="text-[20px] font-medium text-[#888]">{{ pre_cards|length }}</span>
         </div>
-
         {% for p in pre_cards %}
-        <div class="project-card pre-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)] cursor-pointer transition-transform duration-250 hover:-translate-y-[3px]" data-id="{{ p.id }}">
-
-          <div class="pre-card-header flex justify-between items-center">
-            <span class="pre-card-code text-[12px] text-[#666] font-semibold">AK {{ p.id }}</span>
-            <span class="pre-card-status text-[11px] px-2.5 py-1 rounded-full font-bold {% if p.is_completed %}bg-[#bbf7d0] text-[#065f46]{% else %}bg-[#fde68a] text-[#92400e]{% endif %}">
-              {% if p.is_completed %}Completed{% else %}In-Progress{% endif %}
-            </span>
+        <div class="project-card pre-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.08)] cursor-pointer transition-transform duration-250 hover:-translate-y-[3px]"
+             data-id="{{ p.id }}">
+          <div class="flex justify-between items-center">
+            <span class="text-[12px] text-[#666] font-semibold">AK {{ p.id }}</span>
+            <span class="text-[11px] px-2.5 py-1 rounded-full font-bold bg-[#fde68a] text-[#92400e]">In-Progress</span>
           </div>
-
-          <h4 class="pre-card-client text-[15px] font-bold m-[8px_0_6px]">{{ p.client_name }}</h4>
-
-          <hr class="pre-card-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="selection-event text-[13px] flex flex-col gap-1">
+          <h4 class="text-[15px] font-bold m-[8px_0_6px]">{{ p.client_name }}</h4>
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="text-[13px] flex flex-col gap-1">
             <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
-              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70 inline-block">
-              {{ p.event_type }}
+              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70">{{ p.event_type }}
             </span>
             <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
-              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70 inline-block">
-              {{ p.start_date }} – {{ p.end_date }}
+              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-
-
-          <div class="pre-card-task-grid grid grid-cols-2 gap-2 mt-2">
-            {% for t in p.tasks %}
-            <div class="pre-card-task-chip border border-[#ccc] px-2.5 py-1 rounded-md text-[10px] font-semibold text-center {% if t.done == t.total %}bg-black text-white border-black{% else %}bg-[#f2f2f2] text-[#acabab]{% endif %}">
-              {{ t.done }} / {{ t.total }} {{ t.phase }}
-            </div>
-            {% endfor %}
-          </div>
-
-          <hr class="pre-card-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="pre-card-team flex items-center mt-2">
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="flex items-center mt-2">
             {% for m in p.team %}
-            <span class="pre-card-avatar w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
             {% endfor %}
           </div>
-
         </div>
         {% endfor %}
       </div>
 
+      <!-- Selection -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="SELECTION">
-        <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
-          <span class="label bg-[#fff8dc] text-[#c2b000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Selection </span>
-          <span class="count text-[20px] font-medium text-[#888]">{{ selection|length }}</span>
+        <div class="column-head flex items-center gap-[19px] mb-[15px]">
+          <span class="bg-[#fff8dc] text-[#c2b000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Selection</span>
+          <span class="text-[20px] font-medium text-[#888]">{{ selection|length }}</span>
         </div>
-
         {% for p in selection %}
-        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
-
-          <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
-
-          <h4 class="selection-client text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
-
-          <hr class="selection-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="selection-event text-[13px] flex flex-col gap-1.5">
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/event.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.lead.event_type }}
+        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer transition-transform hover:-translate-y-[3px]"
+             data-id="{{ p.id }}">
+          <div class="text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
+          <h4 class="text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="text-[13px] flex flex-col gap-1.5">
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70">{{ p.event_type }}
             </span>
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/calender.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.lead.event_start_date }} – {{ p.lead.event_end_date }}
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-
-          <div class="selection-links flex gap-2 mt-2.5 flex-wrap">
-            {% for t in p.tasks.all %}
-              {% if t.phase == "SELECTION" %}
-                <div class="selection-chip px-2.5 py-1.5 rounded-[10px] text-[10px] font-medium border text-center whitespace-nowrap {% if t.status == 'COMPLETED' %}bg-[#e8f7ee] text-[#1f9d55] border-[#1f9d55]{% else %}bg-[#f2f2f2] text-[#9a9a9a] border-[#d0d0d0]{% endif %}">
-                  {% if t.status == "COMPLETED" %}
-                    1 / 1 {{ t.title }}
-                  {% else %}
-                    0 / 1 {{ t.title }}
-                  {% endif %}
-                </div>
-              {% endif %}
+          <div class="flex mt-3">
+            {% for m in p.team %}
+            <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
             {% endfor %}
           </div>
-
-          <div class="selection-team flex mt-3">
-            {% for m in p.team_assignments.all %}
-            <span class="selection-avatar w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">
-              {{ m.member.user.first_name|slice:":2"|upper }}
-            </span>
-            {% endfor %}
-          </div>
-
         </div>
         {% endfor %}
       </div>
 
-
+      <!-- Post Production -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="POST">
-        <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
-          <span class="label bg-[#ffeaea] text-[#d60000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Post Production </span> 
-          <span class="count text-[20px] font-medium text-[#888]">{{ post|length }}</span>
+        <div class="column-head flex items-center gap-[19px] mb-[15px]">
+          <span class="bg-[#ffeaea] text-[#d60000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Post Production</span>
+          <span class="text-[20px] font-medium text-[#888]">{{ post|length }}</span>
         </div>
-
         {% for p in post %}
-        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
-
-          <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
-
-          <h4 class="selection-client text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
-
-          <hr class="selection-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="selection-event text-[13px] flex flex-col gap-1.5">
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/event.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.event_type }}
+        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer transition-transform hover:-translate-y-[3px]"
+             data-id="{{ p.id }}">
+          <div class="text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
+          <h4 class="text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="text-[13px] flex flex-col gap-1.5">
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70">{{ p.event_type }}
             </span>
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/calender.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.start_date }} – {{ p.end_date }}
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-
-          <div class="selection-links flex gap-2 mt-2.5 flex-wrap">
-            <div class="selection-chip px-2.5 py-1.5 rounded-[10px] text-[10px] font-medium border text-center whitespace-nowrap bg-[#f2f2f2] text-[#9a9a9a] border-[#d0d0d0]">
-              {{ p.completed }} / {{ p.total }} Tasks
-            </div>
-          </div>
-
-          <div class="selection-team flex mt-3">
+          <div class="flex mt-3">
             {% for m in p.team %}
-            <span class="selection-avatar w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">
-              {{ m.member.user.first_name|slice:":2"|upper }}
-            </span>
+            <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
             {% endfor %}
           </div>
-
         </div>
         {% endfor %}
       </div>
 
+      <!-- Completed -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="COMPLETED">
-        <div class="column-head flex items-center gap-[19px] mb-[15px] font-['Inter']">
-          <span class="label bg-[#e6fff0] text-[#0f8a42] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max"> ● Completed </span> 
-          <span class="count text-[20px] font-medium text-[#888]">{{ completed|length }}</span>
+        <div class="column-head flex items-center gap-[19px] mb-[15px]">
+          <span class="bg-[#e6fff0] text-[#0f8a42] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Completed</span>
+          <span class="text-[20px] font-medium text-[#888]">{{ completed|length }}</span>
         </div>
-
-         {% for p in completed %}
-        <div class="project-card selection-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-default transition-transform hover:-translate-y-[3px]" data-id="{{ p.id }}">
-
-          <div class="selection-code text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
-
-          <h4 class="selection-client text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
-
-          <hr class="selection-divider border-none border-t border-[#eee] my-2.5" />
-
-          <div class="selection-event text-[13px] flex flex-col gap-1.5">
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/event.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.lead.event_type }}
+        {% for p in completed %}
+        <div class="project-card bg-white p-[10px] rounded-2xl mb-3.5 shadow-[0_8px_24px_rgba(0,0,0,0.06)] cursor-pointer transition-transform hover:-translate-y-[3px]"
+             data-id="{{ p.id }}">
+          <div class="text-[12px] text-[#777] font-semibold">AK {{ p.id }}</div>
+          <h4 class="text-[16px] font-bold m-[6px_0_8px]">{{ p.client_name }}</h4>
+          <hr class="border-none border-t border-[#eee] my-2.5"/>
+          <div class="text-[13px] flex flex-col gap-1.5">
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/event.svg' %}" class="w-[14px] opacity-70">{{ p.event_type }}
             </span>
-            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1.5 text-[#333]">
-              <img src="{% static 'images/calender.svg' %}" class="w-[15px] h-[15px] opacity-70 align-middle">
-              {{ p.lead.event_start_date }} – {{ p.lead.event_end_date }}
+            <span class="text-[10px] flex items-center p-0.5 font-medium gap-1 text-[#333]">
+              <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
-          </div>
-          <div class="selection-links flex gap-2 mt-2.5 flex-wrap">
-            <div class="selection-chip px-2.5 py-1.5 rounded-[10px] text-[10px] font-medium border text-center whitespace-nowrap bg-[#f2f2f2] text-[#9a9a9a] border-[#d0d0d0]">
-             {{ p.tasks.count }} / {{ p.tasks.count }} Tasks
-            </div>
           </div>
         </div>
         {% endfor %}
@@ -355,1293 +433,843 @@
 
     </div>
   </div>
-  
+
+  <!-- ── LIST VIEW ── -->
   <div id="listView" style="display:none" class="animate-[fadeIn_0.4s_ease]">
-    <div class="projects-list-view w-full max-w-[1200px] mx-auto bg-white p-0 relative max-h-[calc(100vh-220px)] overflow-y-auto">
+    <div class="w-full max-w-[1200px] mx-auto bg-white p-0 relative max-h-[calc(100vh-220px)] overflow-y-auto">
 
-      <div class="list-header grid grid-cols-[120px_1fr_200px_180px_2fr_160px] font-semibold text-[#666] px-5 py-3.5 text-[16px] bg-white gap-5 border-b-[2px] border-black sticky top-0 z-50 shadow-[0_4px_10px_rgba(0,0,0,0.04)]">
-        <span>Project ID</span>
-        <span>Project Name</span>
-        <span>Event Date</span>
-        <span>Assigned To</span>
-        <span>Tasks</span>
-        <span>Task Status</span>
+      <div class="grid grid-cols-[120px_1fr_200px_180px_2fr_160px] font-semibold text-[#666] px-5 py-3.5 text-[16px] bg-white gap-5 border-b-[2px] border-black sticky top-0 z-50 shadow-[0_4px_10px_rgba(0,0,0,0.04)]">
+        <span>Project ID</span><span>Project Name</span><span>Event Date</span>
+        <span>Assigned To</span><span>Tasks</span><span>Task Status</span>
       </div>
 
-      <div class="list-section pre">
-        <div class="list-section-title font-bold text-[19px] tracking-[0.5px] w-full m-0 p-[16px_20px] rounded-none bg-[#f2f1ff] text-[#5b4ce6] border-y border-[#eee]">● PRE PRODUCTION</div>
-
+      <!-- Pre Production section -->
+      <div>
+        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#f2f1ff] text-[#5b4ce6] border-y border-[#eee]">● PRE PRODUCTION</div>
         {% for p in pre_cards %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] bg-white transition-all duration-200 hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer" data-project-id="{{ p.id }}">
+        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
+             data-project-id="{{ p.id }}">
           <span>AK-{{ p.id }}</span>
-          <span class="list-name text-[18px]">{{ p.client_name }}</span>
-          <span class="list-date text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
-
-          <span class="list-avatars flex items-center pl-5">
+          <span class="text-[18px]">{{ p.client_name }}</span>
+          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
+          <span class="flex items-center pl-5">
             {% for m in p.team %}
-            <span class="avatar w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
             {% endfor %}
           </span>
-
-          <span class="list-tasks grid grid-cols-[max-content_max-content] gap-[6px_10px]">
-            {% for t in p.tasks %}
-            <span class="task-chip text-[11px] px-[15px] py-1 rounded-md bg-[#faf7f7] text-black border border-black whitespace-nowrap">{{ t.done }}/{{ t.total }} {{ t.phase }}</span>
-            {% endfor %}
-          </span>
-
-          <span class="status-badge inprogress px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit animate-[pulseIn_0.4s_ease] bg-[#ffd54f] text-[#5d4a00]">In-Progress</span>
+          <span></span>
+          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">In-Progress</span>
         </div>
-        {% empty %}
-        <div class="list-empty p-2.5">No projects</div>
-        {% endfor %}
+        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
       </div>
 
-      <div class="list-section selection mb-[30px]">
-        <div class="list-section-title font-bold text-[19px] tracking-[0.5px] w-full m-0 p-[16px_20px] rounded-none bg-[#fff7e6] text-[#c98a00] border border-[#ffe2a8]">● SELECTION</div>
-
+      <!-- Selection section -->
+      <div>
+        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#fff7e6] text-[#c98a00] border border-[#ffe2a8]">● SELECTION</div>
         {% for p in selection %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] bg-white transition-all duration-200 hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer" data-project-id="{{ p.id }}">
+        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
+             data-project-id="{{ p.id }}">
           <span>AK-{{ p.id }}</span>
-          <span class="list-name text-[18px]">{{ p.client_name }}</span>
-          <span class="list-date text-[14px] -ml-[30px]">
-            {{ p.lead.event_start_date }} – {{ p.lead.event_end_date }}
-          </span>
-
-          <span class="list-avatars flex items-center pl-5">
-            {% for m in p.team_assignments.all %}
-            <span class="avatar w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">
-              {{ m.member.user.first_name|slice:":2"|upper }}
-            </span>
+          <span class="text-[18px]">{{ p.client_name }}</span>
+          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
+          <span class="flex items-center pl-5">
+            {% for m in p.team %}
+            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
             {% endfor %}
           </span>
-
-          <span class="list-tasks grid grid-cols-[max-content_max-content] gap-[6px_10px]">
-            <span class="task-chip text-[11px] px-[15px] py-1 rounded-md bg-[#faf7f7] text-black border border-black whitespace-nowrap">0 / 1 Gallery Link</span>
-            <span class="task-chip text-[11px] px-[15px] py-1 rounded-md bg-[#faf7f7] text-black border border-black whitespace-nowrap">0 / 1 Selection Link</span>
-          </span>
-
-          <span class="status-badge inprogress px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit animate-[pulseIn_0.4s_ease] bg-[#ffd54f] text-[#5d4a00]">Selection</span>
+          <span></span>
+          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">Selection</span>
         </div>
-        {% empty %}
-        <div class="list-empty p-2.5">No projects</div>
-        {% endfor %}
+        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
       </div>
 
-
-      <div class="list-section post">
-        <div class="list-section-title font-bold text-[19px] tracking-[0.5px] w-full m-0 p-[16px_20px] rounded-none bg-[#ffecec] text-[#c62828] border border-[#ffcaca]">● POST PRODUCTION</div>
-
+      <!-- Post Production section -->
+      <div>
+        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#ffecec] text-[#c62828] border border-[#ffcaca]">● POST PRODUCTION</div>
         {% for p in post %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] bg-white transition-all duration-200 hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer" data-project-id="{{ p.id }}">
+        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
+             data-project-id="{{ p.id }}">
           <span>AK-{{ p.id }}</span>
-          <span class="list-name text-[18px]">{{ p.client_name }}</span>
-          <span class="list-date text-[14px] -ml-[30px]">
-            {{ p.start_date }} – {{ p.end_date }}
+          <span class="text-[18px]">{{ p.client_name }}</span>
+          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
+          <span class="flex items-center pl-5">
+            {% for m in p.team %}
+            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+            {% endfor %}
           </span>
-
-          <div class="list-avatars flex items-center pl-5">
-          {% for m in p.team %}
-            <span class="avatar w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">  {{ m.member.user.first_name|slice:":2"|upper }}</span>
-          {% endfor %}
-          </div>
-
-          <span class="list-tasks grid grid-cols-[max-content_max-content] gap-[6px_10px]">
-            <span class="task-chip text-[11px] px-[15px] py-1 rounded-md bg-[#faf7f7] text-black border border-black whitespace-nowrap">
-              {{ p.completed }} / {{ p.total }} Tasks
-            </span>
-          </span>
-
-          <span class="status-badge inprogress px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit animate-[pulseIn_0.4s_ease] bg-[#ffd54f] text-[#5d4a00]">PostProduction</span>
+          <span></span>
+          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">PostProduction</span>
         </div>
-        {% empty %}
-        <div class="list-empty p-2.5">No projects</div>
-        {% endfor %}
+        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
       </div>
 
     </div>
-
   </div>
 
+  <!-- ── OVERVIEW VIEW ── -->
   <div id="overviewView" style="display:none" class="animate-[fadeSlide_0.4s_ease]">
-
-    <div class="overview-wrapper bg-white p-[26px] rounded-[18px] mt-[-30px]">
-
-      <div class="overview-tab-wrapper bg-[#fafafa] p-5 mt-[-30px] w-full"> 
-        <div class="overview-tabs bg-white p-[30px] rounded-full flex gap-2.5 justify-center mb-[30px] w-[500px] mx-auto [&>span]:px-[18px] [&>span]:py-2 [&>span]:rounded-full [&>span]:text-[13px] [&>span]:font-semibold [&>span]:cursor-pointer [&>span]:bg-[#f1f1f1] [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3262d]">
+    <div class="bg-white p-[26px] rounded-[18px] mt-[-30px]">
+      <div class="bg-[#fafafa] p-5 mt-[-30px] w-full">
+        <div class="bg-white p-[30px] rounded-full flex gap-2.5 justify-center mb-[30px] w-[500px] mx-auto
+                    [&>span]:px-[18px] [&>span]:py-2 [&>span]:rounded-full [&>span]:text-[13px] [&>span]:font-semibold [&>span]:cursor-pointer
+                    [&>span]:bg-[#f1f1f1] [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3262d]">
           <span class="active" data-tab="internal">Pending Internally</span>
           <span data-tab="client">Awaiting Client Response</span>
         </div>
-       </div>
-      
-
+      </div>
       <div class="overview-table active" id="overview-internal">
-
-        <div class="overview-header grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
-          <span>Project ID</span>
-          <span>Project Name</span>
-          <span>Event Date</span>
-          <span>Assigned To</span>
-          <span>Pending Tasks</span>
+        <div class="grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
+          <span>Project ID</span><span>Project Name</span><span>Event Date</span><span>Assigned To</span><span>Pending Tasks</span>
         </div>
-
-        {% for p in pending_internal %}
-        <div class="overview-row grid grid-cols-[120px_2fr_2fr_2fr_2fr] items-center py-[14px] border-b border-[#d0d0d0] max-w-[1200px] w-[80%] mx-auto hover:bg-[#fafafa] transition-none">
-          <span>AK-{{ p.id }}</span>
-
-          <span class="overview-name">
-            <strong class="text-[16px] font-bold text-black">{{ p.lead.client_name }}</strong>
-            <small class="text-[13px] text-[#8a8a8a] mt-0.5 block">{{ p.lead.event_type }}</small>
-          </span>
-
-          <span class="overview-date text-[13px]">{{ p.lead.event_start_date }} – {{ p.lead.event_end_date }}</span>
-
-          <span class="overview-avatars flex items-center">
-            {% for m in p.team %}
-            <span class="avatar w-7 h-7 rounded-full bg-black text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </span>
-
-          <span class="overview-chips flex flex-wrap gap-1.5">
-            {% for t in p.pending_tasks %}
-            <span class="chip text-[11px] px-2.5 py-1 rounded-md bg-white border border-[#9e9e9e] font-medium">{{ t.title }}</span>
-            {% endfor %}
-          </span>
-        </div>
-        {% endfor %}
-
       </div>
-
       <div class="overview-table hidden [&.active]:block" id="overview-client">
-
-        <div class="overview-header grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
-          <span>Project ID</span>
-          <span>Project Name</span>
-          <span>Event Date</span>
-          <span>Due Date</span>
-          <span>Pending List</span>
+        <div class="grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
+          <span>Project ID</span><span>Project Name</span><span>Event Date</span><span>Due Date</span><span>Pending List</span>
         </div>
-
-        {% for p in awaiting_client %}
-        <div class="overview-row grid grid-cols-[120px_2fr_2fr_2fr_2fr] items-center py-[14px] border-b border-[#d0d0d0] max-w-[1200px] w-[80%] mx-auto hover:bg-[#fafafa] transition-none">
-          <span>AK-{{ p.id }}</span>
-
-          <span class="overview-name">
-            <strong class="text-[16px] font-bold text-black">{{ p.lead.client_name }}</strong>
-            <small class="text-[13px] text-[#8a8a8a] mt-0.5 block">{{ p.lead.event_type }}</small>
-          </span>
-
-          <span class="overview-date text-[13px]">{{ p.lead.event_start_date }} – {{ p.lead.event_end_date }}</span>
-
-          <span  class="due-date text-[13px]">{{ p.lead.follow_up_date|default:"—" }}</span>
-
-          <span class="overview-chips flex flex-wrap gap-1.5">
-            {% for label in p.pending_list %}
-            <span class="chip danger text-[11px] px-2.5 py-1 rounded-md font-medium border border-transparent bg-[#ff4d4f] text-white">{{ label }}</span>
-            {% endfor %}
-          </span>
-        </div>
-        {% endfor %}
-
       </div>
-
     </div>
   </div>
 
-</div>
+</div><!-- /projects-wrapper -->
 
-<div class="assign-popup hidden fixed inset-0 justify-center items-center bg-black/45 z-[5000]" id="assignPopup" data-count="{{ assigned|length }}">
+<!-- ═══════════════════════════════════════════════════
+     ASSIGN INFO POPUP
+════════════════════════════════════════════════════ -->
+<div class="assign-popup hidden fixed inset-0 justify-center items-center bg-black/45 z-[5000]"
+     id="assignPopup" data-count="{{ assigned|length }}">
   <div class="popup-box w-[420px] bg-white rounded-[22px] p-[38px_34px_36px] text-center relative shadow-[0_30px_70px_rgba(0,0,0,0.18)]">
-    <button onclick="closePopup()" class="absolute top-[14px] right-[14px] w-[28px] h-[28px] rounded-lg border-none bg-black text-white text-[18px] font-semibold cursor-pointer leading-[1] flex items-center justify-center z-10 hover:scale-105 transition-transform">×</button>
-     <img src="{% static 'images/reminderimage.png' %}" class="mx-auto">
-    <h2 class="mt-[30px] text-[26px] leading-[1.25] font-bold text-black font-['Inter',system-ui,sans-serif] relative z-10">You Have {{ assigned|length }} Projects To Assign Team</h2>
-    <button class="primary mt-[26px] px-[38px] py-[14px] rounded-[10px] border-none bg-[#a12b2b] text-white text-[16px] font-semibold cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(161,43,43,0.35)]" onclick="closePopup()">Assign Now</button>
+    <button onclick="closePopup()" class="absolute top-[14px] right-[14px] w-[28px] h-[28px] rounded-lg border-none bg-black text-white text-[18px] font-semibold cursor-pointer flex items-center justify-center hover:scale-105 transition-transform">×</button>
+    <img src="{% static 'images/reminderimage.png' %}" class="mx-auto">
+    <h2 class="mt-[30px] text-[26px] leading-[1.25] font-bold text-black">You Have {{ assigned|length }} Projects To Assign Team</h2>
+    <button class="mt-[26px] px-[38px] py-[14px] rounded-[10px] border-none bg-[#a12b2b] text-white text-[16px] font-semibold cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(161,43,43,0.35)] transition-all"
+            onclick="closePopup()">Assign Now</button>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     TEAM ASSIGN POPUP
+════════════════════════════════════════════════════ -->
 <div class="assign-popup-team hidden fixed inset-0 bg-black/55 justify-center items-center z-[9999]" id="teamAssignPopup">
-  <div class="popup-team-box figma-popup w-[620px] max-h-[90vh] border border-black rounded-[18px] p-[30px] relative font-['Inter'] flex flex-col bg-[#f2f2f2]">
+  <div class="w-[620px] max-h-[90vh] border border-black rounded-[18px] p-[30px] relative font-['Inter'] flex flex-col bg-[#f2f2f2]">
 
-    <button class="close-btn absolute top-[16px] right-[16px] bg-black text-white w-[28px] h-[28px] rounded-lg border-none font-semibold cursor-pointer hover:scale-105 transition-transform" onclick="closeTeamPopup()">×</button>
+    <button class="absolute top-[16px] right-[16px] bg-black text-white w-[28px] h-[28px] rounded-lg border-none font-semibold cursor-pointer hover:scale-105 transition-transform"
+            onclick="closeTeamPopup()">×</button>
 
-    <div class="popup-body overflow-y-auto mt-3 shadow-[0_4px_12px_rgba(0,0,0,0.08),0_1px_2px_rgba(0,0,0,0.06)] p-[50px] bg-white rounded-xl">
+    <div class="overflow-y-auto mt-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[50px] bg-white rounded-xl">
 
-      <h3 class="figma-title text-[14px] font-semibold m-[14px_0_8px]">Projects Details</h3>
-      <div class="section-grey bg-[#f5f5f5] rounded-[14px] p-3.5 mb-4">
-        <div class="detail-row bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📌 <span id="popupClient"></span></div>
-        <div class="detail-row bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📍 <span id="popupLocation"></span></div>
-        <div class="detail-row bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">
-          ⏰ <span id="popupTime"></span>
-          <span class="sep text-gray-400">•</span>
-          ⏳ <span id="popupDuration"></span>
-        </div>
-        <div class="detail-row bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📅 <span id="popupDates"></span></div>
+      <h3 class="text-[14px] font-semibold m-[14px_0_8px]">Projects Details</h3>
+      <div class="bg-[#f5f5f5] rounded-[14px] p-3.5 mb-4">
+        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📌 <span id="popupClient"></span></div>
+        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📍 <span id="popupLocation"></span></div>
+        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">⏰ <span id="popupTime"></span> <span class="text-gray-400">•</span> ⏳ <span id="popupDuration"></span></div>
+        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📅 <span id="popupDates"></span></div>
       </div>
 
-      <h3 class="figma-title text-[14px] font-semibold m-[14px_0_8px]">Team Members</h3>
-      <div class="section-grey bg-[#f5f5f5] rounded-[14px] p-3.5">
+      <h3 class="text-[14px] font-semibold m-[14px_0_8px]">Team Members</h3>
+      <div class="bg-[#f5f5f5] rounded-[14px] p-3.5">
 
-        <div class="figma-tabs flex justify-center gap-2 mb-[15px] [&>span]:p-[10px_14px] [&>span]:rounded-full [&>span]:bg-[#f1f1f1] [&>span]:text-[13px] [&>span]:cursor-pointer [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3261e] [&>span.active]:font-semibold">
+        <div class="figma-tabs flex justify-center gap-2 mb-[15px]
+                    [&>span]:p-[10px_14px] [&>span]:rounded-full [&>span]:bg-[#f1f1f1] [&>span]:text-[13px] [&>span]:cursor-pointer
+                    [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3261e] [&>span.active]:font-semibold">
           <span class="active" data-tab="available">Available Members</span>
           <span data-tab="booked">Booked Members</span>
         </div>
 
-        <div class="team-inner-box bg-white border border-[#ddd] rounded-xl p-3">
- 
+        <div class="border border-[#ddd] rounded-xl p-3 bg-white">
           <div class="team-available">
-
             <div class="team-section">
               <h4 class="text-[13px] font-semibold m-[10px_0_6px]">General</h4>
-              <div class="pill-row flex flex-wrap gap-1.5 [&_.member-pill]:w-auto [&_.member-pill]:bg-black [&_.member-pill]:text-white [&_.member-pill]:text-[11px] [&_.member-pill]:px-2 [&_.member-pill]:py-1.5 [&_.member-pill]:rounded-md [&_.member-pill]:cursor-pointer relative [&_.member-pill.selected]:bg-[#b3261e] [&_.member-pill:hover::after]:opacity-100 [&_.member-pill:hover::before]:opacity-100 [&_.member-pill::after]:content-[attr(data-tooltip)] [&_.member-pill::after]:absolute [&_.member-pill::after]:bottom-[120%] [&_.member-pill::after]:left-1/2 [&_.member-pill::after]:-translate-x-1/2 [&_.member-pill::after]:bg-[#2f2f2f] [&_.member-pill::after]:text-white [&_.member-pill::after]:p-[8px_10px] [&_.member-pill::after]:rounded-lg [&_.member-pill::after]:text-[12px] [&_.member-pill::after]:whitespace-pre-line [&_.member-pill::after]:opacity-0 [&_.member-pill::after]:pointer-events-none [&_.member-pill::after]:transition-opacity [&_.member-pill::after]:duration-200 [&_.member-pill::after]:min-w-[160px] [&_.member-pill::after]:text-left [&_.member-pill::after]:z-[9999] [&_.member-pill::before]:content-[''] [&_.member-pill::before]:absolute [&_.member-pill::before]:bottom-[110%] [&_.member-pill::before]:left-1/2 [&_.member-pill::before]:-translate-x-1/2 [&_.member-pill::before]:border-[6px] [&_.member-pill::before]:border-solid [&_.member-pill::before]:border-[#2f2f2f_transparent_transparent_transparent] [&_.member-pill::before]:opacity-0 [&_.member-pill::before]:transition-opacity [&_.member-pill::before]:duration-200" data-group="general">
-                {% for m in general_team %}
-                <span class="member-pill selectable" data-id="{{ m.id }}" data-role="general"
-                  data-name="{{ m.user.get_full_name|default:m.user.username }}">
-                  {{ m.user.username|slice:":2"|upper }}
-                </span>
-                {% empty %}
-                <span class="no-member text-[12px] text-gray-500">No members</span>
-                {% endfor %}
-              </div>
+              <div class="pill-row flex flex-wrap gap-1.5" data-group="general" id="general-pills"></div>
             </div>
-
             <div class="team-section">
               <h4 class="text-[13px] font-semibold m-[10px_0_6px]">Pre Production</h4>
-              <div class="pill-row flex flex-wrap gap-1.5 [&_.member-pill]:w-auto [&_.member-pill]:bg-black [&_.member-pill]:text-white [&_.member-pill]:text-[11px] [&_.member-pill]:px-2 [&_.member-pill]:py-1.5 [&_.member-pill]:rounded-md [&_.member-pill]:cursor-pointer relative [&_.member-pill.selected]:bg-[#b3261e] [&_.member-pill:hover::after]:opacity-100 [&_.member-pill:hover::before]:opacity-100 [&_.member-pill::after]:content-[attr(data-tooltip)] [&_.member-pill::after]:absolute [&_.member-pill::after]:bottom-[120%] [&_.member-pill::after]:left-1/2 [&_.member-pill::after]:-translate-x-1/2 [&_.member-pill::after]:bg-[#2f2f2f] [&_.member-pill::after]:text-white [&_.member-pill::after]:p-[8px_10px] [&_.member-pill::after]:rounded-lg [&_.member-pill::after]:text-[12px] [&_.member-pill::after]:whitespace-pre-line [&_.member-pill::after]:opacity-0 [&_.member-pill::after]:pointer-events-none [&_.member-pill::after]:transition-opacity [&_.member-pill::after]:duration-200 [&_.member-pill::after]:min-w-[160px] [&_.member-pill::after]:text-left [&_.member-pill::after]:z-[9999] [&_.member-pill::before]:content-[''] [&_.member-pill::before]:absolute [&_.member-pill::before]:bottom-[110%] [&_.member-pill::before]:left-1/2 [&_.member-pill::before]:-translate-x-1/2 [&_.member-pill::before]:border-[6px] [&_.member-pill::before]:border-solid [&_.member-pill::before]:border-[#2f2f2f_transparent_transparent_transparent] [&_.member-pill::before]:opacity-0 [&_.member-pill::before]:transition-opacity [&_.member-pill::before]:duration-200" data-group="pre">
-                {% for m in pre_team %}
-                <span class="member-pill selectable" data-id="{{ m.id }}" data-role="{{ m.role }}"
-                  data-name="{{ m.user.get_full_name|default:m.user.username }}">
-                  {{ m.user.username|slice:":2"|upper }}
-                </span>
-                {% empty %}
-                <span class="no-member text-[12px] text-gray-500">No members</span>
-                {% endfor %}
-              </div>
+              <div class="pill-row flex flex-wrap gap-1.5" data-group="pre" id="pre-pills"></div>
             </div>
-
             <div class="team-section">
               <h4 class="text-[13px] font-semibold m-[10px_0_6px]">Post Production</h4>
-              <div class="pill-row scroll-pills flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto [&_.member-pill]:w-auto [&_.member-pill]:bg-black [&_.member-pill]:text-white [&_.member-pill]:text-[11px] [&_.member-pill]:px-2 [&_.member-pill]:py-1.5 [&_.member-pill]:rounded-md [&_.member-pill]:cursor-pointer relative [&_.member-pill.selected]:bg-[#b3261e] [&_.member-pill:hover::after]:opacity-100 [&_.member-pill:hover::before]:opacity-100 [&_.member-pill::after]:content-[attr(data-tooltip)] [&_.member-pill::after]:absolute [&_.member-pill::after]:bottom-[120%] [&_.member-pill::after]:left-1/2 [&_.member-pill::after]:-translate-x-1/2 [&_.member-pill::after]:bg-[#2f2f2f] [&_.member-pill::after]:text-white [&_.member-pill::after]:p-[8px_10px] [&_.member-pill::after]:rounded-lg [&_.member-pill::after]:text-[12px] [&_.member-pill::after]:whitespace-pre-line [&_.member-pill::after]:opacity-0 [&_.member-pill::after]:pointer-events-none [&_.member-pill::after]:transition-opacity [&_.member-pill::after]:duration-200 [&_.member-pill::after]:min-w-[160px] [&_.member-pill::after]:text-left [&_.member-pill::after]:z-[9999] [&_.member-pill::before]:content-[''] [&_.member-pill::before]:absolute [&_.member-pill::before]:bottom-[110%] [&_.member-pill::before]:left-1/2 [&_.member-pill::before]:-translate-x-1/2 [&_.member-pill::before]:border-[6px] [&_.member-pill::before]:border-solid [&_.member-pill::before]:border-[#2f2f2f_transparent_transparent_transparent] [&_.member-pill::before]:opacity-0 [&_.member-pill::before]:transition-opacity [&_.member-pill::before]:duration-200" data-group="post">
-                {% for m in post_team %}
-                <span class="member-pill selectable" data-id="{{ m.id }}" data-role="post"
-                  data-name="{{ m.user.get_full_name|default:m.user.username }}">
-                  {{ m.user.username|slice:":2"|upper }}
-                </span>
-                {% empty %}
-                <span class="no-member text-[12px] text-gray-500">No members</span>
-                {% endfor %}
-              </div>
+              <div class="pill-row flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto" data-group="post" id="post-pills"></div>
             </div>
-
           </div>
-
           <div class="team-booked" style="display:none">
-            <div class="pill-row booked-row flex flex-wrap gap-1.5 [&_.member-pill]:bg-[#333] [&_.member-pill]:text-white [&_.member-pill]:text-[11px] [&_.member-pill]:px-2 [&_.member-pill]:py-1.5 [&_.member-pill]:rounded-md relative [&_.member-pill:hover::after]:opacity-100 [&_.member-pill:hover::before]:opacity-100 [&_.member-pill::after]:content-[attr(title)] [&_.member-pill::after]:absolute [&_.member-pill::after]:bottom-[120%] [&_.member-pill::after]:left-1/2 [&_.member-pill::after]:-translate-x-1/2 [&_.member-pill::after]:bg-[#2f2f2f] [&_.member-pill::after]:text-white [&_.member-pill::after]:p-[8px_10px] [&_.member-pill::after]:rounded-lg [&_.member-pill::after]:text-[12px] [&_.member-pill::after]:whitespace-pre-line [&_.member-pill::after]:opacity-0 [&_.member-pill::after]:pointer-events-none [&_.member-pill::after]:transition-opacity [&_.member-pill::after]:duration-200 [&_.member-pill::after]:min-w-[160px] [&_.member-pill::after]:text-left [&_.member-pill::after]:z-[9999] [&_.member-pill::before]:content-[''] [&_.member-pill::before]:absolute [&_.member-pill::before]:bottom-[110%] [&_.member-pill::before]:left-1/2 [&_.member-pill::before]:-translate-x-1/2 [&_.member-pill::before]:border-[6px] [&_.member-pill::before]:border-solid [&_.member-pill::before]:border-[#2f2f2f_transparent_transparent_transparent] [&_.member-pill::before]:opacity-0 [&_.member-pill::before]:transition-opacity [&_.member-pill::before]:duration-200"></div>
+            <div class="booked-row flex flex-wrap gap-1.5"></div>
           </div>
-
         </div>
       </div>
 
-      <div class="popup-footer flex justify-between items-center mt-3.5">
+      <div class="flex justify-between items-center mt-3.5">
         <input type="date" class="figma-date p-[8px_12px] rounded-lg border border-[#ccc]">
-        <button class="figma-send bg-[#9f2727] text-white border-none p-[10px_22px] rounded-[10px] text-[13px] font-semibold cursor-pointer hover:bg-[#851e1e]" onclick="validateAndProceed()">
-          ➜ Send Notifications
-        </button>
+        <button class="bg-[#9f2727] text-white border-none p-[10px_22px] rounded-[10px] text-[13px] font-semibold cursor-pointer hover:bg-[#851e1e]"
+                onclick="validateAndProceed()">➜ Send Notifications</button>
       </div>
-
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════
+     TASK MODAL — matches screenshot exactly
+════════════════════════════════════════════════════ -->
 <div class="task-overlay hidden fixed inset-0 bg-black/55 justify-center items-center z-[10000]" id="taskPopup">
-  <div class="task-modal w-[98%] max-w-[1100px] h-[85vh] bg-white rounded-[18px] p-[26px] relative flex flex-col font-['Inter']">
+  <div style="
+    width:96%;
+    max-width:1120px;
+    height:88vh;
+    background:#fff;
+    border-radius:18px;
+    padding:28px 30px 18px;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    font-family:'Inter',sans-serif;
+    box-shadow:0 24px 60px rgba(0,0,0,.22);
+  ">
+    <!-- Close -->
+    <button onclick="closeTaskPopup()" style="
+      position:absolute; top:14px; right:14px;
+      width:32px; height:32px; background:#111; color:#fff;
+      border:none; border-radius:10px; font-size:18px; font-weight:700;
+      cursor:pointer; display:flex; align-items:center; justify-content:center;
+      transition:background .15s, transform .15s; z-index:10;
+    " onmouseover="this.style.background='#333'" onmouseout="this.style.background='#111'">×</button>
 
-    <button class="task-close-btn absolute top-3.5 right-3.5 w-8 h-8 bg-black text-white rounded-[10px] border-none text-[18px] cursor-pointer hover:scale-105" onclick="closeTaskPopup()">×</button>
+    <!-- Title -->
+    <div style="font-size:22px;font-weight:800;color:#111;padding-bottom:14px;border-bottom:2.5px solid #111;flex-shrink:0;margin-bottom:4px;">
+      Tasks
+    </div>
 
-    <h3 class="task-modal-title text-[22px] font-bold mb-3.5 shrink-0">Tasks</h3>
+    <!-- Scrollable content -->
+    <div id="taskContainer" style="flex:1;overflow-y:auto;overflow-x:auto;padding-right:2px;margin-top:8px;"></div>
 
-    <div id="taskContainer" class="flex-1 overflow-y-auto pr-1.5"></div>
-
-    <div class="task-footer shrink-0 mt-auto pt-3.5 border-t border-[#eee] flex justify-end">
-      <button class="task-save-btn bg-[#9f2727] text-white border-none p-[12px_28px] rounded-[10px] font-semibold cursor-pointer hover:bg-[#851e1e]" onclick="finishAssignment()">
-        Save & Assign
+    <!-- Footer -->
+    <div style="flex-shrink:0;margin-top:auto;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;">
+      <button onclick="finishAssignment()" style="
+        background:#9f2727; color:#fff; border:none;
+        padding:11px 28px; border-radius:10px; font-weight:700;
+        font-size:14px; cursor:pointer; font-family:inherit;
+        transition:background .15s, transform .1s;
+      " onmouseover="this.style.background='#851e1e'" onmouseout="this.style.background='#9f2727'">
+        Save &amp; Assign
       </button>
     </div>
-
   </div>
 </div>
-<div id="saveToast" class="save-toast fixed bottom-[30px] right-[30px] bg-[#16a34a] text-white p-[10px_16px] rounded-[10px] font-semibold text-[14px] opacity-0 translate-y-2.5 transition-all duration-300 z-[9999] [&.show]:opacity-100 [&.show]:translate-y-0">✔ Saved</div>
+
+
+<div id="saveToast"
+     style="position:fixed;bottom:30px;right:30px;background:#16a34a;color:#fff;
+            padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;
+            opacity:0;transform:translateY(10px);transition:all .3s;z-index:9999;">
+  ✔ Saved
+</div>
+
 
 <script>
-let draggedCard = null;
-let pendingColumn = null;
 
-/* ===================================== */
-/* INITIAL ASSIGN INFO POPUP */
-/* ===================================== */
+let draggedCard        = null;
+let pendingColumn      = null;
+let currentProjectId   = null;
+let projectTeam        = [];
+let phaseDefault       = {};
+let masterTemplates    = [];
+let pendingTaskUpdates = {};
+
+/* ─── Startup: show assign-info popup ─────────────────────────────── */
 window.addEventListener("load", () => {
-    const popup = document.getElementById("assignPopup");
-    if (popup && Number(popup.dataset.count) > 0) {
-        popup.style.display = "flex";
-    }
+  const popup = document.getElementById("assignPopup");
+  if (popup && Number(popup.dataset.count) > 0) popup.style.display = "flex";
+});
+function closePopup() { document.getElementById("assignPopup").style.display = "none"; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   DRAG & DROP
+══════════════════════════════════════════════════════════════════ */
+document.querySelectorAll('.project-column[data-status="ASSIGNED"] .project-card').forEach(card => {
+  card.addEventListener("dragstart", () => {
+    draggedCard = card;
+    setTimeout(() => card.classList.add("dragging"), 0);
+  });
+  card.addEventListener("dragend", () => card.classList.remove("dragging"));
 });
 
-function closePopup() {
-    document.getElementById("assignPopup").style.display = "none";
-}
-
-/* ===================================== */
-/* DRAG START */
-/* ===================================== */
-document.querySelectorAll(
-    '.project-column[data-status="ASSIGNED"] .project-card'
-).forEach(card => {
-    card.addEventListener("dragstart", () => {
-        draggedCard = card;
-        setTimeout(() => card.classList.add("dragging"), 0);
-    });
-
-    card.addEventListener("dragend", () => {
-        card.classList.remove("dragging");
-    });
+document.querySelectorAll(".project-column").forEach(col => {
+  col.addEventListener("dragover",  e => { e.preventDefault(); col.classList.add("hover"); });
+  col.addEventListener("dragleave", ()  => col.classList.remove("hover"));
+  col.addEventListener("drop", () => {
+    col.classList.remove("hover");
+    if (!draggedCard) return;
+    const target = col.dataset.status;
+    if (target === "ASSIGNED") return;
+    if (target === "PRE") { pendingColumn = col; openTeamPopup(); return; }
+    moveCard(target);
+    col.appendChild(draggedCard);
+    draggedCard.setAttribute("draggable","false");
+    draggedCard = null;
+  });
 });
 
-/* ===================================== */
-/* DROP HANDLING */
-/* ===================================== */
-document.querySelectorAll(".project-column").forEach(column => {
-
-    column.addEventListener("dragover", e => {
-        e.preventDefault();
-        column.classList.add("hover");
-    });
-
-    column.addEventListener("dragleave", () => {
-        column.classList.remove("hover");
-    });
-
-    column.addEventListener("drop", () => {
-        column.classList.remove("hover");
-
-        if (!draggedCard) return;
-
-        const targetStatus = column.dataset.status;
-
-        if (targetStatus === "ASSIGNED") return;
-
-        if (targetStatus === "PRE") {
-            pendingColumn = column;
-            openTeamPopup();   // 🔥 DB-driven
-            return;
-        }
-
-        moveCard(targetStatus);
-        column.querySelector('.cards-container') ? column.querySelector('.cards-container').appendChild(draggedCard) : column.appendChild(draggedCard);
-        draggedCard.setAttribute("draggable", "false");
-        draggedCard = null;
-    });
-});
-
-/* ===================================== */
-/* TEAM POPUP — FETCH FROM DATABASE */
-/* ===================================== */
+/* ═══════════════════════════════════════════════════════════════════
+   TEAM POPUP
+══════════════════════════════════════════════════════════════════ */
 function openTeamPopup() {
-  if (!draggedCard) {
-    console.error("❌ draggedCard is null — drag not started");
-    return;
-  }
-
+  if (!draggedCard) return;
   const projectId = draggedCard.dataset.id;
-
-  if (!projectId) {
-    console.error(
-      "❌ Project ID missing on dragged card",
-      draggedCard
-    );
-    return;
-  }
-
-  const popup = document.getElementById("teamAssignPopup");
+  if (!projectId) return;
 
   fetch(`/projects/details/${projectId}/`)
-    .then(res => {
-      if (!res.ok) {
-        throw new Error("Failed to fetch project details");
-      }
-      return res.json();
-    })
+    .then(r => r.json())
     .then(data => {
-      document.getElementById("popupClient").innerText = data.client_name || "";
-      document.getElementById("popupLocation").innerText = data.location || "";
-      document.getElementById("popupTime").innerText = data.start_session || "";
-      document.getElementById("popupDuration").innerText = data.event_type || "";
-      document.getElementById("popupDates").innerText = `${data.start_date} — ${data.end_date}`;
+      document.getElementById("popupClient").innerText   = data.client_name || "";
+      document.getElementById("popupLocation").innerText = data.location    || "";
+      document.getElementById("popupTime").innerText     = data.start_session || "";
+      document.getElementById("popupDuration").innerText = data.event_type  || "";
+      document.getElementById("popupDates").innerText    = `${data.start_date} — ${data.end_date}`;
 
-      popup.style.display = "flex";
-
-      // existing logic
-      renderTeamMembers(data);
-
-      // tooltip for AVAILABLE members
-      document
-        .querySelectorAll(".member-pill.selectable:not(.booked)")
-        .forEach(pill => {
-          const name = pill.dataset.name || "";
-          const role = pill.dataset.role || "";
-          pill.dataset.tooltip = `${name}\n${role}`;
-        });
+      renderPopupTeam(data);
+      document.getElementById("teamAssignPopup").style.display = "flex";
     })
-    .catch(err => {
-      console.error("❌ Project fetch failed", err);
-    });
+    .catch(err => console.error("Project fetch failed", err));
 }
 
-function renderMembers(list, container, booked=false) {
-  container.innerHTML = "";
-
-  list.forEach(m => {
-    const pill = document.createElement("span");
-    pill.className = "member-pill selectable";
-    pill.dataset.id = m.id;
-    pill.dataset.name = m.name;
-    pill.dataset.role = m.role;
-
-    if (booked) {
-      pill.classList.add("booked");
-      pill.dataset.booking = m.booked_info;
-    }
-
-    pill.innerText = m.name.slice(0,2).toUpperCase();
-    container.appendChild(pill);
+function renderPopupTeam(data) {
+  const groups = { general: data.general_team||[], pre: data.pre_team||[], post: data.post_team||[] };
+  ["general","pre","post"].forEach(g => {
+    const container = document.getElementById(`${g}-pills`);
+    if (!container) return;
+    container.innerHTML = "";
+    groups[g].forEach(m => {
+      const pill = document.createElement("span");
+      pill.className = "member-pill selectable";
+      pill.dataset.id   = m.id;
+      pill.dataset.name = m.name || m.initials;
+      pill.style.cssText = `
+        display:inline-flex;align-items:center;justify-content:center;
+        width:34px;height:34px;border-radius:8px;background:#111;color:#fff;
+        font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;
+        border:2px solid transparent;
+      `;
+      pill.innerText = m.initials;
+      pill.addEventListener("click", () => {
+        const sel = pill.classList.toggle("selected");
+        pill.style.background     = sel ? "#b3261e" : "#111";
+        pill.style.borderColor    = sel ? "#b3261e" : "transparent";
+        pill.style.transform      = sel ? "scale(1.1)" : "scale(1)";
+      });
+      container.appendChild(pill);
+    });
   });
 }
 
-function closeTeamPopup() {
-    document.getElementById("teamAssignPopup").style.display = "none";
-}
+function closeTeamPopup() { document.getElementById("teamAssignPopup").style.display = "none"; }
 
-/* ===================================== */
-/* PROCEED TO TASKS */
-/* ===================================== */
-function proceedToTasks() {
-    // 1️⃣ collect selected members
-    const selectedMembers = Array.from(
-        document.querySelectorAll(".member-pill.selected")
-    ).map(pill => pill.dataset.id);
-
-    // 2️⃣ save team to DB
-    fetch("/projects/assign-team/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": csrfToken(),
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            project_id: draggedCard.dataset.id,
-            members: selectedMembers.join(",")
-        })
-    })
-    .then(res => res.json())
-    .then(() => {
-        // 3️⃣ open task popup AFTER saving team
-        closeTeamPopup();
-
-        currentProjectId = draggedCard.dataset.id;
-        document.getElementById("taskPopup").style.display = "flex";
-        loadTasks(currentProjectId);
-    });
-}
-
-/* ===================================== */
-/* TASK POPUP */
-/* ===================================== */
-function closeTaskPopup() {
-    document.getElementById("taskPopup").style.display = "none";
-}
-
-/* ===================================== */
-/* FINAL CONFIRM */
-/* ===================================== */
-function finishAssignment() {
-    closeTaskPopup();
-
-    if (!pendingColumn || !draggedCard) return;
-
-    pendingColumn.querySelector('.cards-container') ? pendingColumn.querySelector('.cards-container').appendChild(draggedCard) : pendingColumn.appendChild(draggedCard);
-    draggedCard.setAttribute("draggable", "false");
-
-    moveCard("PRE");
-
-    draggedCard = null;
-    pendingColumn = null;
-    setTimeout(() => {
-        window.location.reload();
-    }, 100);
-}
-
-/* ===================================== */
-/* BACKEND STATUS UPDATE */
-/* ===================================== */
-function moveCard(status) {
-    fetch("/projects/update-status/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": document.getElementById("csrf_token").value,
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            project_id: draggedCard.dataset.id,
-            status: status
-        })
-    });
-}
-
-// Tabs toggle
+/* ─── Figma tabs ──────────────────────────────────────────────────── */
 document.querySelectorAll(".figma-tabs span").forEach(tab => {
   tab.addEventListener("click", () => {
-
-    document.querySelectorAll(".figma-tabs span")
-      .forEach(t => t.classList.remove("active"));
-
+    document.querySelectorAll(".figma-tabs span").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
-
-    const available = document.querySelector(".team-available");
+    const avail  = document.querySelector(".team-available");
     const booked = document.querySelector(".team-booked");
-
-    if (tab.dataset.tab === "available") {
-      available.style.display = "block";
-      booked.style.display = "none";
-    }
-
-    else {
-      available.style.display = "none";
-      booked.style.display = "block";
-    }
+    if (tab.dataset.tab === "available") { avail.style.display="block"; booked.style.display="none"; }
+    else                                 { avail.style.display="none";  booked.style.display="block"; }
   });
 });
 
-// Member select
-document.addEventListener("click", e => {
-  if (!e.target.classList.contains("member-pill")) return;
-
-  if (e.target.classList.contains("booked")) {
-    showWarningToast("⚠ This member is booked on another session");
-  }
-
-  e.target.classList.toggle("selected");
-});
-
-
-let currentProjectId = null;
-let projectTeam = [];
-let pendingTaskUpdates = {};    
-
-
-/* ================= LOAD TASKS ================= */
-function loadTasks(projectId) {
-    fetch(`/projects/${projectId}/tasks/`)
-        .then(res => res.json())
-        .then(data => {
-            projectTeam = data.team_members || [];
-            renderTasks(data.tasks || {});
-        });
-}
-function setText(element, html) {
-  if (!element) return;
-  element.innerHTML = html;
-}
-function updateStatusUI(taskId, status) {
-  const statusBox = document.getElementById(`status-${taskId}`);
-  if (!statusBox) return;
-
-  // reset classes
-  statusBox.className = `dropdown status ${status} relative cursor-pointer group`;
-
-  // update label
-  statusBox.querySelector(".dropdown-trigger").innerText = status.replace("_", " ");
+function validateAndProceed() {
+  const selected = document.querySelectorAll(".member-pill.selected");
+  const date     = document.querySelector(".figma-date")?.value;
+  if (!selected.length) { showWarningToast("Please select team members"); return; }
+  if (!date)            { showWarningToast("Date is required");           return; }
+  proceedToTasks();
 }
 
-function renderTasks(taskGroups) {
-  const container = document.getElementById("taskContainer");
-
-  container.innerHTML = `
-    <div class="task-table-header grid grid-cols-[80px_2fr_2fr_120px_140px_140px_140px_100px] font-semibold text-[14px] py-3 items-center border-b-2 border-[#ddd]">
-      <span>Task ID</span>
-      <span>Task Name</span>
-      <span>Assigned To</span>
-      <span>Status</span>
-      <span>Start Date</span>
-      <span>Due Date</span>
-      <span>Progress</span>
-      <span>Actions</span>
-    </div>
-  `;
-
-  Object.keys(taskGroups).forEach(phase => {
-    const tasks = taskGroups[phase];
-
-    container.innerHTML += `
-      <div class="task-phase-strip bg-[#f4f4f4] px-3.5 py-2.5 font-semibold mt-[18px] border-y border-[#ddd]">
-        📁 ${formatPhase(phase)} (${tasks.length})
-      </div>
-    `;
-
-    tasks.forEach(task => {
-      const assigned = projectTeam.find(m => m.id === task.assigned_to_id);
-      const progress = task.progress || 40;
-
-      container.innerHTML += `
-        <div class="task-row grid grid-cols-[80px_2fr_2fr_120px_140px_140px_140px_100px] items-center py-3.5 border-b border-[#eee] text-[14px]" data-task-id="${task.id}">
-
-          <div>${task.code}</div>
-
-          <div>
-            <span class="task-title cursor-text hover:border-b hover:border-[#bbb] focus:outline-none focus:border-b focus:border-black" contenteditable
-              oninput="queueUpdate(${task.id},{title:this.innerText})">
-              ${task.title}
-            </span>
-          </div>
-
-          <div>
-            <div class="dropdown relative cursor-pointer group">
-              <div class="dropdown-trigger assigned-box flex items-center gap-2" id="assign-${task.id}">
-                ${assigned
-                  ? `<span class="avatar w-7 h-7 bg-black text-white rounded-full text-[12px] flex items-center justify-center">${assigned.name[0]}</span><span>${assigned.name}</span>`
-                  : `<span class="unassigned bg-[#f2f2f2] px-3.5 py-1.5 rounded-[20px] text-[13px]">Unassigned</span>`
-                }
-              </div>
-
-              <div class="dropdown-menu absolute top-[110%] left-0 bg-white rounded-[10px] shadow-[0_10px_25px_rgba(0,0,0,0.15)] min-w-[200px] opacity-0 pointer-events-none transition-all duration-200 z-50 group-hover:opacity-100 group-hover:pointer-events-auto">
-                <div class="px-3.5 py-2.5 flex gap-2 hover:bg-[#f5f5f5]" onclick="
-                  queueUpdate(${task.id},{assigned_to:''});
-                  setText(
-                    document.getElementById('assign-${task.id}'),
-                    '<span class=unassigned>Unassigned</span>'
-                  );
-                ">Unassigned</div>
-
-                ${projectTeam.map(m => `
-                  <div class="px-3.5 py-2.5 flex gap-2 hover:bg-[#f5f5f5]" onclick="
-                    queueUpdate(${task.id},{assigned_to:${m.id}});
-                    setText(
-                      document.getElementById('assign-${task.id}'),
-                      '<span class=avatar>${m.name[0]}</span><span>${m.name}</span>'
-                    );
-                  ">
-                    <span class="avatar w-7 h-7 bg-black text-white rounded-full text-[12px] flex items-center justify-center">${m.name[0]}</span>${m.name}
-                  </div>
-                `).join("")}
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <div class="dropdown status ${task.status} relative cursor-pointer group [&.OPEN>.dropdown-trigger]:bg-[#22c55e] [&.OPEN>.dropdown-trigger]:text-white [&.ON_HOLD>.dropdown-trigger]:bg-[#facc15] [&.COMPLETED>.dropdown-trigger]:bg-[#16a34a] [&.COMPLETED>.dropdown-trigger]:text-white" id="status-${task.id}">
-              <div class="dropdown-trigger flex items-center gap-2 px-4 py-1.5 rounded-full w-fit whitespace-nowrap">
-                ${task.status.replace("_"," ")}
-              </div>
-              <div class="dropdown-menu absolute top-[110%] left-0 bg-white rounded-[10px] shadow-[0_10px_25px_rgba(0,0,0,0.15)] min-w-[200px] opacity-0 pointer-events-none transition-all duration-200 z-50 group-hover:opacity-100 group-hover:pointer-events-auto">
-                <div class="px-3.5 py-2.5 flex gap-2 hover:bg-[#f5f5f5]" onclick="
-                  queueUpdate(${task.id},{status:'OPEN'});
-                  updateStatusUI(${task.id}, 'OPEN');
-                ">Open</div>
-
-                <div class="px-3.5 py-2.5 flex gap-2 hover:bg-[#f5f5f5]" onclick="
-                  queueUpdate(${task.id},{status:'ON_HOLD'});
-                  updateStatusUI(${task.id}, 'ON_HOLD');
-                ">On Hold</div>
-
-                <div class="px-3.5 py-2.5 flex gap-2 hover:bg-[#f5f5f5]" onclick="
-                  queueUpdate(${task.id},{status:'COMPLETED'});
-                  updateStatusUI(${task.id}, 'COMPLETED');
-                ">Completed</div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <input type="date" class="border-none bg-transparent text-[13px] cursor-pointer"
-              value="${task.start_date || ""}"
-              onchange="queueUpdate(${task.id},{start_date:this.value})">
-          </div>
-
-          <div>
-            <input type="date" class="border-none bg-transparent text-[13px] cursor-pointer"
-              value="${task.due_date || ""}"
-              onchange="queueUpdate(${task.id},{due_date:this.value})">
-          </div>
-
-          <div>
-            <div class="progress h-[6px] bg-[#ddd] rounded-[10px] overflow-hidden w-[90%]">
-              <span class="block h-full bg-[#ef4444]" style="width:${progress}%"></span>
-            </div>
-          </div>
-
-          <div class="task-actions flex gap-2.5 text-[20px] px-2 items-center">
-            <button class="save-btn bg-transparent border-none text-[16px] cursor-pointer text-[#16a34a] opacity-70 hover:opacity-100 hover:scale-110 transition-all" onclick="saveTask(${task.id})">✔</button>
-            <button class="delete-btn bg-transparent border-none opacity-40 hover:opacity-100 hover:text-[#ef4444] cursor-pointer transition-all" onclick="deleteTask(${task.id})">🗑</button>
-          </div>
-
-        </div>
-      `;
-    });
-
-    container.innerHTML += `
-      <button class="task-add-btn mt-2 mb-4 text-sm font-semibold text-[#a12b2b] hover:underline cursor-pointer bg-transparent border-none" onclick="addTask('${phase}')">
-        + Add Task
-      </button>
-    `;
-  });
-}
-
-function queueUpdate(taskId, data) {
-  if (!pendingTaskUpdates[taskId]) {
-    pendingTaskUpdates[taskId] = {};
-  }
-  Object.assign(pendingTaskUpdates[taskId], data);
-}
-
-/* SAVE ON ✔ CLICK */
-function saveTask(taskId) {
-  if (!pendingTaskUpdates[taskId]) {
-    return;
-  }
-
-  fetch("/projects/tasks/update/", {
+function proceedToTasks() {
+  const ids = Array.from(document.querySelectorAll(".member-pill.selected")).map(p => p.dataset.id);
+  fetch("/projects/assign-team/", {
     method: "POST",
-    headers: {
-      "X-CSRFToken": csrfToken(),
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({
-      task_id: taskId,
-      ...pendingTaskUpdates[taskId]
-    })
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ project_id: draggedCard.dataset.id, members: ids.join(",") }),
   })
-  .then(res => res.json())
- .then(() => {
-  delete pendingTaskUpdates[taskId];
-
-  const toast = document.getElementById("saveToast");
-  toast.classList.add("show");
-
-  setTimeout(() => toast.classList.remove("show"), 1500);
-
-  loadTasks(currentProjectId);
-});
-}
-
-function applyImmediateUI(taskId, field, value, labelHTML) {
-  const row = document.querySelector(`[data-task-id="${taskId}"]`);
-  if (!row) return;
-
-  if (field === "assigned_to") {
-    row.querySelector(".assigned-box").innerHTML = labelHTML;
-  }
-
-  if (field === "status") {
-    const statusBox = row.querySelector(".status");
-    statusBox.className = `dropdown status ${value} relative cursor-pointer group [&.OPEN>.dropdown-trigger]:bg-[#22c55e] [&.OPEN>.dropdown-trigger]:text-white [&.ON_HOLD>.dropdown-trigger]:bg-[#facc15] [&.COMPLETED>.dropdown-trigger]:bg-[#16a34a] [&.COMPLETED>.dropdown-trigger]:text-white`;
-    statusBox.querySelector(".dropdown-trigger").innerText = value.replace("_", " ");
-  }
-}
-
-/* ================= TASK ACTIONS ================= */
-function addTask(phase) {
-    fetch("/projects/tasks/add/", {
-        method: "POST",
-        headers: {
-            "X-CSRFToken": csrfToken(),
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: new URLSearchParams({
-            project_id: currentProjectId,
-            title: "New Task",
-            phase: phase
-        })
-    }).then(() => loadTasks(currentProjectId));
-}
-
-function editTask(id, title) {
-    updateTask(id, { title });
-}
-
-function assignTask(id, member) {
-    updateTask(id, { assigned_to: member });
-}
-
-function updateTask(id, data) {
-  fetch("/projects/tasks/update/", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": csrfToken(),
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({
-      task_id: id,
-      ...data
-    })
+  .then(r => r.json())
+  .then(() => {
+    closeTeamPopup();
+    currentProjectId = draggedCard.dataset.id;
+    document.getElementById("taskPopup").style.display = "flex";
+    loadTasks(currentProjectId);
   });
 }
 
-function deleteTask(id) {
-  fetch("/projects/tasks/delete/", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": csrfToken(),
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
-    body: new URLSearchParams({ task_id: id })
-  }).then(() => loadTasks(currentProjectId));
+/* ═══════════════════════════════════════════════════════════════════
+   TASK MODAL OPEN / CLOSE
+══════════════════════════════════════════════════════════════════ */
+function closeTaskPopup() { document.getElementById("taskPopup").style.display = "none"; }
+
+function finishAssignment() {
+  closeTaskPopup();
+  if (!pendingColumn || !draggedCard) return;
+  pendingColumn.appendChild(draggedCard);
+  draggedCard.setAttribute("draggable","false");
+  moveCard("PRE");
+  draggedCard = null; pendingColumn = null;
+  setTimeout(() => window.location.reload(), 100);
 }
 
-/* ================= HELPERS ================= */
-function csrfToken() {
-    return document.getElementById("csrf_token").value;
-}
-
-function formatPhase(phase) {
-    return phase.replace(/_/g, " ")
-                .toLowerCase()
-                .replace(/\b\w/g, c => c.toUpperCase());
-}
-
-// pre production inprogres cliking popup
-/* ============================= */
-/* OPEN TASKS FROM PRE CARD */
-/* ============================= */
+/* click pre-card → open task modal */
 document.addEventListener("click", e => {
-  const card = e.target.closest(".pre-card");
+  const card = e.target.closest(".pre-card, .selection-card");
   if (!card) return;
-
   currentProjectId = card.dataset.id;
   document.getElementById("taskPopup").style.display = "flex";
   loadTasks(currentProjectId);
 });
 
-/* =============================== */
-/* BOARD ↔ LIST VIEW TOGGLE */
-/* =============================== */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  const toolbarItems = document.querySelectorAll(".project-toolbar span");
-  const boardBtn = toolbarItems[0]; // ▦ Board View
-  const listBtn  = toolbarItems[1]; // ☰ List View
-
-  const boardView = document.getElementById("boardView");
-  const listView  = document.getElementById("listView");
-
-  // ---- INITIAL STATE ----
-  boardView.style.display = "block";
-  listView.style.display = "none";
-  boardView.classList.add("view-active");
-
-  // ---- BOARD VIEW CLICK ----
-  boardBtn.addEventListener("click", () => {
-    if (boardBtn.classList.contains("active")) return;
-
-    // toolbar state
-    boardBtn.classList.add("active");
-    listBtn.classList.remove("active");
-
-    // view switch
-    listView.classList.remove("view-active");
-    boardView.classList.add("view-active");
-
-    // animation-safe toggle
-    listView.style.display = "none";
-    boardView.style.display = "block";
-  });
-
-  // ---- LIST VIEW CLICK ----
-  listBtn.addEventListener("click", () => {
-    if (listBtn.classList.contains("active")) return;
-
-    // toolbar state
-    listBtn.classList.add("active");
-    boardBtn.classList.remove("active");
-
-    // view switch
-    boardView.classList.remove("view-active");
-    listView.classList.add("view-active");
-
-    // animation-safe toggle
-    boardView.style.display = "none";
-    listView.style.display = "block";
-  });
-
-});
-
-/* ============================= */
-/* LIST ROW → OPEN TASK POPUP */
-/* ============================= */
+/* click list row → open task modal */
 document.addEventListener("click", e => {
   const row = e.target.closest(".list-row");
   if (!row) return;
-
-  const projectId = row.dataset.projectId;
-  if (!projectId) return;
-
-  currentProjectId = projectId;
-
-  // open popup
+  const pid = row.dataset.projectId;
+  if (!pid) return;
+  currentProjectId = pid;
   document.getElementById("taskPopup").style.display = "flex";
   loadTasks(currentProjectId);
 });
 
+/* ═══════════════════════════════════════════════════════════════════
+   TASK LOAD + RENDER
+══════════════════════════════════════════════════════════════════ */
+function loadTasks(projectId) {
+  fetch(`/projects/${projectId}/tasks/`)
+    .then(r => r.json())
+    .then(data => {
+      projectTeam     = data.team_members  || [];
+      phaseDefault    = data.phase_default || {};
+      masterTemplates = data.templates     || [];
+      renderTasks(data.tasks || {});
+    });
+}
 
-/* =============================== */
-/* PROJECT OVERVIEW TOGGLE */
-/* =============================== */
+/* ─── Helpers ────────────────────────────────────────────────────── */
+function phaseKey(display) {
+  const up = String(display).toUpperCase();
+  if (up.includes("POST")) return "POST";
+  if (up.includes("SELECT")) return "SELECTION";
+  return "PRE";
+}
 
-document.addEventListener("DOMContentLoaded", () => {
+function pillHTML(status) {
+  const map = {
+    OPEN:      ["#22c55e","#fff","Open"],
+    ON_HOLD:   ["#facc15","#333","On Hold"],
+    COMPLETED: ["#e5e7eb","#555","Completed"],
+  };
+  const [bg,fg,label] = map[status] || map.ON_HOLD;
+  return `<span class="t-pill" style="background:${bg};color:${fg};">${label}</span>`;
+}
 
-  const toolbar = document.querySelectorAll(".project-toolbar span");
+function progressHTML(pct) {
+  pct = Math.max(0, Math.min(100, pct));
+  const color = pct===100 ? "#16a34a" : pct>=50 ? "#22c55e" : "#ef4444";
+  return `
+    <div class="t-progress-track">
+      <div class="t-progress-fill"  style="width:${pct}%;background:${color};"></div>
+      <div class="t-progress-dot"   style="left:${pct}%;background:${color};"></div>
+    </div>`;
+}
 
-  const boardView = document.getElementById("boardView");
-  const listView = document.getElementById("listView");
-  const overviewView = document.getElementById("overviewView");
+function avatarHTML(empId) {
+  if (!empId) return `<span style="color:#aaa;font-size:13px;">Unassigned</span>`;
+  const m = projectTeam.find(t => t.id === empId);
+  if (!m) return `<span style="color:#aaa;font-size:13px;">Unassigned</span>`;
+  return `<span class="t-avatar">${m.initials}</span><span class="t-assignee-label">${m.name}</span>`;
+}
 
-  // Projects Overview click
-  toolbar[2].addEventListener("click", () => {
+function catIcon(cat) {
+  const c = (cat||"").toLowerCase();
+  if (c.includes("hard disk"))                     return "🖥";
+  if (c.includes("pre wedding")||c.includes("shoot")) return "🎬";
+  if (c.includes("coverage")||c.includes("main")) return "🎞";
+  if (c.includes("planning")||c.includes("coord")) return "📋";
+  if (c.includes("package"))                       return "📦";
+  if (c.includes("post"))                          return "🖥";
+  if (c.includes("deliverable"))                   return "📦";
+  return "📌";
+}
 
-    toolbar.forEach(t => t.classList.remove("active"));
-    toolbar[2].classList.add("active");
+/* ─── renderTasks ────────────────────────────────────────────────── */
+function renderTasks(taskGroups) {
+  const container = document.getElementById("taskContainer");
 
-    boardView.style.display = "none";
-    listView.style.display = "none";
-    overviewView.style.display = "block";
+  let html = `
+    <div class="tt-wrap">
+    <table class="tt-table">
+      <thead>
+        <tr class="tt-head">
+          <th style="width:82px">Task ID</th>
+          <th>Task Name</th>
+          <th style="width:195px">Assigned To</th>
+          <th style="width:120px">Status</th>
+          <th style="width:112px">Start Date</th>
+          <th style="width:112px">Due Date</th>
+          <th style="width:130px">Task Progress</th>
+          <th style="width:68px"></th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  Object.keys(taskGroups).forEach(phase => {
+    const tasks   = taskGroups[phase];
+    const pk      = phaseKey(phase);
+
+    // 🌟 NEW: Dynamic Phase Styling matching your design
+    let phaseBg = "#f4f4f4", phaseText = "#333", phaseLabel = pk;
+    if (pk === "PRE") {
+        phaseBg = "#F5F8FF";     // Light blue
+        phaseText = "#3B82F6";   // Blue
+        phaseLabel = "PRE PRODUCTION";
+    } else if (pk === "SELECTION") {
+        phaseBg = "#FEFCE8";     
+        phaseText = "#EAB308";   
+        phaseLabel = "SELECTION";
+    } else if (pk === "POST") {
+        phaseBg = "#FFF0F0";    
+        phaseText = "#EF4444";  
+        phaseLabel = "POST PRODUCTION";
+    }
+
+    // Insert the beautifully colored Phase Heading
+    html += `
+      <tr>
+        <td colspan="8" style="background:${phaseBg}; color:${phaseText}; padding:12px 14px; font-weight:800; font-size:13px; text-transform:uppercase; border-top:1px solid #eee; border-bottom:1px solid #eee;">
+          <span style="margin-right:6px; font-size:14px;">●</span> ${phaseLabel}
+        </td>
+      </tr>
+    `;
+
+    /* group by category */
+    const byCat = {};
+    tasks.forEach(t => {
+      const c = t.category || "General";
+      if (!byCat[c]) byCat[c] = [];
+      byCat[c].push(t);
+    });
+
+    if (tasks.length === 0) {
+      /* Empty phase */
+      const cleanId = phase.replace(/\s+/g,"");
+      const ptpls   = masterTemplates.filter(t => t.phase === pk);
+      html += emptyPhaseRows(phase, pk, cleanId, ptpls);
+    } else {
+      Object.keys(byCat).forEach(cat => {
+        const catTasks = byCat[cat];
+        const cleanId  = (phase+cat).replace(/\s+/g,"");
+        const icon     = catIcon(cat);
+
+        /* ── Category header ── */
+        html += `
+          <tr class="tt-cat-row">
+            <td colspan="8">${icon}&nbsp;&nbsp;<strong>${cat}</strong>
+              <span style="font-weight:400;color:#888;margin-left:4px;">(${catTasks.length})</span>
+            </td>
+          </tr>
+        `;
+
+        /* ── Task rows ── */
+        catTasks.forEach(task => {
+          const pct = task.progress || 0;
+
+          /* assignee dropdown */
+          const dropItems = [
+            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:''}); refreshAssignee(${task.id},null)">
+               <span style="color:#aaa;font-size:13px;">— Unassigned</span>
+             </div>`
+          ].concat(projectTeam.map(m =>
+            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:${m.id}}); refreshAssignee(${task.id},${m.id})">
+               <span class="t-avatar">${m.initials}</span><span>${m.name}</span>
+             </div>`
+          )).join("");
+
+          /* status dropdown */
+          const statusItems = ["OPEN","ON_HOLD","COMPLETED"].map(s =>
+            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{status:'${s}'}); refreshStatus(${task.id},'${s}')">
+               ${pillHTML(s)}
+             </div>`
+          ).join("");
+
+          html += `
+            <tr class="tt-row" data-task-id="${task.id}">
+
+              <td><span class="tt-id">AK-${task.id}</span></td>
+
+              <td>
+                <span class="tt-name" contenteditable spellcheck="false"
+                      oninput="queueUpdate(${task.id},{title:this.innerText})">${task.title}</span>
+              </td>
+
+              <td>
+                <div class="tt-dd-wrap">
+                  <div class="tt-dd-trigger" id="assign-${task.id}">
+                    <div style="display:flex;align-items:center;gap:8px;">${avatarHTML(task.assigned_to_id)}</div>
+                  </div>
+                  <div class="tt-dd-menu">${dropItems}</div>
+                </div>
+              </td>
+
+              <td>
+                <div class="tt-dd-wrap">
+                  <div class="tt-dd-trigger" id="status-${task.id}">${pillHTML(task.status)}</div>
+                  <div class="tt-dd-menu">${statusItems}</div>
+                </div>
+              </td>
+
+              <td><input type="date" class="tt-date" value="${task.start_date||""}"
+                         onchange="queueUpdate(${task.id},{start_date:this.value})"></td>
+
+              <td><input type="date" class="tt-date" value="${task.due_date||""}"
+                         onchange="queueUpdate(${task.id},{due_date:this.value})"></td>
+
+              <td id="progress-${task.id}">${progressHTML(pct)}</td>
+
+              <td>
+                <button class="tt-btn tt-btn-save"  title="Save"   onclick="saveTask(${task.id})">✔</button>
+                <button class="tt-btn tt-btn-del"   title="Delete" onclick="deleteTask(${task.id})">🗑</button>
+              </td>
+            </tr>
+          `;
+        });
+      });
+
+      if (pk !== "POST") {
+        const cleanId = phase.replace(/\s+/g,"");
+        const ptpls = masterTemplates.filter(t => t.phase === pk);
+        html += addTaskRow(phase, pk, cleanId, ptpls);
+      }
+    }
   });
 
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+}
+
+function buildTemplateOpts(templates) {
+  if (!templates.length) return `<option value="">— No templates —</option>`;
+  const cats = [...new Set(templates.map(t => t.category))];
+  let opts = `<option value="">— Select template —</option>`;
+  cats.forEach(c => {
+    opts += `<optgroup label="${c}">`;
+    templates.filter(t => t.category===c).forEach(t => {
+      opts += `<option value="${t.id}">${t.task_name}</option>`;
+    });
+    opts += `</optgroup>`;
+  });
+  return opts;
+}
+
+function addTaskRow(phase, pk, cleanId, templates) {
+  return `
+    <tr class="tt-add-row">
+      <td colspan="8">
+        <div class="tt-add-inner">
+          <select id="tpl-${cleanId}" class="tt-tpl-select">${buildTemplateOpts(templates)}</select>
+          <button class="tt-add-btn" onclick="addTaskFromTemplate('${phase}','${cleanId}')">+ Add Task</button>
+          <button class="tt-custom-btn" onclick="addTask('${phase}')">Or add custom task</button>
+        </div>
+      </td>
+    </tr>`;
+}
+
+function emptyPhaseRows(phase, pk, cleanId, templates) {
+  const addRowHTML = (pk !== "POST") ? addTaskRow(phase, pk, cleanId, templates) : "";
+  return `
+    <tr class="tt-cat-row">
+      <td colspan="8" style="color:#bbb;font-weight:400;font-style:italic;">No tasks yet</td>
+    </tr>
+    ${addRowHTML}`;
+}
+
+/* ─── Live DOM updaters ─────────────────────────────────────────── */
+function refreshAssignee(taskId, empId) {
+  const el = document.getElementById(`assign-${taskId}`);
+  if (el) el.querySelector("div").innerHTML = avatarHTML(empId);
+}
+
+function refreshStatus(taskId, status) {
+  const el = document.getElementById(`status-${taskId}`);
+  if (el) el.innerHTML = pillHTML(status);
+  const pctMap = { OPEN:50, ON_HOLD:10, COMPLETED:100 };
+  const pe = document.getElementById(`progress-${taskId}`);
+  if (pe) pe.innerHTML = progressHTML(pctMap[status]||10);
+}
+
+/* ─── Queue & save ──────────────────────────────────────────────── */
+function queueUpdate(taskId, data) {
+  if (!pendingTaskUpdates[taskId]) pendingTaskUpdates[taskId] = {};
+  Object.assign(pendingTaskUpdates[taskId], data);
+}
+
+function saveTask(taskId) {
+  if (!pendingTaskUpdates[taskId]) return;
+  fetch("/projects/tasks/update/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ task_id: taskId, ...pendingTaskUpdates[taskId] }),
+  })
+  .then(r => r.json())
+  .then(() => {
+    delete pendingTaskUpdates[taskId];
+    const toast = document.getElementById("saveToast");
+    if (toast) {
+      toast.style.opacity = "1"; toast.style.transform = "translateY(0)";
+      setTimeout(() => { toast.style.opacity="0"; toast.style.transform="translateY(10px)"; }, 1500);
+    }
+    loadTasks(currentProjectId);
+  });
+}
+
+/* ─── Add / delete ──────────────────────────────────────────────── */
+function addTaskFromTemplate(phase, cleanId) {
+  const sel = document.getElementById(`tpl-${cleanId}`);
+  if (!sel || !sel.value) { showWarningToast("Please select a template first."); return; }
+  fetch("/projects/tasks/add/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ project_id: currentProjectId, template_id: sel.value, phase }),
+  }).then(() => loadTasks(currentProjectId));
+}
+
+function addTask(phase) {
+  fetch("/projects/tasks/add/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ project_id: currentProjectId, title: "New Task", phase }),
+  }).then(() => loadTasks(currentProjectId));
+}
+
+function deleteTask(id) {
+  if (!confirm("Delete this task?")) return;
+  fetch("/projects/tasks/delete/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ task_id: id }),
+  }).then(() => loadTasks(currentProjectId));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BACKEND STATUS UPDATE
+══════════════════════════════════════════════════════════════════ */
+function moveCard(status) {
+  fetch("/projects/update-status/", {
+    method: "POST",
+    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ project_id: draggedCard.dataset.id, status }),
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOARD ↔ LIST ↔ OVERVIEW VIEW TOGGLE
+══════════════════════════════════════════════════════════════════ */
+document.addEventListener("DOMContentLoaded", () => {
+  const spans    = document.querySelectorAll(".project-toolbar span");
+  const boardBtn = spans[0], listBtn = spans[1], overviewBtn = spans[2];
+  const boardV   = document.getElementById("boardView");
+  const listV    = document.getElementById("listView");
+  const overviewV= document.getElementById("overviewView");
+
+  function showView(active) {
+    boardV.style.display    = active==="board"    ? "block" : "none";
+    listV.style.display     = active==="list"     ? "block" : "none";
+    overviewV.style.display = active==="overview" ? "block" : "none";
+    spans.forEach(s => s.classList.remove("active"));
+    if (active==="board")    boardBtn.classList.add("active");
+    if (active==="list")     listBtn.classList.add("active");
+    if (active==="overview") overviewBtn.classList.add("active");
+  }
+
+  showView("board");
+  boardBtn.addEventListener("click",    () => showView("board"));
+  listBtn.addEventListener("click",     () => showView("list"));
+  overviewBtn.addEventListener("click", () => showView("overview"));
 });
 
-/* =============================== */
-/* OVERVIEW TAB SWITCH */
-/* =============================== */
-
+/* ═══════════════════════════════════════════════════════════════════
+   OVERVIEW TAB SWITCH
+══════════════════════════════════════════════════════════════════ */
 document.addEventListener("click", e => {
   if (!e.target.closest(".overview-tabs span")) return;
-
-  document.querySelectorAll(".overview-tabs span")
-    .forEach(t => t.classList.remove("active"));
-
-  document.querySelectorAll(".overview-table")
-    .forEach(t => t.classList.remove("active"));
-
+  document.querySelectorAll(".overview-tabs span").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".overview-table").forEach(t => t.classList.remove("active"));
   e.target.classList.add("active");
-
-  const tab = e.target.dataset.tab;
-  document.getElementById(
-    tab === "internal"
-      ? "overview-internal"
-      : "overview-client"
-  ).classList.add("active");
+  const id = e.target.dataset.tab==="internal" ? "overview-internal" : "overview-client";
+  document.getElementById(id)?.classList.add("active");
 });
 
-
-/* ============================= */
-/* SELECTION CHIP UPDATE (FUTURE) */
-/* ============================= */
-
-function markGalleryLinkCompleted(projectId) {
-  const card = document.querySelector(
-    `.selection-card[data-id="${projectId}"]`
-  );
-  if (!card) return;
-
-  const chip = card.querySelector(".selection-chip:first-child");
-  chip.classList.remove("bg-[#f2f2f2]", "text-[#9a9a9a]", "border-[#d0d0d0]");
-  chip.classList.add("bg-[#e8f7ee]", "text-[#1f9d55]", "border-[#1f9d55]");
-  chip.innerText = "1 / 1 Gallery Link";
-}
-
-function markSelectionLinkCompleted(projectId) {
-  const card = document.querySelector(
-    `.selection-card[data-id="${projectId}"]`
-  );
-  if (!card) return;
-
-  const chip = card.querySelectorAll(".selection-chip")[1];
-  chip.classList.remove("bg-[#f2f2f2]", "text-[#9a9a9a]", "border-[#d0d0d0]");
-  chip.classList.add("bg-[#e8f7ee]", "text-[#1f9d55]", "border-[#1f9d55]");
-  chip.innerText = "1 / 1 Selection Link";
-}
-function renderTeamMembers(data) {
-  const bookedBox = document.querySelector(".team-booked .pill-row");
-  bookedBox.innerHTML = "";
-
-  data.booked_members.forEach(m => {
-    const pill = document.createElement("span");
-    pill.className = "member-pill booked selectable";
-    pill.dataset.id = m.id;
-
-    pill.title = `${m.name}\n${m.role}\n${m.booked_info || ""}`;
-
-    // 👇 initials computed here
-    pill.innerText = m.name
-      .split(" ")
-      .map(w => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-
-    bookedBox.appendChild(pill);
-  });
-}
-
-
-
-function createMemberPill(member, isBooked) {
-  const pill = document.createElement("span");
-  pill.className = "member-pill selectable";
-  pill.dataset.id = member.id;
-  pill.innerText = member.initials;
-
-  if (isBooked) {
-    pill.classList.add("booked");
-    pill.dataset.tooltip =
-      `${member.name} (${member.role})
-Booked on ${member.booked_on}
-${member.project_code} – ${member.event_type}`;
-  }
-
-  document.querySelector(".pill-row").appendChild(pill);
-}
-
-function validateAndProceed() {
-  const selected = document.querySelectorAll(".member-pill.selected");
-  const date = document.querySelector(".figma-date").value;
-
-  if (!selected.length) {
-    showWarningToast("Please select team members");
-    return;
-  }
-
-  if (!date) {
-    showWarningToast("Date is required");
-    return;
-  }
-
-  proceedToTasks(); // EXISTING function
-}
-
-
-function showWarningToast(message) {
-  let toast = document.getElementById("warnToast");
-
-  if (!toast) {
-    toast = document.createElement("div");
-    toast.id = "warnToast";
-    toast.className = "fixed top-[20px] left-1/2 -translate-x-1/2 bg-[#b3261e] text-white px-[18px] py-2.5 rounded-[10px] text-[14px] z-[10000] opacity-0 transition-opacity duration-300";
-    document.body.appendChild(toast);
-  }
-
-  toast.innerText = message;
-  toast.style.opacity = "1";
-
-  setTimeout(() => {
-    toast.style.opacity = "0";
-  }, 2000);
-}
-
-
-/* ========================================= */
-/* FIX: TOOLBAR STATE CONFLICT (SAFE PATCH) */
-/* ========================================= */
-
-document.addEventListener("DOMContentLoaded", () => {
-
-  const toolbarSpans = document.querySelectorAll(".project-toolbar span");
-
-  const boardSpan    = toolbarSpans[0];
-  const listSpan     = toolbarSpans[1];
-  const overviewSpan = toolbarSpans[2];
-
-  const boardView    = document.getElementById("boardView");
-  const listView     = document.getElementById("listView");
-  const overviewView = document.getElementById("overviewView");
-
-  function deactivateOverview() {
-    overviewSpan.classList.remove("active");
-    overviewView.style.display = "none";
-  }
-
-  boardSpan.addEventListener("click", () => {
-    deactivateOverview();
-  });
-
-  listSpan.addEventListener("click", () => {
-    deactivateOverview();
-  });
-
-});
-
-// filter panel 
-/* ===============================
-   FILTER STATE
-================================ */
-
-const months = [
-  "January","February","March","April","May","June",
-  "July","August","September","October","November","December"
-];
-
+/* ═══════════════════════════════════════════════════════════════════
+   FILTER PANEL
+══════════════════════════════════════════════════════════════════ */
+const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 let currentDate  = new Date();
 let currentMonth = currentDate.getMonth();
 let currentYear  = currentDate.getFullYear();
 
-let monthLabel = null;
-let yearLabel  = null;
-let filterOverlay = null;
-
-/* ===============================
-   INIT (DOM SAFE)
-================================ */
 document.addEventListener("DOMContentLoaded", () => {
-
-  monthLabel    = document.getElementById("monthLabel");
-  yearLabel     = document.getElementById("yearLabel");
-  filterOverlay = document.getElementById("filterOverlay");
-
   updateMonthYearUI();
-
-  /* FILTER BUTTON CLICK */
-  const toolbarItems = document.querySelectorAll(".project-toolbar > div");
-  const filterBtn = toolbarItems[3]; // Filters button
-
-  if (filterBtn) {
-    filterBtn.addEventListener("click", openFilter);
-  }
+  const filterBtn = document.querySelectorAll(".project-toolbar > div")[3];
+  if (filterBtn) filterBtn.addEventListener("click", openFilter);
 });
 
-/* ===============================
-   UI UPDATE
-================================ */
 function updateMonthYearUI() {
-  if (!monthLabel || !yearLabel) return;
-
-  monthLabel.innerText = months[currentMonth];
-  yearLabel.innerText  = currentYear;
+  const ml = document.getElementById("monthLabel"), yl = document.getElementById("yearLabel");
+  if (ml) ml.innerText = months[currentMonth];
+  if (yl) yl.innerText = currentYear;
 }
+function prevMonth() { currentMonth--; if (currentMonth<0){currentMonth=11;currentYear--;} updateMonthYearUI(); }
+function nextMonth() { currentMonth++; if (currentMonth>11){currentMonth=0;currentYear++;} updateMonthYearUI(); }
+function prevYear()  { currentYear--; updateMonthYearUI(); }
+function nextYear()  { currentYear++; updateMonthYearUI(); }
 
-/* ===============================
-   MONTH CONTROLS
-================================ */
-function prevMonth() {
-  currentMonth--;
-  if (currentMonth < 0) {
-    currentMonth = 11;
-    currentYear--;
-  }
-  updateMonthYearUI();
-}
+function openFilter()  { document.getElementById("filterOverlay").style.display="flex"; }
+function closeFilter() { document.getElementById("filterOverlay").style.display="none"; }
 
-function nextMonth() {
-  currentMonth++;
-  if (currentMonth > 11) {
-    currentMonth = 0;
-    currentYear++;
-  }
-  updateMonthYearUI();
-}
-
-/* ===============================
-   YEAR CONTROLS
-================================ */
-function prevYear() {
-  currentYear--;
-  updateMonthYearUI();
-}
-
-function nextYear() {
-  currentYear++;
-  updateMonthYearUI();
-}
-
-/* ===============================
-   FILTER OPEN / CLOSE
-================================ */
-function openFilter() {
-  if (!filterOverlay) {
-    console.error("❌ filterOverlay not found");
-    return;
-  }
-  filterOverlay.style.display = "flex";
-}
-
-function closeFilter() {
-  if (!filterOverlay) return;
-  filterOverlay.style.display = "none";
-}
-
-/* ===============================
-   APPLY FILTER (SERVER RENDER)
-================================ */
 function applyFilter() {
-
-  const fromDate = document.getElementById("fromDate")?.value || "";
-  const toDate   = document.getElementById("toDate")?.value || "";
-
-  /* STATUS (checkboxes) */
-  const statuses = Array.from(
-    document.querySelectorAll(
-      '.filter-section input[type="checkbox"]:checked'
-    )
-  ).map(cb => cb.value);
-
-  /* COMPLETION */
-  const completion =
-    document.querySelector('input[name="completion"]:checked')?.value || "ALL";
-
-  /* BUILD QUERY */
-  const params = new URLSearchParams();
-
-  params.append("month", currentMonth + 1);
-  params.append("year", currentYear);
-
-  if (fromDate && toDate) {
-    params.append("from_date", fromDate);
-    params.append("to_date", toDate);
-  }
-
-  statuses.forEach(s => params.append("status", s));
-
-  if (completion !== "ALL") {
-    params.append("completion", completion);
-  }
-
-  /* 🔥 FULL PAGE RELOAD (SAFE WITH DJANGO TEMPLATE) */
-  window.location.href = `/projects/?${params.toString()}`;
+  const from   = document.getElementById("fromDate")?.value || "";
+  const to     = document.getElementById("toDate")?.value   || "";
+  const statuses = [...document.querySelectorAll('.filter-section input[type="checkbox"]:checked')].map(c=>c.value);
+  const comp   = document.querySelector('input[name="completion"]:checked')?.value || "ALL";
+  const p      = new URLSearchParams();
+  p.append("month", currentMonth+1);
+  p.append("year",  currentYear);
+  if (from && to) { p.append("from_date",from); p.append("to_date",to); }
+  statuses.forEach(s => p.append("status",s));
+  if (comp!=="ALL") p.append("completion",comp);
+  window.location.href = `/projects/?${p.toString()}`;
 }
 
-/* ===============================
-   RESET FILTER
-================================ */
 function resetFilter() {
-
-  currentDate  = new Date();
-  currentMonth = currentDate.getMonth();
-  currentYear  = currentDate.getFullYear();
-
+  currentDate=new Date(); currentMonth=currentDate.getMonth(); currentYear=currentDate.getFullYear();
   updateMonthYearUI();
-
-  const fromDate = document.getElementById("fromDate");
-  const toDate   = document.getElementById("toDate");
-
-  if (fromDate) fromDate.value = "";
-  if (toDate)   toDate.value = "";
-
-  document
-    .querySelectorAll('.filter-section input[type="checkbox"]')
-    .forEach(cb => cb.checked = false);
-
-  const allRadio = document.querySelector(
-    'input[name="completion"][value="ALL"]'
-  );
-  if (allRadio) allRadio.checked = true;
-
-  /* RESET VIEW */
-  window.location.href = "/projects/";
+  const f=document.getElementById("fromDate"), t=document.getElementById("toDate");
+  if(f) f.value=""; if(t) t.value="";
+  document.querySelectorAll('.filter-section input[type="checkbox"]').forEach(c=>c.checked=false);
+  const a=document.querySelector('input[name="completion"][value="ALL"]'); if(a) a.checked=true;
+  window.location.href="/projects/";
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   UTILITIES
+══════════════════════════════════════════════════════════════════ */
+function csrfToken() { return document.getElementById("csrf_token")?.value||""; }
+
+function showWarningToast(msg) {
+  let t = document.getElementById("warnToast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id="warnToast";
+    t.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#b3261e;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:10000;opacity:0;transition:opacity .3s;font-family:Inter,sans-serif;";
+    document.body.appendChild(t);
+  }
+  t.innerText=msg; t.style.opacity="1";
+  setTimeout(()=>t.style.opacity="0",2000);
+}
+
+function setText(el,html){ if(el) el.innerHTML=html; }
+function updateStatusUI(id,s){ refreshStatus(id,s); }
 </script>
 
 {% endblock %}

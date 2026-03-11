@@ -1,0 +1,128 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Akash Photography</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        body { font-family: "Inter", sans-serif; }
+        
+        /* Custom styling for the radio buttons to match your red theme */
+        input[type="radio"] {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ccc;
+            border-radius: 50%;
+            outline: none;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-center;
+        }
+        input[type="radio"]:checked {
+            border-color: #A9323D;
+        }
+        input[type="radio"]:checked::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background-color: #A9323D;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen flex">
+
+    <div class="hidden lg:flex w-1/2 bg-[#FEF4F4] items-center justify-center p-12 relative">
+        <img src="{% static 'images/login_illustration.png' %}" alt="Team working" class="max-w-lg w-full object-contain drop-shadow-sm">
+    </div>
+
+    <div class="w-full lg:w-1/2 flex items-center justify-center p-8 sm:p-12">
+        <div class="w-full max-w-[400px]">
+            
+            <div class="text-center mb-8">
+                <img src="{% static 'images/logo.png' %}" alt="Akash Photography" class="mx-auto h-[100px] object-contain mb-6">
+                <h1 class="text-[24px] font-bold text-gray-900 leading-snug">Hello,</h1>
+                <h2 class="text-[24px] font-bold text-gray-900 leading-snug">Welcome Back</h2>
+            </div>
+
+            <form method="POST" action="{% url 'login' %}" class="space-y-6">
+                {% csrf_token %}
+                
+                <div class="flex justify-center items-center gap-8 mb-2">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="radio" name="login_role" value="admin" checked onchange="updateRadioStyles()">
+                        <span id="label_admin" class="text-sm font-bold text-[#A9323D] transition-colors">Admin Login</span>
+                    </label>
+                    
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="radio" name="login_role" value="team" onchange="updateRadioStyles()">
+                        <span id="label_team" class="text-sm font-medium text-gray-600 transition-colors">Team Login</span>
+                    </label>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400 text-sm"></i>
+                        </div>
+                        <input type="text" name="username" placeholder="Username/Email ID" required
+                            class="w-full pl-11 pr-4 py-3 border border-gray-400 rounded-md text-[14px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#A9323D] focus:ring-1 focus:ring-[#A9323D] transition">
+                    </div>
+
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i class="fas fa-lock text-gray-400 text-sm"></i>
+                        </div>
+                        <input type="password" name="password" placeholder="Password" required
+                            class="w-full pl-11 pr-4 py-3 border border-gray-400 rounded-md text-[14px] text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#A9323D] focus:ring-1 focus:ring-[#A9323D] transition">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-[#9B2B35] hover:bg-[#7A1F27] text-white py-3.5 rounded-md font-bold text-[14px] tracking-wide transition shadow-md mt-4">
+                    LOGIN
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        function updateRadioStyles() {
+            const adminRadio = document.querySelector('input[value="admin"]');
+            const labelAdmin = document.getElementById('label_admin');
+            const labelTeam = document.getElementById('label_team');
+
+            if (adminRadio.checked) {
+                labelAdmin.classList.replace('text-gray-600', 'text-[#A9323D]');
+                labelAdmin.classList.replace('font-medium', 'font-bold');
+                
+                labelTeam.classList.replace('text-[#A9323D]', 'text-gray-600');
+                labelTeam.classList.replace('font-bold', 'font-medium');
+            } else {
+                labelTeam.classList.replace('text-gray-600', 'text-[#A9323D]');
+                labelTeam.classList.replace('font-medium', 'font-bold');
+                
+                labelAdmin.classList.replace('text-[#A9323D]', 'text-gray-600');
+                labelAdmin.classList.replace('font-bold', 'font-medium');
+            }
+        }
+    </script>
+</body>
+</html>

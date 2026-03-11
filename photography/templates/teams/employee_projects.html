@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}My Projects{% endblock %}
+
+{% block content %}
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen bg-[#fafafa]">
+
+    <div class="mb-10">
+        <h1 class="text-[26px] font-black text-gray-900 inline-block border-b-[3px] border-gray-900 pb-1">Project Dashboard</h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {# ---- 1. ONGOING PROJECTS ---- #}
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+            <div class="bg-[#FFF0F0] px-6 py-4 border-b border-red-100">
+                <h3 class="text-[#A9323D] font-bold text-[15px] uppercase tracking-wide">
+                    ● On-going Projects
+                    <span class="text-red-400 font-medium text-sm ml-1">{{ ongoing_projects|length }}</span>
+                </h3>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 bg-[#fafafa] flex-1">
+                {% for proj in ongoing_projects %}
+                <a href="{% url 'employee_project_tasks' proj.id %}" class="block border border-gray-200 rounded-2xl p-4 hover:shadow-md hover:border-gray-300 transition bg-white">
+                    <p class="text-[11px] text-gray-500 font-bold mb-2 border-b border-gray-100 pb-2">Project ID: AK {{ proj.id|stringformat:"03d" }}</p>
+                    <h4 class="font-black text-[16px] text-gray-900 leading-tight mb-1 truncate">{{ proj.project_name }}</h4>
+                    <div class="flex items-center gap-2 text-[11px] font-bold text-red-600 bg-red-50 w-fit px-2 py-1 rounded mt-2 mb-3">
+                        <i class="far fa-calendar-alt"></i> {{ proj.end_date|date:"d M, Y"|default:"TBD" }} <span class="text-[8px] uppercase bg-red-200 px-1 rounded ml-1">Due</span>
+                    </div>
+                    <p class="text-[12px] text-gray-700 font-bold mb-3"><i class="fas fa-layer-group text-gray-400 mr-1.5"></i> {{ proj.get_status_display }}</p>
+
+                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                        <div class="w-7 h-7 bg-black rounded flex items-center justify-center text-white text-[10px] font-bold shadow-sm">{{ initials|default:"ME" }}</div>
+                        <div class="flex-1 px-3">
+                            <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                                {% if proj.total_emp_tasks > 0 %}
+                                    {% widthratio proj.completed_emp_tasks proj.total_emp_tasks 100 as width_pct %}
+                                    <div class="bg-black h-1.5 rounded-full transition-all duration-500" style="width: {{ width_pct }}%"></div>
+                                {% else %}
+                                    <div class="bg-black h-1.5 rounded-full" style="width: 0%"></div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="text-[10px] font-bold text-gray-800">{{ proj.completed_emp_tasks }}/{{ proj.total_emp_tasks }}</div>
+                    </div>
+                </a>
+                {% empty %}
+                <p class="py-10 text-center text-gray-400 font-medium text-sm">No ongoing projects.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ---- 2. UPCOMING PROJECTS ---- #}
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+            <div class="bg-[#FFFFEC] px-6 py-4 border-b border-yellow-200">
+                <h3 class="text-[#B8860B] font-bold text-[15px] uppercase tracking-wide">
+                    ● Upcoming Projects
+                    <span class="text-yellow-500 font-medium text-sm ml-1">{{ upcoming_projects|length }}</span>
+                </h3>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 bg-[#fafafa] flex-1">
+                {% for proj in upcoming_projects %}
+                <div class="border border-gray-200 rounded-2xl p-4 hover:shadow-md transition bg-white relative">
+                    <button onclick="acceptProject('{{ proj.id }}', this)" class="absolute top-4 right-4 bg-[#22c55e] text-white px-3 py-1 rounded text-[11px] font-bold hover:bg-green-700 transition shadow-sm z-10">
+                        Accept
+                    </button>
+
+                    <p class="text-[11px] text-gray-500 font-bold mb-2 border-b border-gray-100 pb-2 w-[70%]">Project ID: AK {{ proj.id|stringformat:"03d" }}</p>
+                    <h4 class="font-black text-[16px] text-gray-900 leading-tight mb-2 w-[70%] truncate">{{ proj.project_name }}</h4>
+                    <p class="text-[11px] text-gray-500 font-semibold mb-3 flex items-center gap-1.5"><i class="far fa-calendar-alt text-gray-400"></i> {{ proj.start_date|date:"d M, Y" }}</p>
+
+                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                        <div class="w-7 h-7 bg-gray-200 rounded flex items-center justify-center text-gray-500 text-[10px] font-bold shadow-sm">?</div>
+                        <div class="flex-1 px-3"><div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden"></div></div>
+                        <div class="text-[10px] font-bold text-gray-400">0/0</div>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="py-10 text-center text-gray-400 font-medium text-sm">No upcoming projects.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        {# ---- 3. COMPLETED PROJECTS ---- #}
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col h-full">
+            <div class="bg-[#F0FFF4] px-6 py-4 border-b border-green-100">
+                <h3 class="text-[#166534] font-bold text-[15px] uppercase tracking-wide">
+                    ● Completed Projects
+                    <span class="text-green-500 font-medium text-sm ml-1">{{ completed_projects|length }}</span>
+                </h3>
+            </div>
+
+            <div class="p-5 flex flex-col gap-4 bg-[#fafafa] flex-1">
+                {% for proj in completed_projects %}
+                <a href="{% url 'employee_project_tasks' proj.id %}" class="block border border-gray-200 rounded-2xl p-4 hover:shadow-md transition bg-white">
+                    <p class="text-[11px] text-gray-500 font-bold mb-2 border-b border-gray-100 pb-2">Project ID: AK {{ proj.id|stringformat:"03d" }}</p>
+                    <h4 class="font-black text-[16px] text-gray-900 leading-tight mb-2 truncate">{{ proj.project_name }}</h4>
+                    <p class="text-[11px] text-gray-500 font-semibold mb-3 flex items-center gap-1.5"><i class="far fa-calendar-alt text-gray-400"></i> {{ proj.start_date|date:"d M, Y" }}</p>
+
+                    <div class="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                        <div class="w-7 h-7 bg-black rounded flex items-center justify-center text-white text-[10px] font-bold">{{ initials|default:"ME" }}</div>
+                        <div class="flex-1 px-3">
+                            <div class="w-full bg-gray-200 rounded-full h-1.5"><div class="bg-[#16a34a] h-1.5 rounded-full w-full"></div></div>
+                        </div>
+                        <div class="text-[10px] font-bold text-gray-800">{{ proj.total_emp_tasks }}/{{ proj.total_emp_tasks }}</div>
+                    </div>
+                </a>
+                {% empty %}
+                <p class="py-10 text-center text-gray-400 font-medium text-sm">No completed projects yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function acceptProject(projectId, btnElement) {
+        event.preventDefault(); // Stop link click if wrapped in A tag
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btnElement.disabled = true;
+
+        fetch('/employee-dashboard/accept/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ 'project_id': projectId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload(); 
+            } else {
+                alert("Failed to accept project.");
+                btnElement.innerHTML = 'Accept';
+                btnElement.disabled = false;
+            }
+        });
+    }
+</script>
+{% endblock %}

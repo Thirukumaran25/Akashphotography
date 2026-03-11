@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Employee Dashboard{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen bg-[#fafafa]">
+    
+    <div class="mb-6">
+        <h1 class="text-[26px] font-black text-gray-900 inline-block border-b-[3px] border-gray-900 pb-1">
+            Dashboard
+        </h1>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="col-span-1 lg:col-span-4 bg-white rounded-[24px] p-8 shadow-sm border border-gray-100 flex flex-col justify-between">
+            <div class="bg-[#FFF0F0] rounded-xl p-4 mb-6 flex justify-center items-center h-48">
+                <img src="{% static 'images/login_illustration.png' %}" alt="Welcome" class="h-full object-contain">
+            </div>
+            <div class="text-center">
+                <h2 class="text-[22px] font-black text-gray-900 mb-2">Hello {{ employee.name|default:user.username }} !</h2>
+                <p class="text-gray-500 text-[14px] leading-relaxed mb-6 font-medium">
+                    Have a Good day !<br>
+                    You have {{ ongoing_count|stringformat:"02d" }} On-going projects and<br>
+                    {{ upcoming_count|stringformat:"02d" }} Upcoming projects..<br>
+                    Get started..
+                </p>
+                <button class="bg-[#A9323D] hover:bg-red-800 text-white font-bold py-2.5 px-8 rounded-lg transition-colors shadow-md text-sm tracking-wide">
+                    Review it
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-1 lg:col-span-8 flex flex-col gap-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex justify-between items-end relative overflow-hidden group">
+                    <div>
+                        <p class="text-[13px] text-gray-500 font-bold mb-1">On-Going Project</p>
+                        <h3 class="text-3xl font-black text-gray-900">{{ ongoing_count|stringformat:"02d" }}</h3>
+                    </div>
+                    <i class="fas fa-location-arrow absolute top-4 right-4 text-gray-300 text-xs"></i>
+                    <div class="flex items-end gap-1 h-8 opacity-50">
+                        <div class="w-1.5 bg-red-200 h-3 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-6 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-4 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-7 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-5 rounded-t-sm"></div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex justify-between items-end relative overflow-hidden group">
+                    <div>
+                        <p class="text-[13px] text-gray-500 font-bold mb-1">Upcoming Project</p>
+                        <h3 class="text-3xl font-black text-gray-900">{{ upcoming_count|stringformat:"02d" }}</h3>
+                    </div>
+                    <i class="fas fa-location-arrow absolute top-4 right-4 text-gray-300 text-xs"></i>
+                    <div class="flex items-end gap-1 h-8 opacity-50">
+                        <div class="w-1.5 bg-red-200 h-5 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-4 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-7 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-3 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-6 rounded-t-sm"></div>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex justify-between items-end relative overflow-hidden group">
+                    <div>
+                        <p class="text-[13px] text-gray-500 font-bold mb-1">Completed Project</p>
+                        <h3 class="text-3xl font-black text-gray-900">{{ completed_count|stringformat:"02d" }}</h3>
+                    </div>
+                    <i class="fas fa-location-arrow absolute top-4 right-4 text-gray-300 text-xs"></i>
+                    <div class="flex items-end gap-1 h-8 opacity-50">
+                        <div class="w-1.5 bg-[#A9323D] h-6 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-3 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-8 rounded-t-sm"></div><div class="w-1.5 bg-red-200 h-5 rounded-t-sm"></div><div class="w-1.5 bg-[#A9323D] h-4 rounded-t-sm"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100 flex-1">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-[17px] font-bold text-gray-900">Project Overview</h3>
+                    <select class="border border-gray-200 rounded-lg px-3 py-1 text-sm font-semibold outline-none bg-white text-gray-700">
+                        <option>2026</option>
+                        <option>2025</option>
+                    </select>
+                </div>
+                <div class="relative h-[220px] w-full">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+        
+        <div class="col-span-1 lg:col-span-8 bg-white rounded-[24px] p-6 shadow-sm border border-gray-100">
+            <h3 class="text-[18px] font-bold text-gray-900 mb-6">Project Notifications</h3>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[11px] uppercase tracking-wide text-gray-400 font-bold border-b border-gray-100">
+                            <th class="pb-3 px-2">Project ID</th>
+                            <th class="pb-3 px-2">Project Name</th>
+                            <th class="pb-3 px-2">Event Date</th>
+                            <th class="pb-3 px-2">Due Date</th>
+                            <th class="pb-3 px-2 text-right">Pending List</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-[13px] font-semibold text-gray-800">
+                        {% for project in notifications %}
+                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition">
+                            <td class="py-4 px-2 text-gray-500">AK-{{ project.id|stringformat:"03d" }}</td>
+                            <td class="py-4 px-2 truncate max-w-[180px]" title="{{ project.project_name }}">{{ project.project_name }}</td>
+                            <td class="py-4 px-2">{{ project.start_date|date:"d M, Y" }}</td>
+                            <td class="py-4 px-2">{{ project.end_date|date:"d-m-Y"|default:"TBD" }}</td>
+                            <td class="py-4 px-2 text-right">
+                                <div class="flex justify-end gap-2" id="action-btns-{{ project.id }}">
+                                    <button onclick="acceptProject('{{ project.id }}', this)" class="bg-[#A9323D] text-white px-3 py-1 rounded text-[11px] font-bold flex items-center gap-1 hover:bg-red-800 transition">
+                                        <i class="fas fa-check"></i> Accept
+                                    </button>
+                                    <button class="bg-white border border-[#A9323D] text-[#A9323D] px-3 py-1 rounded text-[11px] font-bold flex items-center gap-1 hover:bg-red-50 transition">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="py-10 text-center text-gray-400 font-medium">No pending notifications. You're all caught up!</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="col-span-1 lg:col-span-4 flex flex-col gap-6">
+            <div class="bg-white rounded-[24px] p-6 shadow-sm border border-gray-100">
+                
+                <div class="flex justify-between items-center mb-6">
+                    <h3 id="calMonthYear" class="text-[15px] font-black text-gray-900 uppercase tracking-wide">MARCH - 2026</h3>
+                    <div class="flex gap-1 text-white">
+                        <button onclick="prevMonth()" class="w-6 h-6 rounded bg-[#A9323D] hover:bg-red-800 flex items-center justify-center text-xs"><i class="fas fa-chevron-left"></i></button>
+                        <button onclick="nextMonth()" class="w-6 h-6 rounded bg-[#A9323D] hover:bg-red-800 flex items-center justify-center text-xs"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-7 text-center mb-2">
+                    <div class="text-[13px] font-bold text-gray-900 py-2">S</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">M</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">T</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">W</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">T</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">F</div>
+                    <div class="text-[13px] font-bold text-gray-900 py-2">S</div>
+                </div>
+                <div id="calendarGrid" class="grid grid-cols-7 text-center text-[13px] font-semibold text-gray-700 gap-y-2">
+                    </div>
+
+                <div class="mt-8 border-l-4 border-[#A9323D] bg-[#fafafa] rounded-r-xl p-4 shadow-sm border border-y-gray-100 border-r-gray-100 relative">
+                    <p class="text-[13px] font-bold text-gray-900 mb-2 flex items-center gap-1.5"><i class="far fa-calendar-alt text-gray-400"></i> <span id="selectedDateDisplay">25 Mar 2026</span></p>
+                    <p class="text-[12px] text-gray-600 mb-1 truncate pr-16" title="Sarah & Tom, Wedding+Reception"><i class="fas fa-link text-gray-300 text-[10px] w-4"></i> Sarah & Tom, Wedding+Reception</p>
+                    <p class="text-[11px] text-gray-500 truncate"><i class="fas fa-map-marker-alt text-gray-300 w-4"></i> Chennai, Tamilnadu</p>
+                    
+                    <div class="absolute bottom-4 right-4 flex -space-x-1.5">
+                        <div class="w-6 h-6 rounded-full bg-black text-white text-[8px] font-bold flex items-center justify-center border-2 border-white">OJ</div>
+                        <div class="w-6 h-6 rounded-full bg-black text-white text-[8px] font-bold flex items-center justify-center border-2 border-white">AK</div>
+                        <div class="w-6 h-6 rounded-full bg-black text-white text-[8px] font-bold flex items-center justify-center border-2 border-white">JJ</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- 1. CHART.JS INITIALIZATION ---
+    document.addEventListener("DOMContentLoaded", function() {
+        const ctx = document.getElementById('overviewChart').getContext('2d');
+        
+        // Data matching the design (Bottom red stacked with top grey)
+        const completedData = [25, 20, 20, 18, 26, 11, 15]; // Red bars
+        const upcomingData = [10, 8, 8, 6, 8, 5, 4]; // Grey bars on top
+        
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JULY'],
+                datasets: [
+                    {
+                        label: 'Completed',
+                        data: completedData,
+                        backgroundColor: '#A9323D', // Akash Red
+                        barThickness: 30,
+                    },
+                    {
+                        label: 'Upcoming',
+                        data: upcomingData,
+                        backgroundColor: '#e5e7eb', // Light gray
+                        barThickness: 30,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } }, // Hide legend to match design
+                scales: {
+                    x: {
+                        stacked: true,
+                        grid: { display: false, drawBorder: true }
+                    },
+                    y: {
+                        stacked: true,
+                        grid: { display: false, drawBorder: true },
+                        min: 5,
+                        max: 40,
+                        ticks: { stepSize: 5 }
+                    }
+                }
+            }
+        });
+
+        // --- 2. CALENDAR LOGIC ---
+        renderCalendar(new Date()); // Render current month by default
+    });
+
+    let currentNavDate = new Date();
+
+    function renderCalendar(date) {
+        const year = date.getFullYear();
+        const month = date.getMonth(); // 0-11
+        
+        const monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+        document.getElementById("calMonthYear").innerText = `${monthNames[month]} - ${year}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        
+        const grid = document.getElementById("calendarGrid");
+        grid.innerHTML = '';
+
+        // Empty slots for days before the 1st
+        for (let i = 0; i < firstDay; i++) {
+            grid.innerHTML += `<div></div>`;
+        }
+
+        const today = new Date();
+        const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+
+        // Fill in the days
+        for (let day = 1; day <= daysInMonth; day++) {
+            if (isCurrentMonth && day === today.getDate()) {
+                // Highlight today in Red square (matching design "25")
+                grid.innerHTML += `
+                    <div class="flex justify-center items-center h-8 cursor-pointer">
+                        <span class="w-7 h-7 flex items-center justify-center bg-[#A9323D] text-white rounded font-bold shadow-sm">${day}</span>
+                    </div>`;
+                // Update selected date display
+                document.getElementById("selectedDateDisplay").innerText = `${day} ${monthNames[month].substring(0,3)} ${year}`;
+            } else {
+                // Normal day
+                grid.innerHTML += `
+                    <div class="flex justify-center items-center h-8 cursor-pointer hover:bg-gray-100 rounded transition">
+                        <span class="w-7 h-7 flex items-center justify-center">${day}</span>
+                    </div>`;
+            }
+        }
+    }
+
+    function prevMonth() {
+        currentNavDate.setMonth(currentNavDate.getMonth() - 1);
+        renderCalendar(currentNavDate);
+    }
+
+    function nextMonth() {
+        currentNavDate.setMonth(currentNavDate.getMonth() + 1);
+        renderCalendar(currentNavDate);
+    }
+
+    // --- 3. ACCEPT PROJECT API CALL ---
+    function acceptProject(projectId) {
+        const btnContainer = document.getElementById(`action-btns-${projectId}`);
+        btnContainer.innerHTML = '<span class="text-xs text-green-600 font-bold"><i class="fas fa-spinner fa-spin"></i> Accepting...</span>';
+
+        fetch('/employee-dashboard/accept/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                // Assuming you have a csrf token available, or it relies on @csrf_exempt
+            },
+            body: new URLSearchParams({
+                'project_id': projectId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Refresh the page to immediately update the Ongoing/Upcoming counts
+                window.location.reload(); 
+            } else {
+                alert("Failed to accept project.");
+                window.location.reload();
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            alert("An error occurred.");
+        });
+    }
+
+function acceptProject(projectId, btnElement) {
+        // Show loading spinner
+        btnElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Accepting...';
+        btnElement.disabled = true;
+
+        fetch('/employee-dashboard/accept/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ 'project_id': projectId })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                window.location.reload(); 
+            } else {
+                alert("Failed to accept project.");
+                btnElement.innerHTML = '<i class="fas fa-check"></i> Accept';
+                btnElement.disabled = false;
+            }
+        });
+    }
+</script>
+
+{% endblock %}
