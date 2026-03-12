@@ -918,11 +918,10 @@ function renderTasks(taskGroups) {
     const tasks   = taskGroups[phase];
     const pk      = phaseKey(phase);
 
-    // 🌟 NEW: Dynamic Phase Styling matching your design
     let phaseBg = "#f4f4f4", phaseText = "#333", phaseLabel = pk;
     if (pk === "PRE") {
-        phaseBg = "#F5F8FF";     // Light blue
-        phaseText = "#3B82F6";   // Blue
+        phaseBg = "#F5F8FF";   
+        phaseText = "#3B82F6";  
         phaseLabel = "PRE PRODUCTION";
     } else if (pk === "SELECTION") {
         phaseBg = "#FEFCE8";     
@@ -934,7 +933,6 @@ function renderTasks(taskGroups) {
         phaseLabel = "POST PRODUCTION";
     }
 
-    // Insert the beautifully colored Phase Heading
     html += `
       <tr>
         <td colspan="8" style="background:${phaseBg}; color:${phaseText}; padding:12px 14px; font-weight:800; font-size:13px; text-transform:uppercase; border-top:1px solid #eee; border-bottom:1px solid #eee;">

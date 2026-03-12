@@ -55,54 +55,76 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for task in my_tasks %}
-                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition" id="task-row-{{ task.id }}">
+                    {% if not grouped_my_tasks %}
+                        <tr>
+                            <td colspan="4" class="py-12 text-center text-gray-400 font-medium">You have no tasks assigned in this project.</td>
+                        </tr>
+                    {% else %}
+                        
+                        {% for phase, categories in grouped_my_tasks.items %}
+                            
+                            <tr>
+                                <td colspan="4" class="py-3 px-6 font-black text-[13px] tracking-wide uppercase border-y border-gray-200
+                                    {% if phase == 'PRE PRODUCTION' %}bg-[#F5F8FF] text-[#3B82F6]
+                                    {% elif phase == 'SELECTION' %}bg-[#FEFCE8] text-[#EAB308]
+                                    {% else %}bg-[#FFF0F0] text-[#EF4444]{% endif %}">
+                                    <span class="mr-2">●</span> {{ phase }}
+                                </td>
+                            </tr>
 
-                        <td class="py-4 px-6 text-[14px] font-bold text-gray-800">
-                            <div class="flex items-center gap-3">
-                                <i class="far {% if task.status == 'COMPLETED' %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %}" id="icon-{{ task.id }}"></i>
-                                {{ task.task_name }}
-                            </div>
-                        </td>
+                            {% for category, tasks in categories.items %}
+                                <tr class="bg-[#f8f8f8] border-b border-gray-200">
+                                    <td colspan="4" class="py-2.5 px-6 text-[13px] font-bold text-gray-800 flex items-center gap-2">
+                                        <i class="fas fa-folder text-gray-400"></i> {{ category }} <span class="text-gray-400 font-medium ml-1">({{ tasks|length }})</span>
+                                    </td>
+                                </tr>
 
-                        <td class="py-4 px-6 text-[13px] font-bold text-gray-600">
-                            <div class="flex items-center gap-2">
-                                <div class="w-5 h-5 bg-black rounded-full text-white flex items-center justify-center text-[8px]">{{ initials|default:"ME" }}</div>
-                                {{ task.due_date|date:"d-m-Y"|default:"TBD" }}
-                            </div>
-                        </td>
+                                {% for task in tasks %}
+                                <tr class="border-b border-gray-100 hover:bg-gray-50 transition" id="task-row-{{ task.id }}">
 
-                        <td class="py-4 px-6">
-                            <span id="status-pill-{{ task.id }}"
-                                class="px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm
-                                {% if task.status == 'OPEN' %}bg-[#00E640] text-white
-                                {% elif task.status == 'ON_HOLD' %}bg-[#FFC107] text-gray-900
-                                {% elif task.status == 'COMPLETED' %}bg-gray-200 text-gray-500
-                                {% endif %}">
-                                {{ task.get_status_display }}
-                            </span>
-                        </td>
+                                    <td class="py-4 px-6 text-[14px] font-bold text-gray-800">
+                                        <div class="flex items-center gap-3">
+                                            <i class="far {% if task.status == 'COMPLETED' %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %}" id="icon-{{ task.id }}"></i>
+                                            {{ task.task_name }}
+                                        </div>
+                                    </td>
 
-                        <td class="py-4 px-6 text-right">
-                            {# FIX: show button for both OPEN and ON_HOLD tasks #}
-                            {% if task.status != 'COMPLETED' %}
-                            <button id="btn-{{ task.id }}"
-                                    onclick="markComplete('{{ task.id }}')"
-                                    class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
-                                Mark as Complete
-                            </button>
-                            {% else %}
-                            <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
-                                <i class="fas fa-check-circle"></i> Done
-                            </span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="4" class="py-12 text-center text-gray-400 font-medium">You have no tasks assigned in this project.</td>
-                    </tr>
-                    {% endfor %}
+                                    <td class="py-4 px-6 text-[13px] font-bold text-gray-600">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-5 h-5 bg-black rounded-full text-white flex items-center justify-center text-[8px]">{{ initials|default:"ME" }}</div>
+                                            {{ task.due_date|date:"d-m-Y"|default:"TBD" }}
+                                        </div>
+                                    </td>
+
+                                    <td class="py-4 px-6">
+                                        <span id="status-pill-{{ task.id }}"
+                                            class="px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm
+                                            {% if task.status == 'OPEN' %}bg-[#00E640] text-white
+                                            {% elif task.status == 'ON_HOLD' %}bg-[#FFC107] text-gray-900
+                                            {% elif task.status == 'COMPLETED' %}bg-gray-200 text-gray-500
+                                            {% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                    </td>
+
+                                    <td class="py-4 px-6 text-right">
+                                        {% if task.status != 'COMPLETED' %}
+                                        <button id="btn-{{ task.id }}"
+                                                onclick="markComplete('{{ task.id }}')"
+                                                class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
+                                            Mark as Complete
+                                        </button>
+                                        {% else %}
+                                        <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
+                                            <i class="fas fa-check-circle"></i> Done
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endif %}
                 </tbody>
             </table>
         </div>
@@ -111,7 +133,6 @@
 </div>
 
 <script>
-    // FIX: get CSRF token from cookie (required for POST requests)
     function getCsrf() {
         const name = 'csrftoken';
         const cookies = document.cookie.split(';');
@@ -124,12 +145,10 @@
         return '';
     }
 
-    // Initialise progress bar on page load
     let totalTasks = {{ my_tasks.count }};
-    let completedTasks = {{ my_tasks|length }};  {# will be overridden below #}
+    let completedTasks = {{ my_tasks|length }}; 
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Count completed tasks from rendered rows
         completedTasks = document.querySelectorAll('[id^="status-pill-"]')
             ? [...document.querySelectorAll('[id^="status-pill-"]')]
                 .filter(el => el.innerText.trim() === 'Completed').length
@@ -156,27 +175,23 @@
             method: 'POST',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
-                // FIX: include CSRF token so Django doesn't reject the POST
                 'X-CSRFToken': getCsrf(),
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // Update status pill
                 const pill = document.getElementById(`status-pill-${taskId}`);
                 if (pill) {
                     pill.innerText = 'Completed';
                     pill.className = 'px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm bg-gray-200 text-gray-500';
                 }
 
-                // Update row icon
                 const icon = document.getElementById(`icon-${taskId}`);
                 if (icon) {
                     icon.className = 'far fa-check-circle text-green-500';
                 }
 
-                // Replace button with "Done" checkmark
                 if (btn) {
                     btn.outerHTML = `
                         <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
@@ -184,11 +199,9 @@
                         </span>`;
                 }
 
-                // FIX: use counts returned from the server for accurate progress
                 if (data.total_tasks !== undefined) {
                     updateProgressBar(data.completed_tasks, data.total_tasks);
                 } else {
-                    // Fallback: count from DOM
                     const donePills = [...document.querySelectorAll('[id^="status-pill-"]')]
                         .filter(el => el.innerText.trim() === 'Completed').length;
                     updateProgressBar(donePills, totalTasks);

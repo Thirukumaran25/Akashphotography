@@ -36,6 +36,9 @@ urlpatterns = [
 
     path("save-package/",save_package,name="save_package"),
     path("get-package/<int:pk>/",get_package,name="get_package"),
+    path('get-task-templates/',  get_task_templates,  name='get_task_templates'),
+    path('save-task-template/',  save_task_template,  name='save_task_template'),
+    path('save-task-category/',  save_task_category,  name='save_task_category'),
     path("delete-package/<int:pk>/", delete_package, name="delete_package"),
 
     path('employees/', employees_list, name='employees_list'),

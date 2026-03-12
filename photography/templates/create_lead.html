@@ -11,17 +11,23 @@
         <input type="hidden" name="package" id="packageInput">
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <!-- Lead Details -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 class="text-lg font-semibold mb-4 text-gray-800">Leads Details</h3>
                 <div class="space-y-3">
                     <div class="relative">
                         <span class="absolute inset-y-0 left-3 flex items-center text-gray-400"><i class="fas fa-user"></i></span>
-                        <input type="text" name="name" id="clientNameInput" placeholder="Name" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+                        <input type="text" name="name" id="clientNameInput" placeholder="Name" required
+                            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
                     </div>
-                    <input type="text" name="mobile_number" placeholder="Mobile No." required class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <input type="email" name="email" id="clientEmailInput" placeholder="Email Address" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <input type="text" name="address" placeholder="Address" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <select name="lead_source" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+                    <input type="text" name="mobile_number" placeholder="Mobile No." required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <input type="email" name="email" id="clientEmailInput" placeholder="Email Address"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <input type="text" name="address" placeholder="Address"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <select name="lead_source"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
                         <option value="">Leads Source</option>
                         <option value="Website">Website</option>
                         <option value="Social Media">Social Media</option>
@@ -34,59 +40,63 @@
                         class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
                 </div>
             </div>
+
+            <!-- Project Details -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                 <h3 class="text-lg font-semibold mb-4 text-gray-800">Projects Details</h3>
                 <div class="space-y-3">
-                    <input type="text" name="project_name" id="projectNameInput" placeholder="Project Name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <input type="text" name="project_mobile" placeholder="Mobile No." required class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <input type="text" name="project_address" placeholder="Projects Address" required class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
-                    <div class="gap-2">
+                    <input type="text" name="project_name" id="projectNameInput" placeholder="Project Name" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <input type="text" name="project_mobile" placeholder="Mobile No." required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <input type="text" name="project_address" placeholder="Projects Address" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+                    <div>
                         <label class="block text-gray-600 mb-1">Event Date:</label>
-                        <input type="date" name="start_date" required class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+                        <input type="date" name="start_date" required
+                            class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Package Selection -->
         <div class="bg-white p-6 rounded-2xl shadow border">
             <div class="flex justify-between mb-4">
                 <h3 class="font-semibold text-lg">Package Details</h3>
-                <button type="button" onclick="openModal()" class="text-green-600 font-bold hover:underline">
-                    Create +
-                </button>
+                <button type="button" onclick="openModal()" class="text-green-600 font-bold hover:underline">Create +</button>
             </div>
-
             <div class="grid grid-cols-4 gap-4" id="packageContainer">
                 {% for pkg in packages %}
-                <div class="border p-4 rounded-xl relative hover:border-red-500 cursor-pointer transition" onclick="selectPackage('{{pkg.id}}', this)">
+                <div class="border p-4 rounded-xl relative hover:border-red-500 cursor-pointer transition"
+                     onclick="selectPackage('{{pkg.id}}', this)">
                     <p class="text-sm font-medium">{{pkg.package_name}}</p>
                     <p class="text-xs font-bold mt-1 text-gray-700">Total: ₹ {{ pkg.total_cost }}</p>
-                    
                     <div class="flex gap-2 mt-2">
-                        <button type="button" onclick="event.stopPropagation(); editPackage({{pkg.id}})" class="text-blue-600 text-xs hover:underline">Edit</button>
-                        <button type="button" onclick="event.stopPropagation(); deletePackage({{pkg.id}}, this)" class="text-red-600 text-xs hover:underline">Delete</button>
+                        <button type="button" onclick="event.stopPropagation(); editPackage({{pkg.id}})"
+                            class="text-blue-600 text-xs hover:underline">Edit</button>
+                        <button type="button" onclick="event.stopPropagation(); deletePackage({{pkg.id}}, this)"
+                            class="text-red-600 text-xs hover:underline">Delete</button>
                     </div>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
+        <!-- Quotation & Deliverables -->
         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 mt-8">
             <h3 class="text-lg font-semibold mb-4 text-gray-800">Quotation & Deliverables</h3>
             <div class="flex flex-col md:flex-row justify-between gap-6">
                 <div class="flex-1 space-y-4">
                     <div class="flex flex-col sm:flex-row gap-3">
-                        <button type="button" onclick="openQuotationModal()" class="flex-1 px-6 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-lg flex items-center justify-center gap-2 border border-gray-300 transition-colors shadow-sm">
+                        <button type="button" onclick="openQuotationModal()"
+                            class="flex-1 px-6 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-lg flex items-center justify-center gap-2 border border-gray-300 transition-colors shadow-sm">
                             <i class="fa-regular fa-file-lines"></i> View Quotation
                         </button>
-                        {% comment %} <button id="downloadQuoteBtn" type="button" onclick="downloadQuotationPDF()" class="flex-1 px-6 py-3 bg-[#A9323D] hover:bg-red-800 text-white font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-sm">
-                            <i class="fa-solid fa-download"></i> Download Quotation
-                        </button> {% endcomment %}
                     </div>
-
-                    <div id="deliverablesContainer" class="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[50px]"></div>
+                    <div id="deliverablesContainer"
+                        class="flex flex-wrap gap-2 p-2 border border-gray-300 rounded-lg bg-gray-50 min-h-[50px]"></div>
                 </div>
-
                 <div class="text-right flex flex-col justify-end">
                     <p class="text-gray-600 font-semibold">Sub Total : <span id="subTotal" class="text-black">₹ 0</span></p>
                     <h2 class="text-2xl font-black mt-2">Total : <span id="totalAmount">₹ 0</span></h2>
@@ -96,28 +106,32 @@
         </div>
 
         <div class="flex justify-center mt-10">
-            <button type="submit" class="px-12 py-3 bg-[#A9323D] text-white font-bold rounded-xl hover:bg-red-800 transition shadow-lg">
+            <button type="submit"
+                class="px-12 py-3 bg-[#A9323D] text-white font-bold rounded-xl hover:bg-red-800 transition shadow-lg">
                 Create Lead
             </button>
         </div>
     </form>
 </div>
 
+<!-- ══════════════════════════════════════════
+     QUOTATION MODAL
+══════════════════════════════════════════ -->
 <div id="quotationModal" class="hidden fixed inset-0 bg-black/40 z-[5000] items-center justify-center p-4">
     <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-2xl p-8 lg:p-10 font-['Inter',sans-serif]">
-        <button type="button" onclick="closeQuotationModal()" class="absolute top-6 right-6 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition-colors z-[6000] cursor-pointer shadow-lg">
+        <button type="button" onclick="closeQuotationModal()"
+            class="absolute top-6 right-6 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition-colors z-[6000] cursor-pointer shadow-lg">
             <i class="fas fa-times text-sm pointer-events-none"></i>
         </button>
-
         <h2 class="text-[22px] font-bold mb-5 text-black">Quotation To</h2>
         <div class="flex items-center gap-3 mb-10">
-            <div id="quoteInitials" class="w-10 h-10 bg-[#111] text-white rounded-full flex items-center justify-center text-sm font-bold tracking-wider">--</div>
+            <div id="quoteInitials"
+                class="w-10 h-10 bg-[#111] text-white rounded-full flex items-center justify-center text-sm font-bold tracking-wider">--</div>
             <div class="leading-tight">
                 <p id="quoteClientName" class="font-bold text-[15px] text-black">Client Name</p>
                 <p id="quoteClientEmail" class="text-[12px] text-gray-600">client@email.com</p>
             </div>
         </div>
-
         <h3 class="text-lg font-bold mb-4 text-black">Services</h3>
         <div class="bg-[#f8f9fa] rounded-xl p-6 lg:p-8">
             <div class="grid grid-cols-12 gap-4 text-[11px] font-bold text-gray-500 mb-4 tracking-wide border-b border-gray-200 pb-3">
@@ -127,9 +141,7 @@
                 <div class="col-span-2 uppercase">PRICE</div>
                 <div class="col-span-2 text-right uppercase">AMOUNT</div>
             </div>
-
             <div id="quoteServicesList" class="space-y-6"></div>
-
             <div class="flex justify-end mt-12">
                 <div class="w-full max-w-[280px] space-y-4">
                     <div class="flex justify-between text-[15px] text-gray-800 font-medium">
@@ -146,131 +158,685 @@
     </div>
 </div>
 
-<div id="packageModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[5000]" onclick="closeModal()">
-    <div class="bg-white w-11/12 max-w-6xl rounded-xl p-6 shadow-2xl max-h-[90vh] overflow-y-auto" onclick="event.stopPropagation()">
-        <div class="flex justify-between mb-4">
+<!-- ══════════════════════════════════════════
+     PACKAGE MODAL  (Package tab + Task tab)
+══════════════════════════════════════════ -->
+<div id="packageModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[5000]"
+     onclick="closeModal()">
+    <div class="bg-white w-11/12 max-w-6xl rounded-xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+         onclick="event.stopPropagation()">
+
+        <!-- Modal header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 flex-shrink-0">
             <h2 class="text-xl font-bold">Package Editor</h2>
-            <button type="button" onclick="closeModal()" class="text-2xl text-gray-500 hover:text-black">&times;</button>
+            <button type="button" onclick="closeModal()" class="text-2xl text-gray-500 hover:text-black leading-none">&times;</button>
         </div>
 
-        <input type="hidden" id="packageIdModalInput">
-        <label class="block mb-2 font-medium">Package Name</label>
-        <input id="packageNameInput" class="border w-full p-2 rounded mb-4" placeholder="e.g., Ultimate Wedding Combo">
+        <!-- Package name -->
+        <div class="px-6 pt-4 flex-shrink-0">
+            <input type="hidden" id="packageIdModalInput">
+            <label class="block mb-1 font-medium text-sm">Package Name</label>
+            <input id="packageNameInput" class="border w-full p-2 rounded mb-3 outline-none focus:border-gray-400"
+                   placeholder="e.g., Ultimate Wedding Combo">
+        </div>
 
-        <h3 id="grandTotal" class="font-bold text-lg mb-2 text-[#A9323D]">Service Total Cost: ₹ 0</h3>
+        <!-- ── Tab buttons ── -->
+        <div class="px-6 flex-shrink-0">
+            <div class="flex gap-1 border-b border-gray-200">
+                <button type="button" id="tabBtnPackage"
+                    onclick="switchModalTab('package')"
+                    class="modal-tab-btn px-5 py-2.5 text-sm font-semibold border-b-2 border-[#A9323D] text-[#A9323D] -mb-px transition-colors">
+                    Package
+                </button>
+                <button type="button" id="tabBtnTask"
+                    onclick="switchModalTab('task')"
+                    class="modal-tab-btn px-5 py-2.5 text-sm font-semibold border-b-2 border-transparent text-gray-500 -mb-px hover:text-gray-700 transition-colors">
+                    Task
+                </button>
+            </div>
+        </div>
 
-        <table class="w-full border mt-3 text-sm">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="p-2 border text-left">Service</th>
-                    <th class="p-2 border text-left">Team</th>
-                    <th class="p-2 border text-left w-1/3">Deliverables</th>
-                    <th class="p-2 border text-center">Qty</th>
-                    <th class="p-2 border text-left">Cost</th>
-                    <th class="p-2 border text-center">Subtotal</th>
-                    <th class="p-2 border text-center"></th>
-                </tr>
-            </thead>
-            <tbody id="serviceTable"></tbody>
-        </table>
+        <!-- ══ TAB: PACKAGE (existing service table) ══ -->
+        <div id="tabPackage" class="flex-1 overflow-y-auto px-6 pb-6 pt-4">
+            <h3 id="grandTotal" class="font-bold text-base mb-3 text-[#A9323D]">Service Total Cost: ₹ 0</h3>
+            <table class="w-full border text-sm">
+                <thead class="bg-gray-100">
+                    <tr>
+                        <th class="p-2 border text-left">Service</th>
+                        <th class="p-2 border text-left">Team</th>
+                        <th class="p-2 border text-left w-1/3">Deliverables</th>
+                        <th class="p-2 border text-center">Qty</th>
+                        <th class="p-2 border text-left">Cost</th>
+                        <th class="p-2 border text-center">Subtotal</th>
+                        <th class="p-2 border text-center"></th>
+                    </tr>
+                </thead>
+                <tbody id="serviceTable"></tbody>
+            </table>
+            <button type="button" onclick="addServiceRow()"
+                class="bg-blue-600 text-white px-4 py-2 mt-4 rounded hover:bg-blue-700 transition text-sm">
+                + Add Service
+            </button>
+        </div>
 
-        <button type="button" onclick="addServiceRow()" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded hover:bg-blue-700 transition">+ Add Service</button>
+        <!-- ══ TAB: TASK ══ -->
+        <div id="tabTask" class="flex-1 overflow-y-auto px-6 pb-6 pt-2 hidden">
 
-        <div class="flex justify-end mt-4">
-            <button type="button" onclick="saveServices()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition">Save Package</button>
+            <!-- Phase stepper nav -->
+            <div class="flex items-center gap-0 mb-6 select-none">
+                <!-- PRE -->
+                <button type="button" id="phaseBtn-PRE" onclick="switchPhase('PRE')"
+                    class="phase-step-btn flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold border-b-[3px] border-[#2563eb] text-[#1e3a5f] bg-blue-50 transition-all">
+                    <span class="w-6 h-6 rounded-full bg-[#1e3a5f] text-white text-xs flex items-center justify-center font-bold">1</span>
+                    Pre Production
+                </button>
+                <div class="w-px h-8 bg-gray-200"></div>
+                <!-- SELECTION -->
+                <button type="button" id="phaseBtn-SELECTION" onclick="switchPhase('SELECTION')"
+                    class="phase-step-btn flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold border-b-[3px] border-transparent text-gray-400 bg-white transition-all hover:bg-gray-50">
+                    <span class="w-6 h-6 rounded-full bg-gray-300 text-white text-xs flex items-center justify-center font-bold">2</span>
+                    Selection
+                </button>
+                <div class="w-px h-8 bg-gray-200"></div>
+                <!-- POST -->
+                <button type="button" id="phaseBtn-POST" onclick="switchPhase('POST')"
+                    class="phase-step-btn flex-1 flex items-center justify-center gap-2 py-3 text-sm font-bold border-b-[3px] border-transparent text-gray-400 bg-white transition-all hover:bg-gray-50">
+                    <span class="w-6 h-6 rounded-full bg-gray-300 text-white text-xs flex items-center justify-center font-bold">3</span>
+                    Post Production
+                </button>
+            </div>
+
+            <!-- Phase panels -->
+            <div id="phasePanel-PRE"       class="phase-panel"></div>
+            <div id="phasePanel-SELECTION" class="phase-panel hidden"></div>
+            <div id="phasePanel-POST"      class="phase-panel hidden"></div>
+
+            <!-- Summary bar -->
+            <div id="taskSummary" class="mt-4 py-2 px-4 bg-gray-50 border border-gray-200 rounded-lg text-xs text-gray-500 hidden">
+                <span id="taskSummaryText"></span>
+            </div>
+        </div>
+
+        <!-- Modal footer (Save) -->
+        <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
+            <button type="button" onclick="closeModal()"
+                class="px-5 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button type="button" onclick="saveServices()"
+                class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition text-sm">
+                Save Package
+            </button>
         </div>
     </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
 <script>
+/* ─── Global state ──────────────────────────── */
 let currentPackageData = [];
-let selectedPackageId = null;
-let allPersons = [];
-let allDeliverables = [
+let selectedPackageId  = null;
+let allPersons         = [];
+let allDeliverables    = [
     {% for d in available_deliverables %}
         { id: "{{ d.id }}", title: "{{ d.title|escapejs }}", price: parseFloat("{{ d.price }}") },
     {% endfor %}
 ];
 
+/* All task templates from DB, loaded once */
+let allTaskTemplates = [];   // [{id, phase, category, task_name}]
 
-fetch('/get-persons/')
+/* Selected task template IDs per phase+category
+   Structure: { PRE: { catName:[id,…], … }, SELECTION: {…}, POST: {…} } */
+let selectedTaskIds = { PRE: {}, SELECTION: {}, POST: {} };
+
+/* Fetch persons */
+fetch('/get-persons/').then(r => r.json()).then(data => { allPersons = data.persons; });
+
+/* Fetch task templates */
+fetch('/get-task-templates/')
     .then(r => r.json())
-    .then(data => { allPersons = data.persons; });
+    .then(data => { allTaskTemplates = data.templates || []; })
+    .catch(() => { allTaskTemplates = []; });
 
+/* ─── CSRF ──────────────────────────────────── */
 function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-        let cookies = document.cookie.split(";");
-        for (let i = 0; i < cookies.length; i++) {
-            let cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
+    let v = null;
+    if (document.cookie) {
+        document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+        });
     }
-    return cookieValue;
+    return v;
 }
 
+/* ════════════════════════════════════════════
+   MODAL TAB SWITCH
+════════════════════════════════════════════ */
+function switchModalTab(tab) {
+    const isPackage = tab === 'package';
+    document.getElementById('tabPackage').classList.toggle('hidden', !isPackage);
+    document.getElementById('tabTask').classList.toggle('hidden', isPackage);
+
+    const btnPkg  = document.getElementById('tabBtnPackage');
+    const btnTask = document.getElementById('tabBtnTask');
+
+    if (isPackage) {
+        btnPkg.classList.add('border-[#A9323D]','text-[#A9323D]');
+        btnPkg.classList.remove('border-transparent','text-gray-500');
+        btnTask.classList.add('border-transparent','text-gray-500');
+        btnTask.classList.remove('border-[#A9323D]','text-[#A9323D]');
+    } else {
+        btnTask.classList.add('border-[#A9323D]','text-[#A9323D]');
+        btnTask.classList.remove('border-transparent','text-gray-500');
+        btnPkg.classList.add('border-transparent','text-gray-500');
+        btnPkg.classList.remove('border-[#A9323D]','text-[#A9323D]');
+    }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   TASK TAB — stepper (PRE → SELECTION → POST), one phase at a time
+   Each phase shows:
+     • Categories (collapsible) with their selected tasks as rows
+     • + Add task  (picks from existing templates in that category)
+     • + New task  (creates a brand-new TaskList entry on the fly)
+     • + Add category (creates a new TaskCategory on the fly)
+════════════════════════════════════════════════════════════════ */
+
+const PHASE_META = {
+    PRE:       { label:'Pre Production',  icon:'📋', color:'#1e3a5f', light:'#eff6ff', border:'#bfdbfe', text:'#1e40af', step:'1' },
+    SELECTION: { label:'Selection',       icon:'🔍', color:'#6b3a00', light:'#fefce8', border:'#fde68a', text:'#92400e', step:'2' },
+    POST:      { label:'Post Production', icon:'🖥', color:'#4a0e0e', light:'#fff1f2', border:'#fecdd3', text:'#9f1239', step:'3' },
+};
+let activePhase = 'PRE';
+
+/* ── Switch visible phase panel ────────────────────────────── */
+function switchPhase(phase) {
+    activePhase = phase;
+    ['PRE','SELECTION','POST'].forEach(p => {
+        const panel = document.getElementById(`phasePanel-${p}`);
+        const btn   = document.getElementById(`phaseBtn-${p}`);
+        const meta  = PHASE_META[p];
+        if (p === phase) {
+            panel.classList.remove('hidden');
+            btn.style.borderBottomColor = meta.color;
+            btn.style.color             = meta.color;
+            btn.style.background        = meta.light;
+            btn.querySelector('span').style.background = meta.color;
+        } else {
+            panel.classList.add('hidden');
+            btn.style.borderBottomColor = 'transparent';
+            btn.style.color             = '#9ca3af';
+            btn.style.background        = '#fff';
+            btn.querySelector('span').style.background = '#d1d5db';
+        }
+    });
+}
+
+/* ── Build / re-render a phase panel ───────────────────────── */
+function renderPhasePanel(phase) {
+    const meta      = PHASE_META[phase];
+    const panel     = document.getElementById(`phasePanel-${phase}`);
+    const phaseTpls = allTaskTemplates.filter(t => t.phase === phase);
+    const cats      = [...new Set(phaseTpls.map(t => t.category))].sort();
+
+    /* Existing categories from allTaskTemplates PLUS any new ones created this session */
+    const allCatsForPhase = [...new Set([
+        ...cats,
+        ...Object.keys(selectedTaskIds[phase] ? {} : {})  /* extended below */
+    ])];
+
+    /* Build category rows */
+    let catHtml = '';
+    const allSelectedInPhase = selectedTaskIds[phase] || {};   /* { catName:[taskId,…], … } */
+    const allCats = [...new Set([
+        ...cats,
+        ...Object.keys(allSelectedInPhase),
+    ])].sort();
+
+    allCats.forEach(cat => {
+        const catTasks  = phaseTpls.filter(t => t.category === cat);
+        const selIds    = (allSelectedInPhase[cat] || []);
+        const selTasks  = selIds.map(id => allTaskTemplates.find(t => t.id === id)).filter(Boolean);
+
+        /* Build task option list (exclude already-selected) */
+        const availTasks = catTasks.filter(t => !selIds.includes(t.id));
+        let taskOpts = `<option value="">— pick task —</option>`;
+        availTasks.forEach(t => { taskOpts += `<option value="${t.id}">${escHtml(t.task_name)}</option>`; });
+        const catId = CSS.escape(`cat_${phase}_${cat}`);
+
+        catHtml += `
+        <div class="task-cat-block mb-3 border border-gray-200 rounded-xl overflow-hidden"
+             data-phase="${phase}" data-cat="${escAttr(cat)}">
+
+            <!-- Category header -->
+            <div class="flex items-center justify-between px-4 py-2.5 cursor-pointer select-none"
+                 style="background:${meta.light};border-bottom:1px solid ${meta.border}"
+                 onclick="toggleCatBlock(this)">
+                <span class="font-bold text-sm" style="color:${meta.color}">${escHtml(cat)}</span>
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full"
+                          style="background:${meta.border};color:${meta.color}"
+                          id="catCount_${phase}_${CSS.escape(cat)}">${selIds.length} task${selIds.length!==1?'s':''}</span>
+                    <svg class="w-4 h-4 transition-transform cat-chevron" style="color:${meta.text}"
+                         viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Category body -->
+            <div class="cat-body px-4 py-3 space-y-1.5 bg-white">
+
+                <!-- Selected task rows -->
+                <div class="selected-tasks-list space-y-1.5">
+                    ${selTasks.map(t => taskRowHtml(phase, cat, t.id, t.task_name)).join('')}
+                </div>
+
+                <!-- Add from existing templates -->
+                ${availTasks.length ? `
+                <div class="flex items-center gap-2 mt-2">
+                    <select class="add-task-sel flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400">
+                        ${taskOpts}
+                    </select>
+                    <button type="button"
+                        onclick="addTaskFromSelect(this,'${phase}','${escAttr(cat)}')"
+                        class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"
+                        style="background:${meta.color};white-space:nowrap">
+                        + Add Task
+                    </button>
+                </div>` : ''}
+
+                <!-- Add NEW task (creates TaskList entry) -->
+                <div class="new-task-form hidden mt-2 p-2 rounded-lg space-y-1.5"
+                     style="background:${meta.light};border:1px solid ${meta.border}">
+                    <input type="text" placeholder="New task name…"
+                        class="new-task-name border border-gray-300 p-1.5 rounded w-full text-xs outline-none">
+                    <div class="flex gap-2">
+                        <button type="button" onclick="saveNewTask(this,'${phase}','${escAttr(cat)}')"
+                            class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"
+                            style="background:${meta.color}">Save & Add</button>
+                        <button type="button" onclick="this.closest('.new-task-form').classList.add('hidden')"
+                            class="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                    </div>
+                </div>
+                <button type="button"
+                    onclick="this.nextElementSibling.classList.remove('hidden');this.classList.add('hidden')"
+                    class="show-new-task-btn text-xs font-semibold mt-1 transition"
+                    style="color:${meta.text}">
+                    + New custom task
+                </button>
+                <div class="new-task-form hidden mt-2 p-2 rounded-lg space-y-1.5"
+                     style="background:${meta.light};border:1px solid ${meta.border}">
+                    <input type="text" placeholder="New task name…"
+                        class="new-task-name border border-gray-300 p-1.5 rounded w-full text-xs outline-none">
+                    <div class="flex gap-2">
+                        <button type="button" onclick="saveNewTask(this,'${phase}','${escAttr(cat)}')"
+                            class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"
+                            style="background:${meta.color}">Save & Add</button>
+                        <button type="button"
+                            onclick="this.closest('.new-task-form').classList.add('hidden');this.closest('.cat-body').querySelector('.show-new-task-btn').classList.remove('hidden')"
+                            class="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    });
+
+    /* Add new category row */
+    const addCatHtml = `
+    <div class="add-cat-block mt-1">
+        <button type="button" onclick="showAddCatForm('${phase}')"
+            id="addCatBtn-${phase}"
+            class="text-xs font-semibold flex items-center gap-1.5 px-3 py-2 rounded-lg border border-dashed transition"
+            style="border-color:${meta.border};color:${meta.text}">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Category
+        </button>
+        <div id="addCatForm-${phase}" class="hidden mt-2 flex items-center gap-2">
+            <input type="text" placeholder="Category name…" id="newCatInput-${phase}"
+                class="flex-1 border border-gray-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-gray-400">
+            <button type="button" onclick="saveNewCategory('${phase}')"
+                class="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
+                style="background:${meta.color}">Add</button>
+            <button type="button"
+                onclick="document.getElementById('addCatForm-${phase}').classList.add('hidden');document.getElementById('addCatBtn-${phase}').classList.remove('hidden')"
+                class="text-xs text-gray-400 hover:text-gray-600">Cancel</button>
+        </div>
+    </div>`;
+
+    panel.innerHTML = catHtml + addCatHtml;
+}
+
+/* ── Helpers ──────────────────────────────────────────────── */
+function taskRowHtml(phase, cat, id, name) {
+    const meta = PHASE_META[phase];
+    return `
+    <div class="task-row flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium"
+         style="background:${meta.light};border:1px solid ${meta.border}"
+         data-id="${id}" data-cat="${escAttr(cat)}">
+        <span style="color:${meta.color}">${escHtml(name)}</span>
+        <button type="button" onclick="removeSelectedTask(this,'${phase}','${escAttr(cat)}',${id})"
+            class="ml-2 text-gray-400 hover:text-red-500 transition leading-none text-sm font-bold">&times;</button>
+    </div>`;
+}
+
+function toggleCatBlock(header) {
+    const body    = header.nextElementSibling;
+    const chevron = header.querySelector('.cat-chevron');
+    body.classList.toggle('hidden');
+    chevron.style.transform = body.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+}
+
+/* ── Add task from existing template dropdown ──────────────── */
+function addTaskFromSelect(btn, phase, cat) {
+    const sel = btn.previousElementSibling;
+    const id  = parseInt(sel.value);
+    if (!id) return;
+    const tpl = allTaskTemplates.find(t => t.id === id);
+    if (!tpl) return;
+
+    if (!selectedTaskIds[phase]) selectedTaskIds[phase] = {};
+    if (!selectedTaskIds[phase][cat]) selectedTaskIds[phase][cat] = [];
+    if (selectedTaskIds[phase][cat].includes(id)) { sel.value = ''; return; }
+
+    selectedTaskIds[phase][cat].push(id);
+    rerenderCatBlock(phase, cat);
+    updateTaskSummary();
+}
+
+/* ── Save brand-new task to DB then add it ─────────────────── */
+function saveNewTask(btn, phase, cat) {
+    const form = btn.closest('.new-task-form');
+    const name = form.querySelector('.new-task-name').value.trim();
+    if (!name) { form.querySelector('.new-task-name').focus(); return; }
+
+    fetch('/save-task-template/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ phase, category: cat, task_name: name })
+    })
+    .then(r => r.json())
+    .then(t => {
+        /* Add to master list */
+        allTaskTemplates.push({ id: t.id, phase: t.phase, category: t.category, task_name: t.task_name });
+
+        if (!selectedTaskIds[phase]) selectedTaskIds[phase] = {};
+        if (!selectedTaskIds[phase][cat]) selectedTaskIds[phase][cat] = [];
+        selectedTaskIds[phase][cat].push(t.id);
+
+        rerenderCatBlock(phase, cat);
+        updateTaskSummary();
+    })
+    .catch(() => alert('Failed to save task. Please try again.'));
+}
+
+/* ── Remove selected task row ──────────────────────────────── */
+function removeSelectedTask(btn, phase, cat, id) {
+    if (selectedTaskIds[phase] && selectedTaskIds[phase][cat]) {
+        selectedTaskIds[phase][cat] = selectedTaskIds[phase][cat].filter(x => x !== id);
+    }
+    /* Re-render the whole block so dropdown gets the option back correctly */
+    rerenderCatBlock(phase, cat);
+    updateTaskSummary();
+}
+
+/* ── Re-render a single category block in place ────────────── */
+function rerenderCatBlock(phase, cat) {
+    const panel    = document.getElementById('phasePanel-' + phase);
+    const existing = panel ? panel.querySelector('.task-cat-block[data-cat="' + CSS.escape(cat) + '"]') : null;
+    if (!existing) { renderPhasePanel(phase); return; }
+
+    const meta       = PHASE_META[phase];
+    const phaseTpls  = allTaskTemplates.filter(t => t.phase === phase);
+    const catTasks   = phaseTpls.filter(t => t.category === cat);
+    const selIds     = (selectedTaskIds[phase] && selectedTaskIds[phase][cat]) ? selectedTaskIds[phase][cat] : [];
+    const selTasks   = selIds.map(id => allTaskTemplates.find(t => t.id === id)).filter(Boolean);
+    const availTasks = catTasks.filter(t => !selIds.includes(t.id));
+    const cnt        = selIds.length;
+
+    /* Build dropdown options for available tasks */
+    let taskOpts = '<option value="">— pick task —</option>';
+    availTasks.forEach(function(t) {
+        taskOpts += '<option value="' + t.id + '">' + escHtml(t.task_name) + '</option>';
+    });
+
+    /* Build selected task rows */
+    let selRowsHtml = '';
+    selTasks.forEach(function(t) { selRowsHtml += taskRowHtml(phase, cat, t.id, t.task_name); });
+
+    /* Add-from-dropdown row */
+    const dropdownHtml = availTasks.length
+        ? '<div class="flex items-center gap-2 mt-2">'
+          + '<select class="add-task-sel flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none focus:border-gray-400">' + taskOpts + '</select>'
+          + '<button type="button" onclick="addTaskFromSelect(this,' + "'" + phase + "'" + ',' + "'" + escAttr(cat) + "'" + ')"'
+          + ' class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"'
+          + ' style="background:' + meta.color + ';white-space:nowrap">+ Add Task</button>'
+          + '</div>'
+        : '';
+
+    /* New-task inline form */
+    const newTaskFormHtml =
+        '<div class="new-task-form hidden mt-2 p-2 rounded-lg space-y-1.5"'
+      + ' style="background:' + meta.light + ';border:1px solid ' + meta.border + '">'
+      + '<input type="text" placeholder="New task name\u2026" class="new-task-name border border-gray-300 p-1.5 rounded w-full text-xs outline-none">'
+      + '<div class="flex gap-2">'
+      + '<button type="button" onclick="saveNewTask(this,' + "'" + phase + "'" + ',' + "'" + escAttr(cat) + "'" + ')"'
+      + ' class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition"'
+      + ' style="background:' + meta.color + '">Save & Add</button>'
+      + '<button type="button" onclick="this.closest(\'.new-task-form\').classList.add(\'hidden\');this.closest(\'.cat-body\').querySelector(\'.show-new-task-btn\').classList.remove(\'hidden\')"'
+      + ' class="text-xs text-gray-400 hover:text-gray-600">Cancel</button>'
+      + '</div></div>';
+
+    existing.innerHTML =
+        /* Header */
+        '<div class="flex items-center justify-between px-4 py-2.5 cursor-pointer select-none"'
+      + ' style="background:' + meta.light + ';border-bottom:1px solid ' + meta.border + '"'
+      + ' onclick="toggleCatBlock(this)">'
+      + '<span class="font-bold text-sm" style="color:' + meta.color + '">' + escHtml(cat) + '</span>'
+      + '<div class="flex items-center gap-2">'
+      + '<span class="text-[11px] font-semibold px-2 py-0.5 rounded-full"'
+      + ' style="background:' + meta.border + ';color:' + meta.color + '"'
+      + ' id="catCount_' + phase + '_' + CSS.escape(cat) + '">' + cnt + ' task' + (cnt !== 1 ? 's' : '') + '</span>'
+      + '<svg class="w-4 h-4 transition-transform cat-chevron" style="color:' + meta.text + '" viewBox="0 0 20 20" fill="currentColor">'
+      + '<path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/>'
+      + '</svg></div></div>'
+        /* Body */
+      + '<div class="cat-body px-4 py-3 space-y-1.5 bg-white">'
+      + '<div class="selected-tasks-list space-y-1.5">' + selRowsHtml + '</div>'
+      + dropdownHtml
+      + newTaskFormHtml
+      + '<button type="button"'
+      + ' onclick="this.nextElementSibling.classList.remove(\'hidden\');this.classList.add(\'hidden\')"'
+      + ' class="show-new-task-btn text-xs font-semibold mt-1 transition"'
+      + ' style="color:' + meta.text + '">+ New custom task</button>'
+      + '</div>';
+}
+
+/* ── Show add-category form ────────────────────────────────── */
+function showAddCatForm(phase) {
+    document.getElementById(`addCatBtn-${phase}`).classList.add('hidden');
+    document.getElementById(`addCatForm-${phase}`).classList.remove('hidden');
+    document.getElementById(`newCatInput-${phase}`).focus();
+}
+
+/* ── Save new category to DB then render it ────────────────── */
+function saveNewCategory(phase) {
+    const input = document.getElementById(`newCatInput-${phase}`);
+    const name  = input.value.trim();
+    if (!name) { input.focus(); return; }
+
+    fetch('/save-task-category/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ name })
+    })
+    .then(r => r.json())
+    .then(c => {
+        input.value = '';
+        document.getElementById(`addCatForm-${phase}`).classList.add('hidden');
+        document.getElementById(`addCatBtn-${phase}`).classList.remove('hidden');
+
+        /* Make sure selectedTaskIds has this category */
+        if (!selectedTaskIds[phase]) selectedTaskIds[phase] = {};
+        if (!selectedTaskIds[phase][c.name]) selectedTaskIds[phase][c.name] = [];
+
+        /* Re-render so the new category block appears */
+        renderPhasePanel(phase);
+    })
+    .catch(() => alert('Failed to save category.'));
+}
+
+/* ── Update the count badge on a category header ──────────── */
+function updateCatCount(phase, cat) {
+    const el  = document.getElementById(`catCount_${phase}_${CSS.escape(cat)}`);
+    const cnt = (selectedTaskIds[phase] && selectedTaskIds[phase][cat]) ? selectedTaskIds[phase][cat].length : 0;
+    if (el) el.textContent = `${cnt} task${cnt!==1?'s':''}`;
+}
+
+/* ── Summary bar ───────────────────────────────────────────── */
+function updateTaskSummary() {
+    const total = ['PRE','SELECTION','POST'].reduce((s, ph) => {
+        if (!selectedTaskIds[ph]) return s;
+        return s + Object.values(selectedTaskIds[ph]).reduce((a, arr) => a + arr.length, 0);
+    }, 0);
+    const el  = document.getElementById('taskSummary');
+    const txt = document.getElementById('taskSummaryText');
+    if (total === 0) { el.classList.add('hidden'); return; }
+    el.classList.remove('hidden');
+    const parts = ['PRE','SELECTION','POST'].map(ph => {
+        const n = selectedTaskIds[ph] ? Object.values(selectedTaskIds[ph]).reduce((a,arr)=>a+arr.length,0) : 0;
+        if (!n) return null;
+        return `<strong>${PHASE_META[ph].label}</strong>: ${n}`;
+    }).filter(Boolean);
+    txt.innerHTML = `${total} task${total!==1?'s':''} selected — ${parts.join(' &nbsp;|&nbsp; ')}`;
+}
+
+/* ── Pre-fill task tab when editing ─────────────────────────
+   packageTaskIds: { PRE:{catName:[id,…],…}, SELECTION:{…}, POST:{…} }
+   OR legacy flat: { PRE:[id,…], … }  — auto-migrated
+────────────────────────────────────────────────────────── */
+function loadTasksForEdit(packageTaskIds) {
+    ['PRE','SELECTION','POST'].forEach(phase => {
+        let raw = packageTaskIds[phase] || {};
+        /* Handle legacy flat array */
+        if (Array.isArray(raw)) {
+            const grouped = {};
+            raw.forEach(id => {
+                const tpl = allTaskTemplates.find(t => t.id === id);
+                const cat = tpl ? tpl.category : 'General';
+                if (!grouped[cat]) grouped[cat] = [];
+                grouped[cat].push(id);
+            });
+            raw = grouped;
+        }
+        selectedTaskIds[phase] = raw;
+    });
+    ['PRE','SELECTION','POST'].forEach(phase => renderPhasePanel(phase));
+    switchPhase('PRE');
+    updateTaskSummary();
+}
+
+/* Flatten selectedTaskIds for save payload
+   Returns { PRE:[id,…], SELECTION:[…], POST:[…] } */
+function flattenTaskIds() {
+    const out = {};
+    ['PRE','SELECTION','POST'].forEach(ph => {
+        out[ph] = selectedTaskIds[ph]
+            ? Object.values(selectedTaskIds[ph]).flat()
+            : [];
+    });
+    return out;
+}
+
+/* ════════════════════════════════════════════
+   MODAL OPEN / CLOSE
+════════════════════════════════════════════ */
+function openModal() {
+    document.getElementById("packageIdModalInput").value = "";
+    document.getElementById("packageNameInput").value = "";
+    document.getElementById("serviceTable").innerHTML = "";
+    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ 0";
+    /* Reset task tab */
+    selectedTaskIds = { PRE: {}, SELECTION: {}, POST: {} };
+    /* Render phase panels (needs templates loaded — defer if not yet) */
+    const doRender = () => {
+        ['PRE','SELECTION','POST'].forEach(ph => renderPhasePanel(ph));
+        switchPhase('PRE');
+        updateTaskSummary();
+    };
+    if (allTaskTemplates.length) doRender();
+    else fetch('/get-task-templates/').then(r=>r.json()).then(d=>{allTaskTemplates=d.templates||[];doRender();});
+    switchModalTab('package');
+    document.getElementById("packageModal").classList.remove("hidden");
+}
+function openModalForEdit() {
+    switchModalTab('package');
+    document.getElementById("packageModal").classList.remove("hidden");
+}
+function closeModal() { document.getElementById("packageModal").classList.add("hidden"); }
+
+/* ════════════════════════════════════════════
+   SERVICE TABLE (Package tab — unchanged)
+════════════════════════════════════════════ */
 function buildPersonDropdown() {
-    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 person-select" onchange="handlePersonSelect(this)">
+    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 person-select"
+                        onchange="handlePersonSelect(this)">
         <option value="" disabled selected>+ Select Person...</option>`;
     allPersons.forEach(p => {
         html += `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">
             ${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}
         </option>`;
     });
-    html += `<option value="__new__">➕ Add New Person...</option>`;
-    html += `</select>`;
-
-    html += `
-    <div class="new-person-form hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded space-y-1">
-        <input type="text" placeholder="Person Name" class="new-person-name border p-1.5 rounded w-full text-xs">
-        <input type="number" placeholder="Price ₹" class="new-person-price border p-1.5 rounded w-full text-xs">
-        <button type="button" onclick="saveNewPerson(this)" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Save & Add</button>
-        <button type="button" onclick="this.closest('.new-person-form').classList.add('hidden')" class="text-xs text-gray-500 ml-2">Cancel</button>
+    html += `<option value="__new__">➕ Add New Person...</option></select>`;
+    html += `<div class="new-person-form hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded space-y-1">
+        <input type="text"   placeholder="Person Name" class="new-person-name border p-1.5 rounded w-full text-xs">
+        <input type="number" placeholder="Price ₹"     class="new-person-price border p-1.5 rounded w-full text-xs">
+        <button type="button" onclick="saveNewPerson(this)"
+            class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Save & Add</button>
+        <button type="button" onclick="this.closest('.new-person-form').classList.add('hidden')"
+            class="text-xs text-gray-500 ml-2">Cancel</button>
     </div>`;
     return html;
 }
 
 function buildDeliverableDropdown() {
-    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 deliverable-select" onchange="handleDeliverableSelect(this)">
+    let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 deliverable-select"
+                        onchange="handleDeliverableSelect(this)">
         <option value="" disabled selected>+ Select Deliverable...</option>`;
     allDeliverables.forEach(d => {
         html += `<option value="${d.id}" data-price="${d.price}">${d.title} (₹${parseFloat(d.price).toLocaleString('en-IN')})</option>`;
     });
-    html += `<option value="__new__">➕ Add New Deliverable...</option>`;
-    html += `</select>`;
-
-    html += `
-    <div class="new-deliverable-form hidden mt-2 p-2 bg-green-50 border border-green-200 rounded space-y-1">
-        <input type="text" placeholder="Deliverable Title" class="new-deliverable-title border p-1.5 rounded w-full text-xs">
-        <input type="number" placeholder="Price ₹" class="new-deliverable-price border p-1.5 rounded w-full text-xs">
-        <button type="button" onclick="saveNewDeliverable(this)" class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700">Save & Add</button>
-        <button type="button" onclick="this.closest('.new-deliverable-form').classList.add('hidden')" class="text-xs text-gray-500 ml-2">Cancel</button>
+    html += `<option value="__new__">➕ Add New Deliverable...</option></select>`;
+    html += `<div class="new-deliverable-form hidden mt-2 p-2 bg-green-50 border border-green-200 rounded space-y-1">
+        <input type="text"   placeholder="Deliverable Title" class="new-deliverable-title border p-1.5 rounded w-full text-xs">
+        <input type="number" placeholder="Price ₹"           class="new-deliverable-price border p-1.5 rounded w-full text-xs">
+        <button type="button" onclick="saveNewDeliverable(this)"
+            class="bg-green-600 text-white text-xs px-3 py-1 rounded hover:bg-green-700">Save & Add</button>
+        <button type="button" onclick="this.closest('.new-deliverable-form').classList.add('hidden')"
+            class="text-xs text-gray-500 ml-2">Cancel</button>
     </div>`;
     return html;
 }
 
 function addServiceRow() {
-    let table = document.getElementById("serviceTable");
-    let row = `
+    document.getElementById("serviceTable").insertAdjacentHTML("beforeend", `
     <tr>
         <td class="p-2 border align-top">
             <input type="text" class="service border p-2 w-full rounded text-sm" placeholder="Service Name">
         </td>
-
         <td class="p-2 border person-cell align-top min-w-[160px]">
             <div class="person-list flex flex-col gap-1.5 mb-1"></div>
             <div class="person-subtotal text-[10px] text-blue-700 font-bold mb-1"></div>
             ${buildPersonDropdown()}
         </td>
-
         <td class="p-2 border deliverables-cell align-top">
             <div class="deliverables-list flex flex-col gap-1.5 mb-1"></div>
             ${buildDeliverableDropdown()}
         </td>
-
         <td class="p-2 border align-top">
             <input type="number" class="qty border p-2 w-16 text-center rounded" value="1" oninput="calculateSubtotal(this)">
         </td>
@@ -282,11 +848,9 @@ function addServiceRow() {
         <td class="p-2 border align-top pt-3 text-center">
             <button type="button" onclick="removeRow(this)" class="text-red-600 font-bold hover:scale-125 transition">&times;</button>
         </td>
-    </tr>`;
-    table.insertAdjacentHTML("beforeend", row);
+    </tr>`);
 }
 
-// ✅ Handle person dropdown change
 function handlePersonSelect(selectEl) {
     const val = selectEl.value;
     if (val === '__new__') {
@@ -295,88 +859,59 @@ function handlePersonSelect(selectEl) {
         return;
     }
     if (!val) return;
-
     const opt = selectEl.options[selectEl.selectedIndex];
-    const id = opt.value;
-    const name = opt.dataset.name;
-    const price = parseFloat(opt.dataset.price);
+    const id = opt.value, name = opt.dataset.name, price = parseFloat(opt.dataset.price);
     const cell = selectEl.closest('.person-cell');
     const list = cell.querySelector('.person-list');
-
     if (list.querySelector(`[data-id="${id}"]`)) { selectEl.value = ''; return; }
-
     list.insertAdjacentHTML('beforeend', `
-        <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${id}" data-price="${price}">
+        <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs"
+             data-id="${id}" data-price="${price}">
             <span class="font-semibold text-blue-800">${name}</span>
             <div class="flex items-center gap-1.5">
                 <span class="text-blue-600 font-bold">₹${price.toLocaleString('en-IN')}</span>
-                <button type="button" onclick="removePerson(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                <button type="button" onclick="removePerson(this)"
+                    class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
             </div>
-        </div>
-    `);
+        </div>`);
     selectEl.value = '';
     recalculateRowCost(selectEl.closest('tr'));
 }
 
-// ✅ Save new person to DB and auto-add to row
 function saveNewPerson(btn) {
     const form = btn.closest('.new-person-form');
     const name = form.querySelector('.new-person-name').value.trim();
     const price = parseFloat(form.querySelector('.new-person-price').value) || 0;
     if (!name) { alert('Name required'); return; }
-
     fetch('/add-person/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
         body: JSON.stringify({ name, price })
-    })
-    .then(r => r.json())
-    .then(p => {
-        // Add to global list
+    }).then(r => r.json()).then(p => {
         allPersons.push(p);
-
-        // Add option to ALL person dropdowns
         document.querySelectorAll('.person-select').forEach(sel => {
-            const newOpt = document.createElement('option');
-            newOpt.value = p.id;
-            newOpt.dataset.price = p.price;
-            newOpt.dataset.name = p.name;
-            newOpt.text = `${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}`;
-            sel.insertBefore(newOpt, sel.querySelector('[value="__new__"]'));
+            const o = document.createElement('option');
+            o.value = p.id; o.dataset.price = p.price; o.dataset.name = p.name;
+            o.text = `${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}`;
+            sel.insertBefore(o, sel.querySelector('[value="__new__"]'));
         });
-
-        // Auto-add pill to current row
-        const cell = btn.closest('.person-cell');
-        const list = cell.querySelector('.person-list');
+        const list = btn.closest('.person-cell').querySelector('.person-list');
         list.insertAdjacentHTML('beforeend', `
-            <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${p.id}" data-price="${p.price}">
+            <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs"
+                 data-id="${p.id}" data-price="${p.price}">
                 <span class="font-semibold text-blue-800">${p.name}</span>
                 <div class="flex items-center gap-1.5">
                     <span class="text-blue-600 font-bold">₹${parseFloat(p.price).toLocaleString('en-IN')}</span>
-                    <button type="button" onclick="removePerson(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                    <button type="button" onclick="removePerson(this)"
+                        class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
                 </div>
-            </div>
-        `);
-
+            </div>`);
         form.classList.add('hidden');
         form.querySelector('.new-person-name').value = '';
         form.querySelector('.new-person-price').value = '';
         recalculateRowCost(btn.closest('tr'));
     });
 }
-
-function removeDeliverable(btn) {
-    const row = btn.closest('tr');
-    btn.closest('.deliverable-item').remove();
-    recalculateRowCost(row);
-}
-
-function removePerson(btn) {
-    const row = btn.closest('tr');
-    btn.closest('.person-item').remove();
-    recalculateRowCost(row);
-}
-
 
 function handleDeliverableSelect(selectEl) {
     const val = selectEl.value;
@@ -386,67 +921,53 @@ function handleDeliverableSelect(selectEl) {
         return;
     }
     if (!val) return;
-
     const opt = selectEl.options[selectEl.selectedIndex];
-    const id = opt.value;
-    const title = opt.text.split(' (₹')[0];
-    const price = parseFloat(opt.dataset.price);
+    const id = opt.value, title = opt.text.split(' (₹')[0], price = parseFloat(opt.dataset.price);
     const cell = selectEl.closest('.deliverables-cell');
     const list = cell.querySelector('.deliverables-list');
-
     if (list.querySelector(`[data-id="${id}"]`)) { selectEl.value = ''; return; }
-
     list.insertAdjacentHTML('beforeend', `
-        <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" data-id="${id}" data-price="${price}">
+        <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs"
+             data-id="${id}" data-price="${price}">
             <span class="font-semibold text-gray-800">${title}</span>
             <div class="flex items-center gap-2">
                 <span class="text-gray-500 font-bold">₹${price.toLocaleString('en-IN')}</span>
-                <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                <button type="button" onclick="removeDeliverable(this)"
+                    class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
             </div>
-        </div>
-    `);
+        </div>`);
     selectEl.value = '';
     recalculateRowCost(selectEl.closest('tr'));
 }
 
-
 function saveNewDeliverable(btn) {
-    const form = btn.closest('.new-deliverable-form');
+    const form  = btn.closest('.new-deliverable-form');
     const title = form.querySelector('.new-deliverable-title').value.trim();
     const price = parseFloat(form.querySelector('.new-deliverable-price').value) || 0;
     if (!title) { alert('Title required'); return; }
-
     fetch('/add-deliverable-quick/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
         body: JSON.stringify({ title, price })
-    })
-    .then(r => r.json())
-    .then(d => {
+    }).then(r => r.json()).then(d => {
         allDeliverables.push(d);
-
-        // Add option to ALL deliverable dropdowns
         document.querySelectorAll('.deliverable-select').forEach(sel => {
-            const newOpt = document.createElement('option');
-            newOpt.value = d.id;
-            newOpt.dataset.price = d.price;
-            newOpt.text = `${d.title} (₹${parseFloat(d.price).toLocaleString('en-IN')})`;
-            sel.insertBefore(newOpt, sel.querySelector('[value="__new__"]'));
+            const o = document.createElement('option');
+            o.value = d.id; o.dataset.price = d.price;
+            o.text = `${d.title} (₹${parseFloat(d.price).toLocaleString('en-IN')})`;
+            sel.insertBefore(o, sel.querySelector('[value="__new__"]'));
         });
-
-        // Auto-add pill to current row
-        const cell = btn.closest('.deliverables-cell');
-        const list = cell.querySelector('.deliverables-list');
+        const list = btn.closest('.deliverables-cell').querySelector('.deliverables-list');
         list.insertAdjacentHTML('beforeend', `
-            <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" data-id="${d.id}" data-price="${d.price}">
+            <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs"
+                 data-id="${d.id}" data-price="${d.price}">
                 <span class="font-semibold text-gray-800">${d.title}</span>
                 <div class="flex items-center gap-2">
                     <span class="text-gray-500 font-bold">₹${parseFloat(d.price).toLocaleString('en-IN')}</span>
-                    <button type="button" onclick="removeDeliverable(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+                    <button type="button" onclick="removeDeliverable(this)"
+                        class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
                 </div>
-            </div>
-        `);
-
+            </div>`);
         form.classList.add('hidden');
         form.querySelector('.new-deliverable-title').value = '';
         form.querySelector('.new-deliverable-price').value = '';
@@ -454,90 +975,78 @@ function saveNewDeliverable(btn) {
     });
 }
 
+function removeDeliverable(btn) { const r=btn.closest('tr'); btn.closest('.deliverable-item').remove(); recalculateRowCost(r); }
+function removePerson(btn)      { const r=btn.closest('tr'); btn.closest('.person-item').remove();      recalculateRowCost(r); }
 
 function recalculateRowCost(row) {
-    const baseCostInput = row.querySelector('.base-cost');
-    const displayCostInput = row.querySelector('.cost');
-    let baseCost = parseFloat(baseCostInput.value) || 0;
-
-    let personsTotal = 0;
-    row.querySelectorAll('.person-item').forEach(item => {
-        personsTotal += parseFloat(item.dataset.price) || 0;  // ✅ parseFloat
-    });
-
-    let deliverablesTotal = 0;
-    row.querySelectorAll('.deliverable-item').forEach(item => {
-        deliverablesTotal += parseFloat(item.dataset.price) || 0;  // ✅ parseFloat
-    });
-
-    displayCostInput.value = (baseCost + personsTotal + deliverablesTotal).toFixed(2);
-
-    const personSubtotalEl = row.querySelector('.person-subtotal');
-    if (personSubtotalEl) {
-        personSubtotalEl.textContent = personsTotal > 0
-            ? `Persons: ₹${personsTotal.toLocaleString('en-IN')}`
-            : '';
-    }
-
-    calculateSubtotal(displayCostInput);
+    const base = parseFloat(row.querySelector('.base-cost').value) || 0;
+    let persons=0, deliverables=0;
+    row.querySelectorAll('.person-item').forEach(i     => persons      += parseFloat(i.dataset.price)||0);
+    row.querySelectorAll('.deliverable-item').forEach(i => deliverables += parseFloat(i.dataset.price)||0);
+    row.querySelector('.cost').value = (base + persons + deliverables).toFixed(2);
+    const ps = row.querySelector('.person-subtotal');
+    if (ps) ps.textContent = persons > 0 ? `Persons: ₹${persons.toLocaleString('en-IN')}` : '';
+    calculateSubtotal(row.querySelector('.cost'));
 }
 
 function handleManualCostChange(input) {
     const row = input.closest('tr');
-    const baseCostInput = row.querySelector('.base-cost');
-    let totalCost = parseFloat(input.value) || 0;
-    let personsTotal = 0;
-    let deliverablesTotal = 0;
-    row.querySelectorAll('.person-item').forEach(i => personsTotal += parseFloat(i.dataset.price) || 0);
-    row.querySelectorAll('.deliverable-item').forEach(i => deliverablesTotal += parseFloat(i.dataset.price) || 0);
-    baseCostInput.value = totalCost - personsTotal - deliverablesTotal;
+    let p=0,d=0;
+    row.querySelectorAll('.person-item').forEach(i      => p += parseFloat(i.dataset.price)||0);
+    row.querySelectorAll('.deliverable-item').forEach(i => d += parseFloat(i.dataset.price)||0);
+    row.querySelector('.base-cost').value = (parseFloat(input.value)||0) - p - d;
     calculateSubtotal(input);
 }
 
 function calculateSubtotal(input) {
-    let row = input.closest("tr");
-    let qty = parseFloat(row.querySelector(".qty").value) || 0;
-    let cost = parseFloat(row.querySelector(".cost").value) || 0;
+    const row = input.closest("tr");
+    const qty  = parseFloat(row.querySelector(".qty").value)  || 0;
+    const cost = parseFloat(row.querySelector(".cost").value) || 0;
     row.querySelector(".subtotal").innerText = "₹" + (qty * cost).toLocaleString('en-IN');
     updateGrandTotal();
 }
 
 function updateGrandTotal() {
-    let grand = 0;
-    document.querySelectorAll(".subtotal").forEach(c => {
-        grand += Number(c.innerText.replace(/[₹,]/g, ""));
-    });
-    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ " + grand.toLocaleString('en-IN');
+    let g = 0;
+    document.querySelectorAll(".subtotal").forEach(c => g += Number(c.innerText.replace(/[₹,]/g,"")));
+    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ " + g.toLocaleString('en-IN');
 }
 
-function removeRow(button) {
-    button.closest("tr").remove();
-    updateGrandTotal();
-}
+function removeRow(btn) { btn.closest("tr").remove(); updateGrandTotal(); }
 
+/* ════════════════════════════════════════════
+   SAVE PACKAGE  (includes task template IDs)
+════════════════════════════════════════════ */
 function saveServices() {
-    let packageId = document.getElementById("packageIdModalInput").value || null;
-    let packageName = document.getElementById("packageNameInput").value;
+    const packageId   = document.getElementById("packageIdModalInput").value || null;
+    const packageName = document.getElementById("packageNameInput").value.trim();
     if (!packageName) { alert("Package Name required"); return; }
 
-    let services = [];
+    const services = [];
     document.querySelectorAll("#serviceTable tr").forEach(row => {
-        let serviceName = row.querySelector(".service").value;
-        if (!serviceName) return;
-
-        // ✅ Collect person IDs
-        let personIds = Array.from(row.querySelectorAll(".person-item")).map(item => parseInt(item.dataset.id));
-        let deliverableIds = Array.from(row.querySelectorAll(".deliverable-item")).map(item => parseInt(item.dataset.id));
-        let qty = row.querySelector(".qty").value;
-        let cost = row.querySelector(".cost").value;
-
-        services.push({ service_name: serviceName, person_ids: personIds, deliverable_ids: deliverableIds, qty, cost });
+        const svc = row.querySelector(".service");
+        if (!svc || !svc.value.trim()) return;
+        services.push({
+            service_name:    svc.value.trim(),
+            person_ids:      Array.from(row.querySelectorAll(".person-item")).map(i => parseInt(i.dataset.id)),
+            deliverable_ids: Array.from(row.querySelectorAll(".deliverable-item")).map(i => parseInt(i.dataset.id)),
+            qty:             row.querySelector(".qty").value,
+            cost:            row.querySelector(".cost").value,
+        });
     });
+
+    /* Collect selected task template IDs (flatten nested cat structure) */
+    const taskTemplateIds = flattenTaskIds();
 
     fetch("/save-package/", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
-        body: JSON.stringify({ package_id: packageId, package_name: packageName, services })
+        body: JSON.stringify({
+            package_id:        packageId,
+            package_name:      packageName,
+            services:          services,
+            task_template_ids: taskTemplateIds,   /* ← NEW: sent to backend */
+        })
     })
     .then(res => res.json())
     .then(data => {
@@ -546,7 +1055,9 @@ function saveServices() {
     });
 }
 
-
+/* ════════════════════════════════════════════
+   EDIT PACKAGE
+════════════════════════════════════════════ */
 function editPackage(id) {
     fetch(`/get-package/${id}/`).then(res => res.json()).then(data => {
         document.getElementById("packageIdModalInput").value = id;
@@ -555,177 +1066,204 @@ function editPackage(id) {
 
         data.services.forEach(s => {
             addServiceRow();
-            let row = document.getElementById("serviceTable").lastElementChild;
+            const row = document.getElementById("serviceTable").lastElementChild;
             row.querySelector(".service").value = s.service_name;
-            row.querySelector(".qty").value = s.qty;
+            row.querySelector(".qty").value     = s.qty;
 
-            let personsTotal = s.persons.reduce((sum, p) => sum + parseFloat(p.price), 0);
-            let deliverablesTotal = s.deliverables.reduce((sum, d) => sum + parseFloat(d.price), 0);
-            
-    
-            row.querySelector(".base-cost").value = parseFloat(s.cost) - personsTotal - deliverablesTotal;
-            row.querySelector(".cost").value = parseFloat(s.cost);
+            const pTotal = s.persons.reduce((sum,p)     => sum + parseFloat(p.price), 0);
+            const dTotal = s.deliverables.reduce((sum,d) => sum + parseFloat(d.price), 0);
+            row.querySelector(".base-cost").value = parseFloat(s.cost) - pTotal - dTotal;
+            row.querySelector(".cost").value      = parseFloat(s.cost);
 
-            let personList = row.querySelector(".person-list");
             s.persons.forEach(p => {
-                personList.insertAdjacentHTML('beforeend', `
-                    <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" 
+                row.querySelector(".person-list").insertAdjacentHTML('beforeend', `
+                    <div class="person-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs"
                          data-id="${p.id}" data-price="${parseFloat(p.price)}">
                         <span class="font-semibold text-blue-800">${p.name}</span>
                         <div class="flex items-center gap-1.5">
                             <span class="text-blue-600 font-bold">₹${parseFloat(p.price).toLocaleString('en-IN')}</span>
-                            <button type="button" onclick="removePerson(this)" 
+                            <button type="button" onclick="removePerson(this)"
                                 class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
                         </div>
-                    </div>
-                `);
+                    </div>`);
             });
 
-            let delivContainer = row.querySelector(".deliverables-list");
-                s.deliverables.forEach(d => {
-                    const dPrice = parseFloat(d.price);
-                    delivContainer.insertAdjacentHTML('beforeend', `
-                        <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs" 
-                            data-id="${d.id}" data-price="${dPrice}">
-                            <span class="font-semibold text-gray-800">${d.title}</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-gray-500 font-bold">₹${dPrice.toLocaleString('en-IN')}</span>
-                                <button type="button" onclick="removeDeliverable(this)" 
-                                    class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
-                            </div>
+            s.deliverables.forEach(d => {
+                const dp = parseFloat(d.price);
+                row.querySelector(".deliverables-list").insertAdjacentHTML('beforeend', `
+                    <div class="deliverable-item flex justify-between items-center bg-gray-50 border border-gray-200 p-1.5 rounded text-xs"
+                         data-id="${d.id}" data-price="${dp}">
+                        <span class="font-semibold text-gray-800">${d.title}</span>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500 font-bold">₹${dp.toLocaleString('en-IN')}</span>
+                            <button type="button" onclick="removeDeliverable(this)"
+                                class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
                         </div>
-                    `);
-                });
+                    </div>`);
+            });
             calculateSubtotal(row.querySelector(".cost"));
         });
+
+        /* Load existing task template selections if returned by backend */
+        const doTaskLoad = () => {
+            if (data.task_template_ids) {
+                loadTasksForEdit(data.task_template_ids);
+            } else {
+                selectedTaskIds = { PRE: {}, SELECTION: {}, POST: {} };
+                ['PRE','SELECTION','POST'].forEach(ph => renderPhasePanel(ph));
+                switchPhase('PRE');
+                updateTaskSummary();
+            }
+        };
+        if (allTaskTemplates.length) doTaskLoad();
+        else fetch('/get-task-templates/').then(r=>r.json()).then(d=>{allTaskTemplates=d.templates||[];doTaskLoad();});
+
         openModalForEdit();
     });
 }
 
-
+/* ════════════════════════════════════════════
+   SELECT PACKAGE (card click)
+════════════════════════════════════════════ */
 function selectPackage(packageId, cardElement) {
     document.getElementById("packageInput").value = packageId;
     selectedPackageId = packageId;
     document.querySelectorAll("#packageContainer > div").forEach(c => {
-        c.classList.remove("border-red-500", "bg-red-50");
-        c.classList.add("border-gray-200", "bg-white");
+        c.classList.remove("border-red-500","bg-red-50");
+        c.classList.add("border-gray-200","bg-white");
     });
-    cardElement.classList.remove("border-gray-200", "bg-white");
-    cardElement.classList.add("border-red-500", "bg-red-50");
+    cardElement.classList.remove("border-gray-200","bg-white");
+    cardElement.classList.add("border-red-500","bg-red-50");
     loadPackageDeliverables(packageId);
 }
 
 function loadPackageDeliverables(packageId) {
-    fetch(`/get-package/${packageId}/`)
-        .then(res => res.json())
-        .then(data => {
-            currentPackageData = data.services || [];
-            const container = document.getElementById("deliverablesContainer");
-            const quoteList = document.getElementById("quoteServicesList");
-            container.innerHTML = "";
-            quoteList.innerHTML = "";
-            let subtotal = 0;
+    fetch(`/get-package/${packageId}/`).then(res => res.json()).then(data => {
+        currentPackageData = data.services || [];
+        const container = document.getElementById("deliverablesContainer");
+        const quoteList = document.getElementById("quoteServicesList");
+        container.innerHTML = ""; quoteList.innerHTML = "";
+        let subtotal = 0;
 
-            data.services.forEach(service => {
-                service.deliverables.forEach(d => {
-                    const span = document.createElement("span");
-                    span.className = "bg-white border px-3 py-1 rounded-full text-xs text-gray-600";
-                    span.innerText = `${d.title} ×`;
-                    container.appendChild(span);
-                });
-
-                const serviceTotal = parseFloat(service.qty) * parseFloat(service.cost);
-                subtotal += serviceTotal;
-
-                const deliverableItems = service.deliverables.map(d => `<li class="mt-1">• ${d.title}</li>`).join('');
-                const personItems = (service.persons && service.persons.length > 0)
-                    ? service.persons.map(p => `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold">${p.name} ₹${parseFloat(p.price).toLocaleString('en-IN')}</div>`).join('')
-                    : '<span class="text-gray-400 text-xs italic">No persons assigned</span>';
-
-                quoteList.insertAdjacentHTML("beforeend", `
-                    <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 last:border-0">
-                        <div class="col-span-4 pr-2">
-                            <p class="font-bold text-[14px] text-gray-900">${service.service_name}</p>
-                            <ul class="text-gray-500 text-[12px] ml-1 mt-1.5 leading-relaxed">${deliverableItems}</ul>
-                        </div>
-                        <div class="col-span-3 pr-2 pt-0.5"><div class="flex flex-wrap">${personItems}</div></div>
-                        <div class="col-span-1 text-center"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${service.qty}</div></div>
-                        <div class="col-span-2"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium whitespace-nowrap text-xs">₹ ${parseFloat(service.cost).toLocaleString('en-IN')}</div></div>
-                        <div class="col-span-2 text-right"><div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${serviceTotal.toLocaleString('en-IN')}</div></div>
-                    </div>
-                `);
+        data.services.forEach(service => {
+            service.deliverables.forEach(d => {
+                const span = document.createElement("span");
+                span.className = "bg-white border px-3 py-1 rounded-full text-xs text-gray-600";
+                span.innerText = `${d.title} ×`;
+                container.appendChild(span);
             });
 
-            const fmt = subtotal.toLocaleString('en-IN');
-            document.getElementById("subTotal").innerText = `₹ ${fmt}`;
-            document.getElementById("totalAmount").innerText = `₹ ${fmt}`;
-            document.getElementById("quoteSubtotal").innerText = `₹ ${fmt}`;
-            document.getElementById("quoteTotal").innerText = `₹ ${fmt}`;
+            const sTotal = parseFloat(service.qty) * parseFloat(service.cost);
+            subtotal += sTotal;
+
+            const delivItems  = service.deliverables.map(d => `<li class="mt-1">• ${d.title}</li>`).join('');
+            const personItems = (service.persons && service.persons.length)
+                ? service.persons.map(p =>
+                    `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold">
+                        ${p.name} ₹${parseFloat(p.price).toLocaleString('en-IN')}
+                     </div>`).join('')
+                : '<span class="text-gray-400 text-xs italic">No persons assigned</span>';
+
+            quoteList.insertAdjacentHTML("beforeend", `
+                <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 last:border-0">
+                    <div class="col-span-4 pr-2">
+                        <p class="font-bold text-[14px] text-gray-900">${service.service_name}</p>
+                        <ul class="text-gray-500 text-[12px] ml-1 mt-1.5 leading-relaxed">${delivItems}</ul>
+                    </div>
+                    <div class="col-span-3 pr-2 pt-0.5"><div class="flex flex-wrap">${personItems}</div></div>
+                    <div class="col-span-1 text-center">
+                        <div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${service.qty}</div>
+                    </div>
+                    <div class="col-span-2">
+                        <div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium whitespace-nowrap text-xs">₹ ${parseFloat(service.cost).toLocaleString('en-IN')}</div>
+                    </div>
+                    <div class="col-span-2 text-right">
+                        <div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${sTotal.toLocaleString('en-IN')}</div>
+                    </div>
+                </div>`);
         });
+
+        const fmt = subtotal.toLocaleString('en-IN');
+        document.getElementById("subTotal").innerText    = `₹ ${fmt}`;
+        document.getElementById("totalAmount").innerText = `₹ ${fmt}`;
+        document.getElementById("quoteSubtotal").innerText = `₹ ${fmt}`;
+        document.getElementById("quoteTotal").innerText    = `₹ ${fmt}`;
+    });
 }
 
+/* ════════════════════════════════════════════
+   QUOTATION MODAL
+════════════════════════════════════════════ */
+function openQuotationModal() {
+    if (!selectedPackageId) { alert("Please select a package first."); return; }
+    const name    = document.getElementById('clientNameInput').value  || 'Client Name';
+    const project = document.getElementById('projectNameInput').value || '';
+    const email   = document.getElementById('clientEmailInput').value || 'No email provided';
+    document.getElementById('quoteClientName').innerText  = project ? `${name} - ${project}` : name;
+    document.getElementById('quoteClientEmail').innerText = email;
+    document.getElementById('quoteInitials').innerText    = name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() || '--';
+    document.getElementById('quotationModal').classList.remove('hidden');
+    document.getElementById('quotationModal').classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+function closeQuotationModal() {
+    document.getElementById('quotationModal').classList.add('hidden');
+    document.getElementById('quotationModal').classList.remove('flex');
+    document.body.style.overflow = 'auto';
+}
+
+/* ════════════════════════════════════════════
+   FORM SUBMIT + PDF
+════════════════════════════════════════════ */
 function handleFormSubmit(event) {
     event.preventDefault();
     const form = event.target;
     const packageId = document.getElementById("packageInput").value;
     const submitBtn = form.querySelector('button[type="submit"]');
     if (!packageId) { form.submit(); return; }
-    const originalBtnText = submitBtn.innerHTML;
+    const orig = submitBtn.innerHTML;
     submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating PDF...';
-    submitBtn.disabled = true;
-    generatePDFBackend(packageId, form, submitBtn, originalBtnText);
+    submitBtn.disabled  = true;
+    generatePDFBackend(packageId, form, submitBtn, orig);
 }
 
 function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
     const clientName = document.getElementById('clientNameInput').value || 'Client Name';
-    const project = document.getElementById('projectNameInput').value || '';
-    const email = document.getElementById('clientEmailInput').value || '';
+    const project    = document.getElementById('projectNameInput').value || '';
+    const email      = document.getElementById('clientEmailInput').value || '';
 
     Promise.all([
         fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
         fetch('/get-image-base64/?path=images/Qutation.png').then(r => r.json()),
         fetch(`/get-package/${packageId}/`).then(r => r.json())
-    ])
-    .then(([logoData, quotationData, data]) => {
-        if (!data.services || data.services.length === 0) {
-            form.submit(); return;
-        }
+    ]).then(([logoData, quotationData, data]) => {
+        if (!data.services || !data.services.length) { form.submit(); return; }
 
-        const logoUrl = logoData.data_uri || '';
-        const QutationUrl = quotationData.data_uri || '';
-
-        let rowsHtml = '';
-        let subtotal = 0;
+        const logoUrl     = logoData.data_uri     || '';
+        const qutationUrl = quotationData.data_uri || '';
+        let rowsHtml = '', subtotal = 0;
 
         data.services.forEach(service => {
-            let qty = parseFloat(service.qty) || 0;
-            let cost = parseFloat(service.cost) || 0;
-            let sTotal = qty * cost;
+            const qty   = parseFloat(service.qty)  || 0;
+            const cost  = parseFloat(service.cost) || 0;
+            const sTotal = qty * cost;
             subtotal += sTotal;
 
-            const deliverableItems = service.deliverables.map(d =>
-                `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`
-            ).join('');
-
-            const personItems = (service.persons && service.persons.length > 0)
+            const delivItems  = service.deliverables.map(d =>
+                `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`).join('');
+            const personItems = (service.persons && service.persons.length)
                 ? service.persons.map(p =>
-                    `<div style="background:#dbeafe; color:#1d4ed8; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">
-                        ${p.name}
-                    </div>`
-                ).join('')
-                : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">No persons</span>';
+                    `<div style="background:#dbeafe;color:#1d4ed8;padding:2px 6px;border-radius:4px;font-size:10px;
+                                 display:inline-block;margin:0 4px 4px 0;font-weight:bold;">${p.name}</div>`).join('')
+                : '<span style="color:#9ca3af;font-size:11px;font-style:italic;">No persons</span>';
 
             rowsHtml += `
             <tr>
                 <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
                     <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
-                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">
-                        ${deliverableItems}
-                    </ul>
+                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">${delivItems}</ul>
                 </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                    ${personItems}
-                </td>
+                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">${personItems}</td>
                 <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align:top;">
                     <span style="font-weight:bold;font-size:13px;">${qty}</span>
                 </td>
@@ -733,176 +1271,115 @@ function generatePDFBackend(packageId, form, submitBtn, originalBtnText) {
                     <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
                 </td>
                 <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align:top;">
-                    <strong style="font-weight:bold;font-size:13px;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
+                    <strong style="font-size:13px;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
                 </td>
             </tr>`;
         });
 
         const displayName = project ? `${clientName} - ${project}` : clientName;
-        const initials = clientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
-        const emailToUse = email || 'No email provided';
-        const primaryColor = "#A32e37";
-        const textColor = "#333333";
+        const initials    = clientName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() || '--';
+        const emailToUse  = email || 'No email provided';
+        const primary     = "#A32e37";
 
-        const pdfTemplate = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                @page { size: A4 portrait; margin: 0; }
-                body { font-family: Helvetica, Arial, sans-serif; color: ${textColor}; margin: 0; padding: 0; }
-                .content-wrapper { padding: 30px; }
-            </style>
-        </head>
-        <body>
-            <div style="background:${primaryColor};height:128px;width:100%;display:table;padding: 40px;box-sizing:border-box;">
-                <div style="display:table-cell;vertical-align:middle;width:50%;">
-                    <div style="background:#fff;width:64px;height:64px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
-                        <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
-                    </div>
-                </div>
-                <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
-                    <h1 style="color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;margin:0;">QUOTATION</h1>
+        const pdfTemplate = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <style>@page{size:A4 portrait;margin:0}body{font-family:Helvetica,Arial,sans-serif;color:#333;margin:0;padding:0}.content-wrapper{padding:30px}</style>
+        </head><body>
+        <div style="background:${primary};height:128px;width:100%;display:table;padding:40px;box-sizing:border-box;">
+            <div style="display:table-cell;vertical-align:middle;width:50%;">
+                <div style="background:#fff;width:64px;height:64px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
+                    <img src="${logoUrl}" style="max-width:100%;max-height:100%;object-fit:contain;">
                 </div>
             </div>
-
-            <div class="content-wrapper">
-                <div style="margin-bottom:30px;width:100%;text-align:center;">
-                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
-                </div>
-
-                <h2 style="font-size:26px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
-
-                <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+            <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
+                <h1 style="color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;margin:0;">QUOTATION</h1>
+            </div>
+        </div>
+        <div class="content-wrapper">
+            <div style="margin-bottom:30px;width:100%;text-align:center;">
+                <img src="${qutationUrl}" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
+            </div>
+            <h2 style="font-size:26px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
+            <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+                <tr>
+                    <td style="width:60px;vertical-align:middle;">
+                        <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
+                    </td>
+                    <td style="vertical-align:middle;">
+                        <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
+                        <div style="font-size:12px;color:#666;margin-top:4px;">${emailToUse}</div>
+                    </td>
+                </tr>
+            </table>
+            <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
+            <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
+                <table style="width:100%;border-collapse:collapse;">
+                    <thead><tr>
+                        <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:33%;">Service</th>
+                        <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Team</th>
+                        <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:5%;">Qty</th>
+                        <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
+                        <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:25%;">Amount</th>
+                    </tr></thead>
+                    <tbody>${rowsHtml}</tbody>
+                </table>
+                <table style="width:100%;margin-top:30px;border-collapse:collapse;">
                     <tr>
-                        <td style="width:60px;vertical-align:middle;">
-                            <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
-                        </td>
-                        <td style="vertical-align:middle;">
-                            <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
-                            <div style="font-size:12px;color:#666;margin-top:4px;">${emailToUse}</div>
+                        <td style="width:50%;"></td>
+                        <td style="width:50%;">
+                            <table style="width:100%;font-size:14px;border-collapse:collapse;">
+                                <tr>
+                                    <td style="padding-bottom:12px;color:#444;">Subtotal</td>
+                                    <td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-bottom:20px;color:#444;">Pre Paid Amount</td>
+                                    <td style="padding-bottom:20px;color:#111;font-weight:bold;text-align:right;">₹ 0</td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;">Total</td>
+                                    <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 </table>
-
-                <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
-
-                <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:33%;">Service</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Team</th>
-                                <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:5%;">Qty</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
-                                <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:25%;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-
-                    <table style="width:100%;margin-top:30px;border-collapse:collapse;">
-                        <tr>
-                            <td style="width:50%;"></td>
-                            <td style="width:50%;">
-                                <table style="width:100%;font-size:14px;border-collapse:collapse;">
-                                    <tr>
-                                        <td style="padding-bottom:12px;color:#444;">Subtotal</td>
-                                        <td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-bottom:20px;color:#444;">Pre Paid Amount</td>
-                                        <td style="padding-bottom:20px;color:#111;font-weight:bold;text-align:right;">₹ 0</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;">Total</td>
-                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
             </div>
-        </body>
-        </html>`;
+        </div></body></html>`;
 
-        const filename = `Quotation_${clientName.replace(/\s+/g, '_')}.pdf`;
-
+        const filename = `Quotation_${clientName.replace(/\s+/g,'_')}.pdf`;
         return fetch('/generate-pdf/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ html: pdfTemplate, filename: filename })
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Server error generating PDF");
-            return res.blob();
-        })
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
-            submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success! Saving...';
-            setTimeout(() => { form.submit(); }, 1500);
-        });
-    })
-    .catch(err => {
-        console.error("PDF generation failed:", err);
-        form.submit();
-    });
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ html: pdfTemplate, filename })
+        }).then(res => { if (!res.ok) throw new Error("Server error"); return res.blob(); })
+          .then(blob => {
+              const url = URL.createObjectURL(blob);
+              const a   = document.createElement('a');
+              a.href = url; a.download = filename;
+              document.body.appendChild(a); a.click(); a.remove();
+              URL.revokeObjectURL(url);
+              submitBtn.innerHTML = '<i class="fa-solid fa-check"></i> Success! Saving...';
+              setTimeout(() => form.submit(), 1500);
+          });
+    }).catch(err => { console.error(err); form.submit(); });
 }
 
-function openQuotationModal() {
-    if (!selectedPackageId) { alert("Please select a package first."); return; }
-    const name = document.getElementById('clientNameInput').value || 'Client Name';
-    const project = document.getElementById('projectNameInput').value || '';
-    const email = document.getElementById('clientEmailInput').value || 'No email provided';
-    document.getElementById('quoteClientName').innerText = project ? `${name} - ${project}` : name;
-    document.getElementById('quoteClientEmail').innerText = email;
-    document.getElementById('quoteInitials').innerText = name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
-    document.getElementById('quotationModal').classList.remove('hidden');
-    document.getElementById('quotationModal').classList.add('flex');
-    document.body.style.overflow = 'hidden';
-}
-
-function closeQuotationModal() {
-    document.getElementById('quotationModal').classList.add('hidden');
-    document.getElementById('quotationModal').classList.remove('flex');
-    document.body.style.overflow = 'auto';
-}
-
-function openModal(){ 
-    document.getElementById("packageIdModalInput").value = "";
-    document.getElementById("packageNameInput").value = "";
-    document.getElementById("serviceTable").innerHTML = "";
-    document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ 0";
-    document.getElementById("packageModal").classList.remove("hidden"); 
-}
-
-
-function openModalForEdit(){ 
-    document.getElementById("packageModal").classList.remove("hidden"); 
-} 
-
-function closeModal() { document.getElementById("packageModal").classList.add("hidden"); }
-
-
+/* ════════════════════════════════════════════
+   DELETE PACKAGE
+════════════════════════════════════════════ */
 function deletePackage(id, btn) {
     if (!confirm("Delete this package?")) return;
-    fetch(`/delete-package/${id}/`, { method: "POST", headers: { "X-CSRFToken": getCookie("csrftoken") } })
-        .then(res => res.json()).then(data => { if (data.status === "success") location.reload(); });
+    fetch(`/delete-package/${id}/`, {
+        method: "POST",
+        headers: { "X-CSRFToken": getCookie("csrftoken") }
+    }).then(res => res.json()).then(data => { if (data.status === "success") location.reload(); });
 }
 
+/* ─── Sortable service rows ─────────────────── */
 new Sortable(document.getElementById("serviceTable"), { animation: 150 });
+
+/* ─── Tiny helpers ──────────────────────────── */
+function escHtml(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function escAttr(s)  { return String(s||'').replace(/"/g,'&quot;'); }
 </script>
 {% endblock %}

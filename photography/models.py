@@ -83,6 +83,12 @@ class Deliverable(models.Model):
 
 class Package(models.Model):
     package_name = models.CharField(max_length=200)
+    task_templates = models.ManyToManyField(
+        'TaskList',
+        blank=True,
+        related_name='packages',
+        help_text="Task templates pre-selected for this package"
+    )
 
     @property
     def total_cost(self):
@@ -190,9 +196,7 @@ class TaskList(models.Model):
         choices=PHASE_CHOICES, 
         default='PRE'
     )
-    
-    # 🌟 FIX: Now a ForeignKey. This makes it a dropdown in the admin panel.
-    # null=True, blank=True means if you leave it empty, it just falls under the Phase.
+
     category = models.ForeignKey(
         TaskCategory, 
         on_delete=models.SET_NULL, 
@@ -308,9 +312,9 @@ class Invoice(models.Model):
         post_discount = self.subtotal - float(self.discount_amount)
         return post_discount + self.tax_amount - float(self.pre_paid_amount)
 
-
     def __str__(self):
         return f"Invoice {self.invoice_number} - {self.lead.name}"
+
 
 class InvoiceService(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='services')

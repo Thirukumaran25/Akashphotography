@@ -297,8 +297,20 @@
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
         <button type="button" onclick="closeDeliverableDropdown()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
         <h3 class="font-black text-xl mb-2">Select a Deliverable</h3>
-        <p class="text-sm text-gray-500 mb-6">Clicking an item will add it to the last active service row.</p>
-        <div id="deliverableListItems" class="space-y-3 max-h-72 overflow-y-auto no-scrollbar pr-1">
+        <p class="text-sm text-gray-500 mb-4">Clicking an item will add it to the last active service row.</p>
+        
+        <div class="mb-5 p-3 bg-red-50 rounded-lg border border-red-100 flex gap-2 items-center">
+            <input type="text" id="newDelivTitle" placeholder="New deliverable name..." class="flex-1 text-[13px] p-2.5 border border-gray-200 rounded outline-none focus:border-red-300">
+            <div class="flex items-center bg-white border border-gray-200 rounded focus-within:border-red-300 overflow-hidden w-28">
+                <span class="px-2 text-gray-400 text-[12px] font-bold bg-gray-50 border-r border-gray-200 h-full flex items-center">₹</span>
+                <input type="number" id="newDelivPrice" placeholder="Price" class="w-full text-[13px] p-2.5 border-none outline-none" min="0">
+            </div>
+            <button type="button" onclick="createNewDeliverable(this)" class="bg-[#A9323D] text-white px-4 py-2.5 rounded font-bold text-[12px] hover:bg-red-800 whitespace-nowrap transition shadow-sm">
+                Add & Select
+            </button>
+        </div>
+
+        <div id="deliverableListItems" class="space-y-3 max-h-64 overflow-y-auto no-scrollbar pr-1 border-t border-gray-100 pt-3">
             {% for d in available_deliverables %}
             <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition" onclick="selectSnapshotDeliverable('{{ d.id }}', '{{ d.title|escapejs }}', '{{ d.price }}')">
                 <p class="font-bold text-sm">{{ d.title }}</p>
@@ -619,5 +631,65 @@ document.getElementById("invoiceEditorForm").addEventListener("submit", function
 });
 
 calculateTotals();
+
+
+// 🌟 NEW: Function to create a new deliverable on the fly
+function createNewDeliverable(btn) {
+    const titleInput = document.getElementById("newDelivTitle");
+    const priceInput = document.getElementById("newDelivPrice");
+    const title = titleInput.value.trim();
+    const price = parseFloat(priceInput.value) || 0;
+
+    if (!title) {
+        alert("Please enter a deliverable name.");
+        titleInput.focus();
+        return;
+    }
+
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    btn.disabled = true;
+
+    fetch("/add-deliverable-quick/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({ title: title, price: price })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            alert("Error: " + data.error);
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } else {
+            // Instantly clear the inputs for next time
+            titleInput.value = "";
+            priceInput.value = "";
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+
+            // Add the new item to the top of the modal list so it stays there if they open it again
+            const list = document.getElementById("deliverableListItems");
+            list.insertAdjacentHTML('afterbegin', `
+                <div class="flex items-center justify-between p-3 border rounded-lg bg-red-50 border-red-200 cursor-pointer transition" onclick="selectSnapshotDeliverable('${data.id}', '${data.title.replace(/'/g, "\\'")}', '${data.price}')">
+                    <p class="font-bold text-sm">${data.title}</p>
+                    <p class="font-black text-[#A9323D] text-[15px]">₹ ${data.price.toLocaleString('en-IN')}</p>
+                </div>
+            `);
+
+            // Automatically select it and apply it to the invoice row!
+            selectSnapshotDeliverable(data.id, data.title, data.price);
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Failed to create deliverable. Please try again.");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    });
+}
 </script>
 {% endblock %}

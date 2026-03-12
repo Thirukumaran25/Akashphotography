@@ -114,11 +114,20 @@
                 <div class="bg-gray-100 border border-gray-200 rounded-2xl p-5 space-y-3">
                     <div class="relative"><i class="far fa-copy absolute left-4 top-3.5 text-gray-500"></i><input id="modalProjectName" type="text" class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-800 font-medium outline-none" readonly></div>
                     <div class="relative"><i class="fas fa-map-marker-alt absolute left-4 top-3.5 text-gray-500"></i><input id="modalProjectAddress" type="text" class="w-full pl-11 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm bg-white text-gray-800 font-medium outline-none" readonly></div>
-                    <div class="flex items-center border border-gray-300 rounded-lg p-2.5 bg-white">
-                        <span class="flex items-center gap-2 text-sm text-gray-800 font-medium pl-2">
+                    
+                    <div class="flex items-center gap-4 border border-gray-300 rounded-lg p-2.5 bg-white">
+                        <span class="flex items-center gap-2 text-sm text-gray-800 font-medium pl-2 w-1/2">
                             <i class="far fa-calendar-alt text-gray-500"></i> 
-                            Event Date: <span id="modalStartDate">30/01/2026</span>
+                            Date: <span id="modalStartDate">30/01/2026</span>
                         </span>
+                        <div class="w-px h-5 bg-gray-200"></div>
+                        <div class="flex items-center gap-4 border border-gray-300 rounded-lg p-2.5 bg-white">
+                        <div class="flex items-center gap-1.5 text-sm text-gray-800 font-medium w-[55%]">
+                            <input type="time" id="modalStartTime" class="bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-[12px] outline-none focus:border-red-400 cursor-pointer w-full">
+                            <span class="text-gray-400 font-bold">-</span>
+                            <input type="time" id="modalEndTime" class="bg-gray-50 border border-gray-200 rounded px-1.5 py-1 text-[12px] outline-none focus:border-red-400 cursor-pointer w-full">
+                        </div>
+                    </div>
                     </div>
                 </div>
             </div>
@@ -127,21 +136,28 @@
                 <h3 class="font-bold text-gray-900 text-[17px]">Team Members</h3>
                 <div class="bg-gray-100 border border-gray-200 rounded-2xl p-5 space-y-5">
                     
-                    <div class="flex justify-center items-center gap-8 p-3 border border-gray-300 rounded-lg bg-white text-[13px] font-bold">
-                        <div class="text-[#A9323D] flex items-center gap-2"><i class="fas fa-check font-normal"></i> Available Team Members</div>
-                        <div class="text-gray-700 flex items-center gap-2"><i class="fas fa-check font-normal"></i> Booked on Other Sessions</div>
+                    <div class="flex justify-center items-center gap-8 p-3 border border-gray-300 rounded-lg bg-white text-[13px] font-bold shadow-sm">
+                        <div class="text-[#16a34a] flex items-center gap-2"><i class="fas fa-circle text-[8px]"></i> Available</div>
+                        <div class="text-[#A9323D] flex items-center gap-2"><i class="fas fa-circle text-[8px]"></i> Booked Elsewhere</div>
                     </div>
 
                     <div id="teamPillLists" class="border border-gray-300 rounded-xl p-5 bg-white space-y-6">
                         </div>
 
                     <div class="pt-2 border-t border-gray-200">
-                        <label class="block text-[14px] font-bold text-gray-900 mb-2">Deadline</label>
-                        <input type="date" id="modalDeadlineDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-800 font-medium outline-none focus:border-red-400 transition cursor-pointer bg-white shadow-sm">
+                        <label class="block text-[14px] font-bold text-gray-900 mb-2">Selected Team Members</label>
+                        <div id="selectedTeamAvatars" class="flex flex-wrap gap-2 min-h-[44px] items-center p-3 bg-white border border-gray-300 rounded-lg shadow-inner text-[13px] text-gray-400 font-medium">
+                            No members selected yet.
+                        </div>
                     </div>
 
-                    <button id="sendNotificationsBtn" type="button" onclick="submitTeamAssignment()" class="w-full bg-[#A9323D] text-white py-3.5 rounded-lg font-bold text-[15px] flex items-center justify-center gap-2 hover:bg-red-800 transition shadow-md mt-2">
-                        <i class="far fa-paper-plane"></i> Send Notifications
+                    <div class="pt-2">
+                        <label class="block text-[14px] font-bold text-gray-900 mb-2">Project Deadline (Due Date)</label>
+                        <input type="date" id="modalDeadlineDate" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-sm text-gray-800 font-bold outline-none focus:border-red-400 transition cursor-pointer bg-white shadow-sm">
+                    </div>
+
+                    <button id="sendNotificationsBtn" type="button" onclick="submitTeamAssignment()" class="w-full bg-[#A9323D] text-white py-3.5 rounded-lg font-bold text-[15px] flex items-center justify-center gap-2 hover:bg-red-800 transition shadow-md mt-4">
+                        <i class="far fa-save"></i> Save & Send Notifications
                     </button>
                 </div>
             </div>
@@ -167,10 +183,12 @@
 
     let currentProjectId = null;
     let selectedEmployeesSet = new Set();
+    let employeeDataMap = {}; // Maps ID -> Data for quick lookup
 
     function openAssignModal(projectId) {
         currentProjectId = projectId;
         selectedEmployeesSet.clear(); 
+        employeeDataMap = {};
 
         fetch(`/sessions/api/details/${projectId}/`)
             .then(res => res.json())
@@ -178,11 +196,16 @@
                 document.getElementById('modalProjectName').value = data.project.name;
                 document.getElementById('modalProjectAddress').value = data.project.address;
                 document.getElementById('modalStartDate').innerText = data.project.start_date;
+                document.getElementById('modalStartTime').value = data.project.start_time || '';
+                document.getElementById('modalEndTime').value = data.project.end_time || '';
+                document.getElementById('modalDeadlineDate').value = data.project.end_date || '';
                 
-                // Clear the deadline field when opening
-                document.getElementById('modalDeadlineDate').value = '';
+                if (data.assigned_ids) {
+                    data.assigned_ids.forEach(id => selectedEmployeesSet.add(id));
+                }
 
                 renderTeamMemberPills(data.availability);
+                updateSelectedMembersUI(); // Render the avatars instantly
 
                 document.getElementById('assignTeamModal').classList.remove('hidden');
                 document.body.style.overflow = 'hidden'; 
@@ -193,7 +216,6 @@
             });
     }
 
-    // 🌟 FIX: Bulletproof HTML String Rendering for 100% Clickability
     function renderTeamMemberPills(availabilityData) {
         const container = document.getElementById('teamPillLists');
         let htmlContent = '';
@@ -201,38 +223,42 @@
         for (const [teamName, members] of Object.entries(availabilityData)) {
             htmlContent += `
                 <div class="space-y-2.5">
-                    <h4 class="font-bold text-gray-900 text-[14px]">${teamName}</h4>
+                    <h4 class="font-bold text-gray-900 text-[14px] border-b border-gray-100 pb-1">${teamName}</h4>
                     <div class="flex flex-wrap gap-3 py-1">
             `;
 
             members.forEach(emp => {
-                const isBooked = emp.is_booked;
-                const title = emp.name + (isBooked ? ' (Booked on other session)' : ' (Available)');
-                const baseClass = isBooked ? 'booked-member bg-gray-800' : 'bg-[#111]';
-                
-                // If booked, add the red notification dot
-                const redDotHtml = isBooked ? `<div class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#A9323D] border-2 border-white pointer-events-none shadow-md z-10"></div>` : '';
+                employeeDataMap[emp.id] = emp;
 
-                // Using standard HTML button guarantees the onClick will work flawlessly
+                const isBooked = emp.is_booked;
+                const isSelected = selectedEmployeesSet.has(emp.id);
+                const title = emp.name + (isBooked ? `\n\nBooked this month:\n${emp.booking_text}` : ' (Available)');
+                
+                const baseClass = isBooked ? 'booked-member bg-gray-800' : 'bg-[#111]';
+                const redDotHtml = isBooked ? `<div class="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#A9323D] border-2 border-white pointer-events-none shadow-md z-10"></div>` : '';
+                const selectClass = isSelected ? 'selected-pill' : '';
+                const scaleStyle = isSelected ? 'transform: scale(1.1);' : '';
+                const shadowStyle = isSelected 
+                    ? (isBooked ? 'box-shadow: 0 0 0 2px #fff, 0 0 0 4px #A9323D;' : 'box-shadow: 0 0 0 2px #fff, 0 0 0 4px #16a34a;') 
+                    : '';
+
                 htmlContent += `
                     <button type="button" 
                             data-id="${emp.id}" 
                             title="${title}"
                             onclick="toggleMemberSelection(this, ${emp.id})"
-                            class="emp-pill w-10 h-10 rounded-lg text-white flex items-center justify-center font-bold text-[13px] tracking-wide cursor-pointer transition-all relative outline-none shadow-sm ${baseClass}">
+                            style="${scaleStyle} ${shadowStyle}"
+                            class="emp-pill ${selectClass} w-10 h-10 rounded-lg text-white flex items-center justify-center font-bold text-[13px] tracking-wide cursor-pointer transition-all relative outline-none shadow-sm ${baseClass}">
                         <span class="pointer-events-none">${emp.initials}</span>
                         ${redDotHtml}
                     </button>
                 `;
             });
-
             htmlContent += `</div></div>`;
         }
-        
         container.innerHTML = htmlContent;
     }
 
-    // 🌟 FIX: Updated style logic for the new button structure
     function toggleMemberSelection(pillElement, employeeId) {
         if (selectedEmployeesSet.has(employeeId)) {
             selectedEmployeesSet.delete(employeeId);
@@ -244,13 +270,39 @@
             pillElement.classList.add('selected-pill');
             pillElement.style.transform = 'scale(1.1)';
             
-            // Use direct box-shadow so it isn't hidden by containers
             if (pillElement.classList.contains('booked-member')) {
                 pillElement.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #A9323D'; 
             } else {
                 pillElement.style.boxShadow = '0 0 0 2px #fff, 0 0 0 4px #16a34a'; 
             }
         }
+        updateSelectedMembersUI(); // Update avatars immediately
+    }
+
+    // 🌟 NEW: Draws avatars in the Selected Team box
+    function updateSelectedMembersUI() {
+        const container = document.getElementById('selectedTeamAvatars');
+        
+        if (selectedEmployeesSet.size === 0) {
+            container.innerHTML = 'No members selected yet.';
+            return;
+        }
+
+        let html = '';
+        selectedEmployeesSet.forEach(id => {
+            const emp = employeeDataMap[id];
+            if (emp) {
+                html += `
+                    <div class="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full pr-4 pl-1.5 py-1.5 shadow-sm">
+                        <div class="w-6 h-6 rounded-full bg-[#111] text-white flex items-center justify-center font-bold text-[9px]">
+                            ${emp.initials}
+                        </div>
+                        <span class="text-[12px] font-bold text-gray-800">${emp.name}</span>
+                    </div>
+                `;
+            }
+        });
+        container.innerHTML = html;
     }
 
     function submitTeamAssignment() {
@@ -260,16 +312,25 @@
             return;
         }
 
+        const deadline = document.getElementById('modalDeadlineDate').value;
+        if (!deadline) {
+            alert("Please select a Project Deadline (Due Date) before saving.");
+            return;
+        }
+
         const btn = document.getElementById('sendNotificationsBtn');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         btn.disabled = true;
 
-        const deadline = document.getElementById('modalDeadlineDate').value;
+        const startTime = document.getElementById('modalStartTime').value;
+        const endTime = document.getElementById('modalEndTime').value;
 
         const data = {
             project_id: currentProjectId,
             employee_ids: Array.from(selectedEmployeesSet),
-            deadline_date: deadline // Send deadline to backend just in case you need to save it later
+            deadline_date: deadline,
+            start_time: startTime,
+            end_time: endTime      
         };
 
         fetch('/sessions/api/save/', {
@@ -286,13 +347,13 @@
                 location.reload();
             } else {
                 alert("Error saving assignment: " + result.message);
-                btn.innerHTML = '<i class="far fa-paper-plane"></i> Send Notifications';
+                btn.innerHTML = '<i class="far fa-save"></i> Save & Send Notifications';
                 btn.disabled = false;
             }
         })
         .catch(err => {
             console.error("Error submitting assignment:", err);
-            btn.innerHTML = '<i class="far fa-paper-plane"></i> Send Notifications';
+            btn.innerHTML = '<i class="far fa-save"></i> Save & Send Notifications';
             btn.disabled = false;
         });
     }

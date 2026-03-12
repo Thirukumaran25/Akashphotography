@@ -352,57 +352,6 @@ def create_lead(request):
 
 
 @csrf_exempt
-def save_package(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        package_id = data.get("package_id")
-        name = data["package_name"]
-        services = data["services"]
-
-        if package_id:
-            package = Package.objects.get(id=package_id)
-            package.package_name = name
-            package.save()
-            package.services.all().delete()
-        else:
-            package = Package.objects.create(package_name=name)
-
-        for s in services:
-            ps = PackageService.objects.create(
-                package=package,
-                service_name=s["service_name"],
-                qty=s["qty"],
-                cost=s["cost"],
-            )
-            if "person_ids" in s:
-                ps.persons.set(Person.objects.filter(id__in=s["person_ids"]))
-            if "deliverable_ids" in s:
-                ps.deliverables.set(Deliverable.objects.filter(id__in=s["deliverable_ids"]))
-
-        return JsonResponse({"status": "success", "id": package.id, "name": package.package_name})
-
-
-def get_package(request, pk):
-    package = Package.objects.get(id=pk)
-    services = []
-    for s in package.services.all():
-        services.append({
-            "service_name": s.service_name,
-            "qty": s.qty,
-            "cost": s.cost,
-            "deliverables": [
-                {"id": d.id, "title": d.title, "price": float(d.price)}
-                for d in s.deliverables.all()
-            ],
-            "persons": [
-                {"id": p.id, "name": p.name, "price": float(p.price)}
-                for p in s.persons.all()
-            ],
-        })
-    return JsonResponse({"name": package.package_name, "services": services})
-
-
-@csrf_exempt
 def delete_package(request, pk):
     if request.method == "POST":
         try:
@@ -411,6 +360,155 @@ def delete_package(request, pk):
         except Package.DoesNotExist:
             return JsonResponse({"status": "error", "message": "Package not found"})
 
+def get_task_templates(request):
+    templates = TaskList.objects.select_related('category').all()
+    data = [
+        {
+            "id":        t.id,
+            "phase":     t.phase,                                    
+            "category":  t.category.name if t.category else "General",
+            "task_name": t.task_name,
+        }
+        for t in templates
+    ]
+    return JsonResponse({"templates": data})
+
+def save_task_template(request):
+    """
+    POST /save-task-template/
+    Body: { phase, category, task_name }
+    Creates TaskCategory if it doesn't exist, then creates TaskList.
+    Returns: { id, phase, category, task_name }
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error"}, status=400)
+ 
+    data      = json.loads(request.body)
+    phase     = data.get("phase", "PRE")
+    cat_name  = (data.get("category") or "General").strip()
+    task_name = (data.get("task_name") or "").strip()
+ 
+    if not task_name:
+        return JsonResponse({"status": "error", "message": "task_name required"}, status=400)
+ 
+    category, _ = TaskCategory.objects.get_or_create(name=cat_name)
+    task = TaskList.objects.create(
+        phase     = phase,
+        category  = category,
+        task_name = task_name,
+    )
+    return JsonResponse({
+        "id":        task.id,
+        "phase":     task.phase,
+        "category":  category.name,
+        "task_name": task.task_name,
+    })
+ 
+def save_task_category(request):
+    """
+    POST /save-task-category/
+    Body: { name }
+    Returns: { id, name }
+    """
+    if request.method != "POST":
+        return JsonResponse({"status": "error"}, status=400)
+ 
+    data = json.loads(request.body)
+    name = (data.get("name") or "").strip()
+    if not name:
+        return JsonResponse({"status": "error", "message": "name required"}, status=400)
+ 
+    cat, _ = TaskCategory.objects.get_or_create(name=name)
+    return JsonResponse({"id": cat.id, "name": cat.name})
+ 
+def save_package(request):
+    if request.method != "POST":
+        return JsonResponse({"status": "error"}, status=400)
+ 
+    data         = json.loads(request.body)
+    package_id   = data.get("package_id")
+    package_name = data.get("package_name", "").strip()
+    services     = data.get("services", [])
+    task_ids_map = data.get("task_template_ids", {}) 
+ 
+    if not package_name:
+        return JsonResponse({"status": "error", "message": "Package name required"}, status=400)
+ 
+    # ── Create or update package ──────────────────────────────────────────────
+    if package_id:
+        pkg = get_object_or_404(Package, id=package_id)
+        pkg.package_name = package_name
+        pkg.save()
+        pkg.services.all().delete()
+    else:
+        pkg = Package.objects.create(package_name=package_name)
+ 
+    # ── Save services (unchanged logic) ──────────────────────────────────────
+    for s in services:
+        svc = PackageService.objects.create(
+            package      = pkg,
+            service_name = s["service_name"],
+            qty          = int(s.get("qty", 1)),
+            cost         = float(s.get("cost", 0)),
+        )
+        for pid in s.get("person_ids", []):
+            try:
+                svc.persons.add(Person.objects.get(id=pid))
+            except Person.DoesNotExist:
+                pass
+        for did in s.get("deliverable_ids", []):
+            try:
+                svc.deliverables.add(Deliverable.objects.get(id=did))
+            except Deliverable.DoesNotExist:
+                pass
+ 
+    # ── Save task template associations ──────────────────────────────────────
+    pkg.task_templates.clear()
+    for phase_key, ids in task_ids_map.items():
+        for tid in ids:
+            try:
+                pkg.task_templates.add(TaskList.objects.get(id=tid))
+            except TaskList.DoesNotExist:
+                pass
+ 
+    return JsonResponse({"status": "success", "package_id": pkg.id})
+
+def get_package(request, pk=None, package_id=None):
+    """
+    GET /get-package/<id>/
+    Returns package details including task_template_ids for the edit modal.
+    Accepts both ?pk and ?package_id URL kwargs for compatibility.
+    """
+    lookup = pk or package_id
+    pkg = get_object_or_404(Package, id=lookup)
+ 
+    services = []
+    for svc in pkg.services.prefetch_related('persons', 'deliverables').all():
+        services.append({
+            "service_name": svc.service_name,
+            "qty":          svc.qty,
+            "cost":         str(svc.cost),
+            "persons": [
+                {"id": p.id, "name": p.name, "price": str(p.price)}
+                for p in svc.persons.all()
+            ],
+            "deliverables": [
+                {"id": d.id, "title": d.title, "price": str(d.price)}
+                for d in svc.deliverables.all()
+            ],
+        })
+ 
+    task_template_ids = {"PRE": [], "SELECTION": [], "POST": []}
+    for t in pkg.task_templates.select_related('category').all():
+        if t.phase in task_template_ids:
+            task_template_ids[t.phase].append(t.id)
+ 
+    return JsonResponse({
+        "id":                pkg.id,
+        "name":              pkg.package_name,
+        "services":          services,
+        "task_template_ids": task_template_ids,
+    })
 
 def invoice(request):
     all_invoices = Invoice.objects.all().select_related('lead', 'lead__project').order_by('-created_at')
@@ -522,6 +620,8 @@ def save_invoice(request):
                 invoice.due_date = due_date
 
             invoice.save()
+            
+            # Clear old services to rebuild them based on the updated form
             invoice.services.all().delete()
 
             for s_data in data.get("services", []):
@@ -540,12 +640,16 @@ def save_invoice(request):
                 if person_ids:
                     new_service.persons.set(Person.objects.filter(id__in=person_ids))
 
+            if invoice.lead and invoice.lead.project:
+                if invoice.lead.project.status in ['PRE', 'SELECTION', 'POST', 'COMPLETED']:
+                    auto_generate_deliverable_tasks(invoice.lead.project)
+
             return JsonResponse({"status": "success", "invoice_id": invoice.id})
 
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
-
 
 @csrf_exempt
 def generate_invoice_from_lead(request):
@@ -756,16 +860,26 @@ def session_list_view(request):
 def get_project_details_api(request, project_id):
     project = get_object_or_404(ProjectDetail, id=project_id)
 
+    # 🌟 FIX: Find overlapping projects in the SAME MONTH and YEAR
     if project.start_date:
         overlapping_projects = ProjectDetail.objects.filter(
-            start_date=project.start_date
+            start_date__year=project.start_date.year,
+            start_date__month=project.start_date.month
         ).exclude(id=project.id)
     else:
         overlapping_projects = ProjectDetail.objects.none()
 
-    booked_employee_ids = set()
+    booked_employee_details = {}
     for p in overlapping_projects:
-        booked_employee_ids.update(p.assigned_employees.values_list('id', flat=True))
+        date_str = p.start_date.strftime('%d %b, %Y') if p.start_date else 'TBD'
+        booking_info = f"{p.project_name} ({date_str})"
+        
+        for emp_id in p.assigned_employees.values_list('id', flat=True):
+            if emp_id not in booked_employee_details:
+                booked_employee_details[emp_id] = []
+            booked_employee_details[emp_id].append(booking_info)
+
+    assigned_ids = list(project.assigned_employees.values_list('id', flat=True))
 
     availability_data = {}
     teams = Team.objects.prefetch_related('members').all()
@@ -779,15 +893,25 @@ def get_project_details_api(request, project_id):
                 display_name = "Unknown"
 
             initials = "".join([n[0] for n in display_name.split() if n])[:2].upper()
-            is_booked = emp.id in booked_employee_ids
+            
+            # If the employee is in ANY project this month, they are booked
+            is_booked = emp.id in booked_employee_details
+            
+            # Join multiple bookings into a single string with new lines
+            booking_text = " \n".join(booked_employee_details.get(emp.id, []))
 
             team_members.append({
                 'id': emp.id,
                 'name': display_name,
                 'initials': initials,
                 'is_booked': is_booked,
+                'booking_text': booking_text,
             })
         availability_data[team.name] = team_members
+
+    # Format time strings safely
+    start_time_str = project.start_time.strftime('%H:%M') if getattr(project, 'start_time', None) else ''
+    end_time_str = project.end_time.strftime('%H:%M') if getattr(project, 'end_time', None) else ''
 
     response_data = {
         'project': {
@@ -795,8 +919,12 @@ def get_project_details_api(request, project_id):
             'name': project.project_name,
             'address': project.project_address,
             'start_date': project.start_date.strftime('%d/%m/%Y') if project.start_date else '',
+            'end_date': project.end_date.strftime('%Y-%m-%d') if project.end_date else '',
+            'start_time': start_time_str, 
+            'end_time': end_time_str,     
         },
         'availability': availability_data,
+        'assigned_ids': assigned_ids, 
     }
     return JsonResponse(response_data)
 
@@ -804,24 +932,49 @@ def get_project_details_api(request, project_id):
 def auto_generate_deliverable_tasks(project):
     lead = project.lead_set.first()
 
-    if not lead or not lead.package:
-        return
-    
-    service_names = list(lead.package.services.values_list('service_name', flat=True))
-    
-    if project.tasks.filter(phase='POST', category__in=service_names).exists():
+    if not lead:
         return
 
-    for service in lead.package.services.all():
-        for d in service.deliverables.all():
-            Task.objects.create(
+    # 1. Fetch all Master Task Templates attached to the Package (PRE, SELECTION, POST)
+    if lead.package:
+        # Loop through all the templates you selected for this package in the admin panel
+        for template in lead.package.task_templates.all():
+            cat_name = template.category.name if template.category else "General"
+            
+            # get_or_create ensures we never duplicate tasks if this runs twice
+            Task.objects.get_or_create(
                 project=project,
-                task_name=d.title,
-                phase='POST',
-                category=service.service_name, 
-                status='ON_HOLD'
+                task_name=template.task_name,
+                phase=template.phase,
+                category=cat_name,
+                defaults={'status': 'ON_HOLD'}
             )
 
+    # 2. Fetch specific Deliverables for POST PRODUCTION
+    # We prioritize the final Invoice services, but fallback to the base Package services if no invoice exists yet.
+    invoice = Invoice.objects.filter(lead=lead).first()
+
+    if invoice:
+        # Generate from Invoice Services
+        for service in invoice.services.all():
+            for d in service.deliverables.all():
+                Task.objects.get_or_create(
+                    project=project,
+                    task_name=d.title,
+                    phase='POST',
+                    category=service.service_name, 
+                    defaults={'status': 'ON_HOLD'}
+                )
+    elif lead.package:
+        for service in lead.package.services.all():
+            for d in service.deliverables.all():
+                Task.objects.get_or_create(
+                    project=project,
+                    task_name=d.title,
+                    phase='POST',
+                    category=service.service_name, 
+                    defaults={'status': 'ON_HOLD'}
+                )
 
 @csrf_exempt
 def save_team_assignment_api(request):
@@ -829,14 +982,31 @@ def save_team_assignment_api(request):
         data = json.loads(request.body)
         project_id = data.get('project_id')
         selected_employee_ids = data.get('employee_ids', [])
+        deadline_date = data.get('deadline_date')
+        start_time = data.get('start_time')
+        end_time = data.get('end_time')
 
         project = get_object_or_404(ProjectDetail, id=project_id)
         project.assigned_employees.set(selected_employee_ids)
 
+        if deadline_date:
+            try:
+                project.end_date = datetime.strptime(deadline_date, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        else:
+            project.end_date = None
+                
+        project.start_time = start_time if start_time else None
+        project.end_time = end_time if end_time else None
+
         if project.status == 'ASSIGNED':
             project.status = 'PRE'
-            project.save()
-            auto_generate_deliverable_tasks(project)
+            
+        project.save()
+        auto_generate_deliverable_tasks(project)
+        if project.end_date:
+            project.tasks.all().update(due_date=project.end_date)
 
         return JsonResponse({'status': 'success', 'message': 'Team assigned successfully.'})
 
@@ -1223,10 +1393,6 @@ def employee_projects(request):
 
 
 def employee_project_tasks(request, project_id):
-    """
-    FIX: employee initials passed to context for avatar display.
-    FIX: my_tasks includes both OPEN and ON_HOLD so employees see all their tasks.
-    """
     project = get_object_or_404(ProjectDetail, id=project_id)
 
     try:
@@ -1238,27 +1404,39 @@ def employee_project_tasks(request, project_id):
             display_name = request.user.get_full_name() or request.user.username
         initials = "".join([n[0] for n in display_name.split() if n])[:2].upper()
 
-        # FIX: show all tasks assigned to employee (not just OPEN ones)
         my_tasks = project.tasks.filter(assigned_to=employee)
         other_tasks = project.tasks.exclude(assigned_to=employee)
+
+        grouped_my_tasks = {}
+        for task in my_tasks:
+            phase_name = task.get_phase_display()
+            cat_name = task.category if task.category else "General"
+            
+            if phase_name not in grouped_my_tasks:
+                grouped_my_tasks[phase_name] = {}
+            if cat_name not in grouped_my_tasks[phase_name]:
+                grouped_my_tasks[phase_name][cat_name] = []
+                
+            grouped_my_tasks[phase_name][cat_name].append(task)
 
     except AttributeError:
         employee = None
         display_name = ""
         initials = ""
         my_tasks = []
+        grouped_my_tasks = {}
         other_tasks = project.tasks.all()
 
     context = {
         'project': project,
-        'my_tasks': my_tasks,
+        'my_tasks': my_tasks, 
+        'grouped_my_tasks': grouped_my_tasks,
         'other_tasks': other_tasks,
         'employee': employee,
         'display_name': display_name,
         'initials': initials,
     }
     return render(request, 'teams/employee_project_tasks.html', context)
-
 
 @csrf_exempt
 def mark_task_complete(request, task_id):
