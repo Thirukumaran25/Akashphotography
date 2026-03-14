@@ -4,8 +4,6 @@ from decimal import Decimal
 from django.utils import timezone
 from django.contrib.auth.models import User
 
-# Create your models here.
-
 
 class ProjectDetail(models.Model):
     STATUS_CHOICES = [
@@ -19,7 +17,7 @@ class ProjectDetail(models.Model):
     mobile_number = models.CharField(max_length=15)
     project_address = models.TextField()
     start_date = models.DateField()
-    end_date = models.DateField( blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ASSIGNED')
     assigned_employees = models.ManyToManyField('Employee', blank=True, related_name='assigned_projects')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,7 +33,6 @@ class ProjectDetail(models.Model):
         if self.start_date and self.end_date:
             if self.end_date < self.start_date:
                 raise ValidationError("The end date cannot be earlier than the start date.")
-            
 
 
 class Team(models.Model):
@@ -48,13 +45,7 @@ class Team(models.Model):
 
 class Employee(models.Model):
     name = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='employee_profile')
-    team = models.ForeignKey(
-        Team, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='members'
-    )
+    team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
     date_joined = models.DateField(auto_now_add=True)
 
     class Meta:
@@ -73,6 +64,7 @@ class Service(models.Model):
     def __str__(self):
         return self.service_name
     
+    
 class Deliverable(models.Model):
     title = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -81,15 +73,16 @@ class Deliverable(models.Model):
         return f"{self.title} (₹{self.price})"
 
 
+class SubService(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.name} (₹{self.price})"
+
+
 class Package(models.Model):
     package_name = models.CharField(max_length=200)
-    task_templates = models.ManyToManyField(
-        'TaskList',
-        blank=True,
-        related_name='packages',
-        help_text="Task templates pre-selected for this package"
-    )
-
     @property
     def total_cost(self):
         total = 0.0
@@ -101,18 +94,10 @@ class Package(models.Model):
         return self.package_name
 
 
-class Person(models.Model):
-    name = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
-
-    def __str__(self):
-        return f"{self.name} (₹{self.price})"
-
 class PackageService(models.Model):
     package = models.ForeignKey(Package, on_delete=models.CASCADE, related_name="services")
     service_name = models.CharField(max_length=255)
-    persons = models.ManyToManyField('Person', blank=True)
-    deliverables = models.ManyToManyField(Deliverable, blank=True)
+    sub_services = models.ManyToManyField(SubService, blank=True)
     qty = models.IntegerField(default=1)
     cost = models.FloatField(default=0)
 
@@ -125,7 +110,6 @@ class Lead(models.Model):
         ('Direct', 'Direct'),
         ('Other', 'Other'),
     ]
-
     STATUS_CHOICES = [
         ('NEW', 'NEW'),
         ('FOLLOW_UP', 'FOLLOW UP'),
@@ -137,23 +121,11 @@ class Lead(models.Model):
     mobile_number = models.CharField(max_length=15)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    lead_source = models.CharField(
-        max_length=50, 
-        choices=LEAD_SOURCE_CHOICES, 
-        default='Other',
-        blank=True,
-        null=True
-    )
-    package = models.ForeignKey(
-        'Package',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
-    )
+    lead_source = models.CharField(max_length=50, choices=LEAD_SOURCE_CHOICES, default='Other', blank=True, null=True)
+    packages = models.ManyToManyField(Package, blank=True, related_name='leads')
+    deliverables = models.ManyToManyField(Deliverable, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='NEW')
-    package = models.ForeignKey(Package, on_delete=models.SET_NULL, null=True, blank=True)
     project = models.ForeignKey(ProjectDetail, on_delete=models.SET_NULL, null=True, blank=True)
-    
     follow_up_date = models.DateField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -164,13 +136,22 @@ class Lead(models.Model):
         verbose_name = 'Lead'
         verbose_name_plural = 'Leads'
 
+    @property
+    def total_cost(self):
+        total = 0.0
+        for pkg in self.packages.all():
+            total += float(pkg.total_cost)
+        for d in self.deliverables.all():
+            total += float(d.price)
+        for a in self.additional_services.all():
+            total += float(a.price) * int(a.qty)
+        return total
+
     def __str__(self):
         return f"{self.name} - {self.mobile_number}"
 
 
-
 class TaskCategory(models.Model):
-    """ Allows you to select existing categories or add new ones on the fly """
     name = models.CharField(max_length=255, unique=True)
 
     class Meta:
@@ -183,32 +164,15 @@ class TaskCategory(models.Model):
 
 
 class TaskList(models.Model):
-    """ Master list of all possible tasks that can be assigned to projects """
-    
     PHASE_CHOICES = [
         ('PRE', 'PRE PRODUCTION'),
         ('SELECTION', 'SELECTION'),
         ('POST', 'POST PRODUCTION'),
     ]
 
-    phase = models.CharField(
-        max_length=20, 
-        choices=PHASE_CHOICES, 
-        default='PRE'
-    )
-
-    category = models.ForeignKey(
-        TaskCategory, 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True,
-        help_text="Select a category, click '+' to add a new one, or leave blank to place directly under the Phase."
-    )
-    
-    task_name = models.CharField(
-        max_length=255,
-        help_text="e.g., 'Create Excel Sheet', 'Photo Gallery Link', etc."
-    )
+    phase = models.CharField(max_length=20, choices=PHASE_CHOICES, default='PRE')
+    category = models.ForeignKey(TaskCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    task_name = models.CharField(max_length=255)
 
     class Meta:
         ordering = ['phase', 'category__name', 'task_name']
@@ -216,7 +180,7 @@ class TaskList(models.Model):
         verbose_name_plural = "Task List"
 
     def __str__(self):
-        category_display = self.category.name if self.category else "General (No Category)"
+        category_display = self.category.name if self.category else "General"
         return f"[{self.get_phase_display()}] {category_display} - {self.task_name}"
 
 class Task(models.Model):
@@ -225,42 +189,19 @@ class Task(models.Model):
         ('SELECTION', 'SELECTION'),
         ('POST', 'POST PRODUCTION'),
     ]
-    
     STATUS_CHOICES = [
         ('OPEN', 'Open'),
         ('ON_HOLD', 'On Hold'),
         ('COMPLETED', 'Completed'),
     ]
 
-    project = models.ForeignKey(
-        'ProjectDetail', 
-        on_delete=models.CASCADE, 
-        related_name='tasks'
-    )
-    phase = models.CharField(
-        max_length=20, 
-        choices=PHASE_CHOICES, 
-        default='PRE'
-    )
-    category = models.CharField(
-        max_length=255, 
-        help_text="e.g., 'Planning & Wedding Coordination' or 'Pre Wedding Shoot'"
-    )
+    project = models.ForeignKey('ProjectDetail', on_delete=models.CASCADE, related_name='tasks')
+    phase = models.CharField(max_length=20, choices=PHASE_CHOICES, default='PRE')
+    category = models.CharField(max_length=255)
     task_name = models.CharField(max_length=255)
-    
-    assigned_to = models.ForeignKey(
-        'Employee', 
-        on_delete=models.SET_NULL, 
-        null=True, 
-        blank=True, 
-        related_name='assigned_tasks'
-    )
+    assigned_to = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     due_date = models.DateField(null=True, blank=True)
-    status = models.CharField(
-        max_length=20, 
-        choices=STATUS_CHOICES, 
-        default='ON_HOLD'
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ON_HOLD')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -275,7 +216,6 @@ class Task(models.Model):
         return f"{self.task_name} ({emp_name}) - {self.project.project_name}"
     
 
-
 class Invoice(models.Model):
     class PaymentStatus(models.TextChoices):
         PENDING = 'PENDING', 'Pending'
@@ -283,10 +223,10 @@ class Invoice(models.Model):
         COMPLETED = 'COMPLETED', 'Completed'
 
     lead = models.OneToOneField('Lead', on_delete=models.CASCADE, unique=True, related_name='invoice')
-    invoice_number = models.CharField(max_length=50, unique=True, help_text="e.g., AK-200")
+    invoice_number = models.CharField(max_length=50, unique=True)
     due_date = models.DateField(null=True, blank=True)
-    pre_paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00, help_text="Deposits/Pre-payments")
-    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00, help_text="e.g., 5.00 for 5%")
+    pre_paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    tax_rate = models.DecimalField(max_digits=5, decimal_places=2, default=0.00)
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
 
     notes = models.TextField(blank=True, default="Thank you for your business.")
@@ -317,25 +257,23 @@ class Invoice(models.Model):
 
 
 class InvoiceService(models.Model):
-    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='services')
-    service_name = models.CharField(max_length=200, help_text="e.g., Engagement, Drone")
+    invoice = models.ForeignKey(Invoice, related_name='services', on_delete=models.CASCADE)
+    service_name = models.CharField(max_length=255)
     qty = models.IntegerField(default=1)
-    persons = models.ManyToManyField('Person', blank=True)
-    price = models.DecimalField(max_digits=12, decimal_places=2) 
-    deliverables = models.ManyToManyField('Deliverable', blank=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
+    deliverables = models.ManyToManyField(Deliverable, blank=True)
+    sub_services = models.ManyToManyField(SubService, blank=True) 
+
     @property
     def total_amount(self):
-        return float(self.price) * self.qty
-
-    def __str__(self):
-        return f"{self.service_name} on Invoice {self.invoice.invoice_number}"
+        return self.qty * self.price
 
 
 class PaymentRecord(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    payment_method = models.CharField(max_length=100, help_text="e.g., Bank Transfer, GPay")
+    payment_method = models.CharField(max_length=100)
     date = models.DateField(default=timezone.now)
     reference = models.CharField(max_length=200, blank=True)
 
@@ -343,3 +281,18 @@ class PaymentRecord(models.Model):
         return f"Payment ₹{self.amount} for Invoice {self.invoice.invoice_number}"
     
 
+class AdditionalService(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.name} (₹{self.price})"
+    
+class LeadAdditionalService(models.Model):
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='additional_services')
+    name = models.CharField(max_length=255)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
+    qty = models.IntegerField(default=1)
+
+    def __str__(self):
+        return f"{self.qty}x {self.name} for {self.lead.name}"

@@ -12,8 +12,8 @@
     body { font-family: "Inter", sans-serif; background-color: #fafafa; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    .clean-input { border: 1px solid #eee; border-radius: 6px; padding: 8px 12px; outline: none; transition: all 0.2s; width: 100%; }
-    .clean-input:focus { border-color: #A9323D; box-shadow: 0 0 0 2px rgba(169, 50, 61, 0.1); }
+    .clean-input { border: 1px solid #eee; border-radius: 6px; padding: 10px 14px; outline: none; transition: all 0.2s; width: 100%; background: white; }
+    .clean-input:focus-within { border-color: #A9323D; box-shadow: 0 0 0 2px rgba(169, 50, 61, 0.1); }
 </style>
 
 <div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen">
@@ -27,7 +27,6 @@
             {% csrf_token %}
             <input type="hidden" name="invoice_id" value="{{ invoice.id }}">
 
-            <!-- Bill To -->
             <div class="space-y-6">
                 <div class="flex justify-between items-center mb-5">
                     <h2 class="text-[20px] font-bold text-black m-0">Bill To</h2>
@@ -44,109 +43,104 @@
                         {{ lead.name.split.0|slice:":1" }}{{ lead.name.split.1|slice:":1" }}
                     </div>
                     <div class="leading-tight">
-                        <p class="font-bold text-[15px] text-black">
-                            {{ lead.name }} &ndash; {{ lead.project.project_name }}
+                        <p class="font-bold text-[15px] text-black" id="uiClientName">
+                            {{ lead.name }}
                         </p>
                         <input type="email" name="client_email" placeholder="client@email.com" value="{{ lead.email|default:'' }}" class="border-none p-0 mt-1 focus:ring-0 text-[13px] text-gray-500 w-full outline-none bg-transparent">
                     </div>
                 </div>
             </div>
 
-            <!-- Services -->
             <div class="space-y-4">
                 <h3 class="text-[18px] font-bold text-black mb-4">Services</h3>
                 
-                <div class="bg-[#fafafa] rounded-xl p-4 lg:p-4 border border-gray-100">
-                    <!-- Header -->
+                <div class="bg-[#fafafa] rounded-xl p-5 border border-gray-100">
                     <div class="grid grid-cols-12 gap-4 text-[12px] font-bold text-gray-500 mb-4 uppercase tracking-wide px-2">
-                        <div class="col-span-4">SERVICE</div>
-                        <div class="col-span-3">TEAM</div>
-                        <div class="col-span-1 text-center">QTY</div>
-                        <div class="col-span-2">PRICE</div>
+                        <div class="col-span-6">SERVICE</div>
+                        <div class="col-span-2 text-center">QTY</div>
+                        <div class="col-span-2 text-center">PRICE</div>
                         <div class="col-span-2 text-right">AMOUNT</div>
                     </div>
 
-                    <div id="invoiceServiceRowsContainer" class="space-y-3">
+                    <div id="invoiceServiceRowsContainer">
                         {% for service in services %}
-                        <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group" data-service-id="{{ service.id }}">
+                        <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group mb-3" data-service-id="{{ service.id }}">
                             <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
 
-                            <!-- Service + Deliverables -->
-                            <div class="col-span-4 pr-4">
-                                <input type="text" name="service_name[]" value="{{ service.service_name }}" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="Service Name">
-                                <div class="invoice-deliverables-cell">
-                                    <div class="deliverables-list flex flex-col gap-1 ml-2">
-                                        {% for d in service.deliverables.all %}
-                                        <div class="deliverable-item flex justify-between items-center text-[12px] text-gray-600" data-id="{{ d.id }}" data-price="{{ d.price }}">
-                                            <span class="flex items-center gap-2"><span class="text-[8px] text-gray-400">•</span> {{ d.title }}</span>
-                                            <div class="flex items-center gap-2">
-                                                <span class="text-gray-400">₹{{ d.price|floatformat:0 }}</span>
-                                                <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
-                                            </div>
-                                        </div>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- ✅ Persons — from InvoiceService.persons snapshot -->
-                            <div class="col-span-3">
-                                <div class="persons-list flex flex-col gap-1">
-                                    {% for p in service.persons.all %}
-                                    <div class="person-item flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-0.5 text-[10px] font-bold text-blue-700"
-                                         data-id="{{ p.id }}" data-price="{{ p.price }}">
-                                        <span class="truncate mr-1">{{ p.name }}</span>
-                                        <div class="flex items-center gap-1 shrink-0">
-                                            <span class="text-blue-400">₹{{ p.price|floatformat:0 }}</span>
-                                            <button type="button" onclick="removeInvoicePerson(this)" class="text-red-400 hover:text-red-600 ml-0.5"><i class="fas fa-times text-[9px]"></i></button>
+                            <div class="col-span-6 pr-4">
+                                <input type="text" name="service_name[]" value="{{ service.service_name }}" class="font-bold text-[16px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-3 bg-transparent" placeholder="Service Name">
+                                
+                                <div class="sub-services-list flex flex-col gap-1.5 ml-3 mb-1">
+                                    {% for sub in service.sub_services.all %}
+                                    <div class="sub-service-item flex items-center text-[13px] text-gray-600 font-medium" data-id="{{ sub.id }}" data-price="{{ sub.price }}">
+                                        <span class="text-gray-400 mr-2 text-[10px]">•</span>
+                                        <span class="sub-name flex-1">{{ sub.name }}</span>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                                            <span class="text-gray-400 text-[11px]">₹{{ sub.price|floatformat:0 }}</span>
+                                            <button type="button" onclick="removeInvoiceSubService(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times text-[10px]"></i></button>
                                         </div>
                                     </div>
-                                    {% empty %}
-                                    <span class="text-gray-300 text-[10px] italic no-persons-label">No persons</span>
                                     {% endfor %}
                                 </div>
-                                <button type="button" onclick="openPersonPickerFor(this)" class="mt-1.5 text-blue-500 hover:text-blue-700 text-[10px] font-bold flex items-center gap-1">
-                                    <i class="fas fa-plus text-[8px]"></i> Add Person
-                                </button>
-                            </div>
 
-                            <!-- Qty -->
-                            <div class="col-span-1 flex justify-center pt-0.5">
-                                <input type="number" name="qty[]" value="{{ service.qty }}" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
-                            </div>
+                                <div class="deliverables-list flex flex-col gap-1.5 ml-3 mb-3">
+                                    {% for d in service.deliverables.all %}
+                                    <div class="deliverable-item flex items-center text-[13px] text-gray-600 font-medium" data-id="{{ d.id }}" data-price="{{ d.price }}">
+                                        <span class="text-gray-400 mr-2 text-[10px]">•</span>
+                                        <span class="d-title flex-1">{{ d.title }}</span>
+                                        <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                                            <span class="text-gray-400 text-[11px]">₹{{ d.price|floatformat:0 }}</span>
+                                            <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times text-[10px]"></i></button>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
 
-                            <!-- Price -->
-                            <div class="col-span-2 pt-0.5">
-                                <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
-                                    <span class="text-gray-400">₹</span>
-                                    <input type="number" name="price[]" value="{{ service.price|floatformat:0 }}" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
+                                <div class="flex gap-5 mt-3 opacity-0 group-hover:opacity-100 transition">
+                                    <button type="button" onclick="openSubServicePickerFor(this)" class="text-blue-500 hover:text-blue-700 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                                        <i class="fas fa-plus text-[10px]"></i> Add Included Service
+                                    </button>
+                                    <button type="button" onclick="launchDeliverableDropdownFor(this)" class="text-[#A9323D] hover:text-red-800 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                                        <i class="fas fa-layer-group text-[10px]"></i> Add Deliverable
+                                    </button>
                                 </div>
                             </div>
 
-                            <!-- Amount -->
-                            <div class="col-span-2 text-right pt-2.5">
-                                <div class="row-subtotal font-bold text-[15px] text-gray-900">₹{{ service.total_amount|floatformat:0 }}</div>
+                            <div class="col-span-2 flex justify-center pt-1">
+                                <input type="number" name="qty[]" value="{{ service.qty }}" class="qty clean-input w-24 text-center text-[14px] font-medium" min="1" oninput="calculateTotals()">
+                            </div>
+
+                            <div class="col-span-2 flex justify-center pt-1">
+                                <div class="flex items-center gap-1 clean-input w-36 text-[14px] font-medium">
+                                    <span class="text-gray-400">₹</span>
+                                    <input type="number" name="price[]" value="{{ service.price|floatformat:0 }}" class="price border-none p-0 focus:ring-0 outline-none w-full bg-transparent" step="100" placeholder="0" oninput="calculateTotals()">
+                                </div>
+                            </div>
+
+                            <div class="col-span-2 text-right pt-3.5">
+                                <div class="row-subtotal font-black text-[16px] text-gray-900">₹{{ service.total_amount|floatformat:0 }}</div>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <div class="mt-4 px-2 flex gap-6">
-                        <button type="button" onclick="addNewServiceRow()" class="text-[#A9323D] font-bold text-[13px] flex items-center gap-1.5 hover:underline tracking-wide uppercase">
-                            <i class="fa-regular fa-circle-plus"></i> ADD ITEM
+                    <div class="mt-3 px-2 flex gap-4">
+                        <button type="button" onclick="addNewServiceRow()" class="text-blue-600 bg-blue-50 px-5 py-2.5 rounded-lg font-bold text-[13px] flex items-center gap-1.5 hover:bg-blue-600 hover:text-white transition shadow-sm tracking-wide">
+                            <i class="fas fa-plus"></i> Add Blank Row
                         </button>
-                        <button type="button" onclick="launchDeliverableDropdown()" class="text-blue-600 font-bold text-[13px] flex items-center gap-1.5 hover:underline tracking-wide uppercase">
-                            <i class="fa-solid fa-layer-group"></i> ADD DELIVERABLE
+                        <button type="button" onclick="openAdditionalServiceModal()" class="text-[#A9323D] bg-[#FDF2F4] px-5 py-2.5 rounded-lg font-bold text-[13px] flex items-center gap-1.5 hover:bg-[#A9323D] hover:text-white transition shadow-sm tracking-wide">
+                            <i class="fas fa-puzzle-piece"></i> Add Additional Service
                         </button>
                     </div>
 
-                    <!-- Totals -->
                     <div class="flex justify-end mt-10 border-t border-gray-200 pt-8">
-                        <div class="w-full max-w-[340px] space-y-4">
-                            <div class="flex justify-between font-black items-center text-[20px] text-gray-800 ">
-                                <p>Total</p>
-                                <p id="invoiceSubtotal" class="font-bold text-black">₹ {{ subtotal|floatformat:0 }}</p>
+                        <div class="w-full max-w-[360px] space-y-3">
+                            
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium mb-2">
+                                <p>SubTotal</p>
+                                <p id="invoiceServiceTotal" class="font-bold text-black">₹ 0</p>
                             </div>
+
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Discount</p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
@@ -154,6 +148,7 @@
                                     <input type="number" name="discount_amount" value="{{ invoice.discount_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
                                 </div>
                             </div>
+                            
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
                                 <p>Tax Rate</p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
@@ -161,27 +156,39 @@
                                     <span class="text-gray-400">%</span>
                                 </div>
                             </div>
+                            
                             <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
-                                <p>Tax Amount</p>
-                                <p id="invoiceTaxAmount" class="font-bold text-black">₹ {{ tax_amount|floatformat:0 }}</p>
+                                <p>Tax</p>
+                                <p id="invoiceTaxAmount" class="font-bold text-black">₹ 0</p>
                             </div>
-                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
-                                <p>Pre Paid Amount</p>
+
+                            <div class="flex justify-between font-black items-center text-[18px] text-gray-900 border-t border-gray-200 pt-3 mt-2">
+                                <p>Total</p>
+                                <p id="invoiceSubtotal">₹ 0</p>
+                            </div>
+
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium pt-2">
+                                <p>Pre Paid </p>
                                 <div class="flex items-center gap-1 border border-gray-200 rounded py-1 px-2 shadow-sm bg-white font-bold text-gray-800 text-[13px] w-32 focus-within:border-gray-400">
                                     <span class="text-gray-400">₹</span>
                                     <input type="number" name="pre_paid_amount" value="{{ invoice.pre_paid_amount|default:0|floatformat:0 }}" class="border-none p-0 focus:ring-0 outline-none w-full text-right" oninput="calculateTotals()">
                                 </div>
                             </div>
-                            <div class="border-t border-gray-300 pt-4 flex justify-between font-black text-[16px] text-black">
-                                <p>Outstanding Balance</p>
-                                <p id="invoiceGrandTotal">₹ {{ grand_total|floatformat:0 }}</p>
+
+                            <div class="flex justify-between items-center text-[14px] text-gray-800 font-medium">
+                                <p>Payments Made</p>
+                                <p id="invoicePaymentsMade" class="font-bold text-red-600">(-) ₹ 0</p>
+                            </div>
+
+                            <div class="border-t border-gray-300 pt-4 flex justify-between font-black text-[20px] text-[#A9323D]">
+                                <p>Balance</p>
+                                <p id="invoiceBalanceDue">₹ 0</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Payments -->
             <div class="space-y-4 pt-4 border-t border-gray-100">
                 <div class="flex justify-between items-center">
                     <h3 class="text-[18px] font-bold text-black">Payments</h3>
@@ -203,7 +210,7 @@
                         <tbody class="divide-y divide-gray-100">
                             {% for payment in invoice.payments.all %}
                             <tr class="hover:bg-gray-50 transition">
-                                <td class="px-5 py-3 text-gray-800 font-medium">{{ payment.date|date:"M d, Y" }}</td>
+                                <td class="px-5 py-3 text-gray-800 font-medium">{{ payment.date|date:"d/m/Y" }}</td>
                                 <td class="px-5 py-3 text-gray-600">{{ payment.payment_method }}</td>
                                 <td class="px-5 py-3 text-gray-500">{{ payment.reference|default:"-" }}</td>
                                 <td class="px-5 py-3 font-bold text-gray-900 text-right text-[14px] payment-amount-val">₹ {{ payment.amount|floatformat:0 }}</td>
@@ -219,7 +226,6 @@
                 {% endif %}
             </div>
 
-            <!-- Notes + Due Date -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="space-y-3">
                     <h3 class="text-[15px] font-bold text-black">Notes</h3>
@@ -228,13 +234,16 @@
                 <div class="space-y-3 max-w-sm ml-auto w-full">
                     <h3 class="text-[15px] font-bold text-black">Due Date</h3>
                     <div class="border border-gray-200 rounded-lg overflow-hidden">
-                        <div class="bg-white p-3 text-[13px] font-bold text-gray-800 border-b border-gray-200">Payment Due</div>
-                        <input type="date" name="due_date" value="{{ invoice.due_date|date:'Y-m-d' }}" class="w-full p-3 text-[13px] font-medium text-gray-600 outline-none bg-white">
+                        <div class="bg-white p-3 text-[13px] font-bold text-gray-800 border-b border-gray-200">Invoice Date</div>
+                        <input type="date" id="uiInvoiceDate" name="due_date" value="{{ invoice.due_date|date:'Y-m-d' }}" class="w-full p-3 text-[13px] font-medium text-gray-600 outline-none bg-white">
                     </div>
                 </div>
             </div>
 
-            <div class="pt-4 flex justify-end">
+            <div class="pt-4 flex justify-between items-center border-t border-gray-200 mt-8">
+                <button type="button" id="btnDownloadPDF" onclick="generateInvoicePDF()" class="px-6 py-3 bg-gray-800 text-white font-bold rounded text-[13px] hover:bg-black transition tracking-wide shadow-md uppercase flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Download PDF
+                </button>
                 <button type="submit" class="px-8 py-3 bg-[#A9323D] text-white font-bold rounded text-[13px] hover:bg-red-800 transition tracking-wide shadow-md uppercase">
                     Save Invoice
                 </button>
@@ -243,7 +252,25 @@
     </div>
 </div>
 
-<!-- Payment Modal -->
+<div id="additionalServiceModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative" onclick="event.stopPropagation()">
+        <button type="button" onclick="closeAdditionalServiceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+        <h3 class="font-black text-xl mb-2 text-[#A9323D]">Add Additional Service</h3>
+        <p class="text-sm text-gray-500 mb-4">Select a service to add it as a new row in the invoice.</p>
+        <div class="space-y-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
+            {% for svc in available_additional_services %}
+            <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition"
+                 onclick="selectAdditionalService('{{ svc.id }}', '{{ svc.name}}', '{{ svc.price }}')">
+                <p class="font-bold text-sm text-gray-800">{{ svc.name }}</p>
+                <p class="font-black text-[#A9323D] text-[15px]">₹ {{ svc.price|floatformat:0 }}</p>
+            </div>
+            {% empty %}
+            <div class="text-center text-gray-400 text-sm py-4">No additional services found.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
 <div id="paymentModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
         <div class="flex justify-between items-center mb-6">
@@ -292,12 +319,10 @@
     </div>
 </div>
 
-<!-- Deliverable Picker Modal -->
 <div id="deliverableDropdownModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 font-['Inter'] relative" onclick="event.stopPropagation()">
         <button type="button" onclick="closeDeliverableDropdown()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
         <h3 class="font-black text-xl mb-2">Select a Deliverable</h3>
-        <p class="text-sm text-gray-500 mb-4">Clicking an item will add it to the last active service row.</p>
         
         <div class="mb-5 p-3 bg-red-50 rounded-lg border border-red-100 flex gap-2 items-center">
             <input type="text" id="newDelivTitle" placeholder="New deliverable name..." class="flex-1 text-[13px] p-2.5 border border-gray-200 rounded outline-none focus:border-red-300">
@@ -312,7 +337,7 @@
 
         <div id="deliverableListItems" class="space-y-3 max-h-64 overflow-y-auto no-scrollbar pr-1 border-t border-gray-100 pt-3">
             {% for d in available_deliverables %}
-            <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition" onclick="selectSnapshotDeliverable('{{ d.id }}', '{{ d.title|escapejs }}', '{{ d.price }}')">
+            <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-red-50 cursor-pointer transition" onclick="selectSnapshotDeliverable('{{ d.id }}', '{{ d.title }}', '{{ d.price }}')">
                 <p class="font-bold text-sm">{{ d.title }}</p>
                 <p class="font-black text-[#A9323D] text-[15px]">₹ {{ d.price|floatformat:0 }}</p>
             </div>
@@ -321,21 +346,20 @@
     </div>
 </div>
 
-<!-- ✅ Person Picker Modal — rendered from Django, no fetch needed -->
-<div id="personPickerModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+<div id="subServicePickerModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative" onclick="event.stopPropagation()">
-        <button type="button" onclick="closePersonPicker()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
-        <h3 class="font-black text-xl mb-2">Select a Person</h3>
-        <p class="text-sm text-gray-500 mb-4">Person's price will be added to the service cost.</p>
+        <button type="button" onclick="closeSubServicePicker()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+        <h3 class="font-black text-xl mb-2">Select a Service</h3>
+        <p class="text-sm text-gray-500 mb-4">Service's price will be added to the row cost.</p>
         <div class="space-y-2 max-h-72 overflow-y-auto no-scrollbar pr-1">
-            {% for p in available_persons %}
+            {% for p in available_sub_services %}
             <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-blue-50 cursor-pointer transition"
-                 onclick="selectInvoicePerson('{{ p.id }}', '{{ p.name|escapejs }}', '{{ p.price }}')">
+                 onclick="selectInvoiceSubService('{{ p.id }}', '{{ p.name }}', '{{ p.price }}')">
                 <p class="font-bold text-sm text-gray-800">{{ p.name }}</p>
                 <p class="font-black text-blue-600 text-[15px]">₹ {{ p.price|floatformat:0 }}</p>
             </div>
             {% empty %}
-            <div class="text-center text-gray-400 text-sm py-4">No persons found.</div>
+            <div class="text-center text-gray-400 text-sm py-4">No services found.</div>
             {% endfor %}
         </div>
     </div>
@@ -357,52 +381,107 @@ function getCookie(name) {
     return cookieValue;
 }
 
+let activeSubServiceRow = null;
+let activeDeliverableRow = null;
 
-// ✅ PERSON PICKER — no fetch, Django rendered
+document.addEventListener('focusin', function(e) {
+    if (e.target.closest('.invoice-service-row')) {
+        activeDeliverableRow = e.target.closest('.invoice-service-row');
+        activeSubServiceRow = e.target.closest('.invoice-service-row');
+    }
+});
 
-let activePersonRow = null;
-
-function openPersonPickerFor(btn) {
-    activePersonRow = btn.closest('.invoice-service-row');
-    document.getElementById('personPickerModal').classList.remove('hidden');
+// Additional Service Flow
+function openAdditionalServiceModal() {
+    document.getElementById('additionalServiceModal').classList.remove('hidden');
 }
 
-function closePersonPicker() {
-    document.getElementById('personPickerModal').classList.add('hidden');
-    activePersonRow = null;
+function closeAdditionalServiceModal() {
+    document.getElementById('additionalServiceModal').classList.add('hidden');
 }
 
-function selectInvoicePerson(id, name, price) {
-    if (!activePersonRow) return;
+function selectAdditionalService(id, title, price) {
+    const container = document.getElementById("invoiceServiceRowsContainer");
+    const rowHtml = `
+    <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group mb-3">
+        <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+
+        <div class="col-span-6 pr-4">
+            <input type="text" name="service_name[]" value="${title} (Additional)" class="font-bold text-[16px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-3 bg-transparent" placeholder="Service Name">
+            
+            <div class="sub-services-list flex flex-col gap-1.5 ml-3 mb-1"></div>
+            <div class="deliverables-list flex flex-col gap-1.5 ml-3 mb-3"></div>
+
+            <div class="flex gap-5 mt-3 opacity-0 group-hover:opacity-100 transition">
+                <button type="button" onclick="openSubServicePickerFor(this)" class="text-blue-500 hover:text-blue-700 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                    <i class="fas fa-plus text-[10px]"></i> Add Included Service
+                </button>
+                <button type="button" onclick="launchDeliverableDropdownFor(this)" class="text-[#A9323D] hover:text-red-800 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                    <i class="fas fa-layer-group text-[10px]"></i> Add Deliverable
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-2 flex justify-center pt-1">
+            <input type="number" name="qty[]" value="1" class="qty clean-input w-24 text-center text-[14px] font-medium" min="1" oninput="calculateTotals()">
+        </div>
+
+        <div class="col-span-2 flex justify-center pt-1">
+            <div class="flex items-center gap-1 clean-input w-36 text-[14px] font-medium">
+                <span class="text-gray-400">₹</span>
+                <input type="number" name="price[]" value="${parseFloat(price).toFixed(0)}" class="price border-none p-0 focus:ring-0 outline-none w-full bg-transparent" step="100" placeholder="0" oninput="calculateTotals()">
+            </div>
+        </div>
+
+        <div class="col-span-2 text-right pt-3.5">
+            <div class="row-subtotal font-black text-[16px] text-gray-900">₹${parseFloat(price).toFixed(0)}</div>
+        </div>
+    </div>`;
+    
+    container.insertAdjacentHTML('beforeend', rowHtml);
+    calculateTotals();
+    closeAdditionalServiceModal();
+}
+
+function openSubServicePickerFor(btn) {
+    activeSubServiceRow = btn.closest('.invoice-service-row');
+    document.getElementById('subServicePickerModal').classList.remove('hidden');
+}
+
+function closeSubServicePicker() {
+    document.getElementById('subServicePickerModal').classList.add('hidden');
+}
+
+function selectInvoiceSubService(id, name, price) {
+    if (!activeSubServiceRow) return;
     const pPrice = parseFloat(price);
-    const personsList = activePersonRow.querySelector('.persons-list');
-    const noLabel = personsList.querySelector('.no-persons-label');
-    if (noLabel) noLabel.remove();
-    if (personsList.querySelector(`[data-id="${id}"]`)) {
-        closePersonPicker();
+    const subList = activeSubServiceRow.querySelector('.sub-services-list');
+
+    if (subList.querySelector(`[data-id="${id}"]`)) {
+        closeSubServicePicker();
         return;
     }
 
-    personsList.insertAdjacentHTML('beforeend', `
-        <div class="person-item flex items-center justify-between bg-blue-50 border border-blue-100 rounded px-2 py-0.5 text-[10px] font-bold text-blue-700"
-             data-id="${id}" data-price="${pPrice}">
-            <span class="truncate mr-1">${name}</span>
-            <div class="flex items-center gap-1 shrink-0">
-                <span class="text-blue-400">₹${pPrice.toLocaleString('en-IN')}</span>
-                <button type="button" onclick="removeInvoicePerson(this)" class="text-red-400 hover:text-red-600 ml-0.5"><i class="fas fa-times text-[9px]"></i></button>
+    subList.insertAdjacentHTML('beforeend', `
+        <div class="sub-service-item flex items-center text-[13px] text-gray-600 font-medium" data-id="${id}" data-price="${pPrice}">
+            <span class="text-gray-400 mr-2 text-[10px]">•</span>
+            <span class="sub-name flex-1">${name}</span>
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                <span class="text-gray-400 text-[11px]">₹${pPrice.toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeInvoiceSubService(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times text-[10px]"></i></button>
             </div>
         </div>
     `);
 
-    const priceInput = activePersonRow.querySelector('input.price');
+    const priceInput = activeSubServiceRow.querySelector('input.price');
     priceInput.value = (parseFloat(priceInput.value) || 0) + pPrice;
     calculateTotals();
-    closePersonPicker();
+    closeSubServicePicker();
 }
 
-function removeInvoicePerson(btn) {
+function removeInvoiceSubService(btn) {
     const row = btn.closest('.invoice-service-row');
-    const item = btn.closest('.person-item');
+    const item = btn.closest('.sub-service-item');
     const pPrice = parseFloat(item.dataset.price) || 0;
 
     const priceInput = row.querySelector('input.price');
@@ -412,17 +491,138 @@ function removeInvoicePerson(btn) {
     calculateTotals();
 }
 
-// ==========================================
-// PAYMENT MODAL
-// ==========================================
-function openPaymentModal() {
+function addNewServiceRow() {
+    const container = document.getElementById("invoiceServiceRowsContainer");
+    const rowHtml = `
+    <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group mb-3">
+        <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
+
+        <div class="col-span-6 pr-4">
+            <input type="text" name="service_name[]" value="" class="font-bold text-[16px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-3 bg-transparent" placeholder="New Service Name">
+            
+            <div class="sub-services-list flex flex-col gap-1.5 ml-3 mb-1"></div>
+            <div class="deliverables-list flex flex-col gap-1.5 ml-3 mb-3"></div>
+
+            <div class="flex gap-5 mt-3 opacity-0 group-hover:opacity-100 transition">
+                <button type="button" onclick="openSubServicePickerFor(this)" class="text-blue-500 hover:text-blue-700 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                    <i class="fas fa-plus text-[10px]"></i> Add Included Service
+                </button>
+                <button type="button" onclick="launchDeliverableDropdownFor(this)" class="text-[#A9323D] hover:text-red-800 text-[11px] font-bold flex items-center gap-1 uppercase tracking-wide">
+                    <i class="fas fa-layer-group text-[10px]"></i> Add Deliverable
+                </button>
+            </div>
+        </div>
+
+        <div class="col-span-2 flex justify-center pt-1">
+            <input type="number" name="qty[]" value="1" class="qty clean-input w-24 text-center text-[14px] font-medium" min="1" oninput="calculateTotals()">
+        </div>
+
+        <div class="col-span-2 flex justify-center pt-1">
+            <div class="flex items-center gap-1 clean-input w-36 text-[14px] font-medium">
+                <span class="text-gray-400">₹</span>
+                <input type="number" name="price[]" value="0" class="price border-none p-0 focus:ring-0 outline-none w-full bg-transparent" step="100" placeholder="0" oninput="calculateTotals()">
+            </div>
+        </div>
+
+        <div class="col-span-2 text-right pt-3.5">
+            <div class="row-subtotal font-black text-[16px] text-gray-900">₹0</div>
+        </div>
+    </div>`;
+    container.insertAdjacentHTML('beforeend', rowHtml);
+    activeDeliverableRow = container.lastElementChild;
     calculateTotals();
-    let grandTotal = parseFloat(document.getElementById("invoiceGrandTotal").innerText.replace(/[₹, ]/g, "")) || 0;
+}
+
+function removeServiceRow(btn) {
+    btn.closest(".invoice-service-row").remove();
+    calculateTotals();
+}
+
+function launchDeliverableDropdownFor(btn) {
+    activeDeliverableRow = btn.closest('.invoice-service-row');
+    document.getElementById("deliverableDropdownModal").classList.remove("hidden");
+}
+
+function closeDeliverableDropdown() {
+    document.getElementById("deliverableDropdownModal").classList.add("hidden");
+}
+
+function selectSnapshotDeliverable(id, title, price) {
+    if (!activeDeliverableRow) return;
+    const deliverablesContainer = activeDeliverableRow.querySelector(".deliverables-list");
+    deliverablesContainer.insertAdjacentHTML('beforeend', `
+        <div class="deliverable-item flex items-center text-[13px] text-gray-600 font-medium" data-id="${id}" data-price="${price}">
+            <span class="text-gray-400 mr-2 text-[10px]">•</span>
+            <span class="d-title flex-1">${title}</span>
+            <div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                <span class="text-gray-400 text-[11px]">₹${parseFloat(price).toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times text-[10px]"></i></button>
+            </div>
+        </div>
+    `);
+    const priceInput = activeDeliverableRow.querySelector('input.price');
+    priceInput.value = ((parseFloat(priceInput.value) || 0) + parseFloat(price)).toFixed(0);
+    calculateTotals();
+    closeDeliverableDropdown();
+}
+
+function removeSnapshotDeliverable(btn) {
+    const row = btn.closest(".invoice-service-row");
+    const item = btn.closest(".deliverable-item");
+    const priceInput = row.querySelector('input.price');
+    priceInput.value = Math.max(0, (parseFloat(priceInput.value) || 0) - parseFloat(item.dataset.price)).toFixed(0);
+    item.remove();
+    calculateTotals();
+}
+
+
+function calculateTotals() {
+    let serviceTotal = 0;
+    document.querySelectorAll(".invoice-service-row").forEach(row => {
+        let qty = parseFloat(row.querySelector('input.qty').value) || 0;
+        let price = parseFloat(row.querySelector('input.price').value) || 0;
+        let lineTotal = qty * price;
+        row.querySelector(".row-subtotal").innerText = `₹ ${lineTotal.toLocaleString('en-IN')}`;
+        serviceTotal += lineTotal;
+    });
+
+    document.getElementById("invoiceServiceTotal").innerText = `₹ ${serviceTotal.toLocaleString('en-IN')}`;
+
+    const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
+    const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
+    const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
+
+    const postDiscount = serviceTotal - discount;
+    const tax = postDiscount * (taxRate / 100);
+    document.getElementById("invoiceTaxAmount").innerText = `₹ ${Math.round(tax).toLocaleString('en-IN')}`;
+
+    const subtotal = postDiscount + tax;
+    document.getElementById("invoiceSubtotal").innerText = `₹ ${Math.round(subtotal).toLocaleString('en-IN')}`;
+
     let totalPaidSoFar = 0;
     document.querySelectorAll(".payment-amount-val").forEach(td => {
         totalPaidSoFar += parseFloat(td.innerText.replace(/[₹, ]/g, "")) || 0;
     });
-    let balanceDue = Math.max(0, grandTotal - totalPaidSoFar);
+    document.getElementById("invoicePaymentsMade").innerText = `(-) ₹ ${totalPaidSoFar.toLocaleString('en-IN')}`;
+
+    const balanceDue = Math.max(0, subtotal - prepaid - totalPaidSoFar);
+    document.getElementById("invoiceBalanceDue").innerText = `₹ ${Math.round(balanceDue).toLocaleString('en-IN')}`;
+}
+
+function openPaymentModal() {
+    calculateTotals();
+    
+    // Get raw subtotal
+    let subtotal = parseFloat(document.getElementById("invoiceSubtotal").innerText.replace(/[₹, ]/g, "")) || 0;
+    let prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
+    
+    let totalPaidSoFar = 0;
+    document.querySelectorAll(".payment-amount-val").forEach(td => {
+        totalPaidSoFar += parseFloat(td.innerText.replace(/[₹, ]/g, "")) || 0;
+    });
+    
+    let balanceDue = Math.max(0, subtotal - prepaid - totalPaidSoFar);
+    
     document.getElementById("paymentModal").dataset.balance = balanceDue;
     document.getElementById("modalBalanceDisplay").innerText = `₹ ${balanceDue.toLocaleString('en-IN')}`;
     document.getElementById("paymentForm").reset();
@@ -475,122 +675,6 @@ function submitPayment(e) {
     .catch(err => { console.error(err); btn.innerHTML = "Add Payment"; btn.disabled = false; });
 }
 
-// ==========================================
-// INVOICE CALCULATIONS
-// ==========================================
-function calculateTotals() {
-    let subtotal = 0;
-    document.querySelectorAll(".invoice-service-row").forEach(row => {
-        let qty = parseFloat(row.querySelector('input.qty').value) || 0;
-        let price = parseFloat(row.querySelector('input.price').value) || 0;
-        let lineTotal = qty * price;
-        row.querySelector(".row-subtotal").innerText = `₹ ${lineTotal.toLocaleString('en-IN')}`;
-        subtotal += lineTotal;
-    });
-    document.getElementById("invoiceSubtotal").innerText = `₹ ${subtotal.toLocaleString('en-IN')}`;
-    const discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
-    const taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
-    const prepaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
-    const postDiscount = subtotal - discount;
-    const tax = postDiscount * (taxRate / 100);
-    document.getElementById("invoiceTaxAmount").innerText = `₹ ${Math.round(tax).toLocaleString('en-IN')}`;
-    document.getElementById("invoiceGrandTotal").innerText = `₹ ${Math.round(postDiscount + tax - prepaid).toLocaleString('en-IN')}`;
-}
-
-// ==========================================
-// SERVICE ROW EDITOR
-// ==========================================
-let activeDeliverableRow = null;
-
-document.addEventListener('focusin', function(e) {
-    if (e.target.closest('.invoice-service-row')) {
-        activeDeliverableRow = e.target.closest('.invoice-service-row');
-    }
-});
-
-function addNewServiceRow() {
-    const container = document.getElementById("invoiceServiceRowsContainer");
-    const rowHtml = `
-    <div class="invoice-service-row grid grid-cols-12 gap-4 items-start bg-white p-5 rounded-xl shadow-sm border border-gray-100 relative group">
-        <button type="button" onclick="removeServiceRow(this)" class="absolute top-2 right-2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-times"></i></button>
-        <div class="col-span-4 pr-4">
-            <input type="text" name="service_name[]" value="" class="font-bold text-[14px] text-gray-900 border-none p-0 focus:ring-0 outline-none w-full mb-2 bg-transparent" placeholder="New Service Name">
-            <div class="invoice-deliverables-cell">
-                <div class="deliverables-list flex flex-col gap-1 ml-2"></div>
-            </div>
-        </div>
-        <div class="col-span-3">
-            <div class="persons-list flex flex-col gap-1"></div>
-            <button type="button" onclick="openPersonPickerFor(this)" class="mt-1.5 text-blue-500 hover:text-blue-700 text-[10px] font-bold flex items-center gap-1">
-                <i class="fas fa-plus text-[8px]"></i> Add Person
-            </button>
-        </div>
-        <div class="col-span-1 flex justify-center pt-0.5">
-            <input type="number" name="qty[]" value="1" class="qty clean-input w-20 text-center text-[13px] font-bold" min="1" oninput="calculateTotals()">
-        </div>
-        <div class="col-span-2 pt-0.5">
-            <div class="flex items-center gap-1 clean-input bg-white text-[13px] font-bold">
-                <span class="text-gray-400">₹</span>
-                <input type="number" name="price[]" value="0" class="price border-none p-0 focus:ring-0 outline-none w-full" step="100" placeholder="0" oninput="calculateTotals()">
-            </div>
-        </div>
-        <div class="col-span-2 text-right pt-2.5">
-            <div class="row-subtotal font-bold text-[15px] text-gray-900">₹0</div>
-        </div>
-    </div>`;
-    container.insertAdjacentHTML('beforeend', rowHtml);
-    activeDeliverableRow = container.lastElementChild;
-    calculateTotals();
-}
-
-function removeServiceRow(btn) {
-    btn.closest(".invoice-service-row").remove();
-    calculateTotals();
-}
-
-function launchDeliverableDropdown() {
-    if (!activeDeliverableRow) {
-        const rows = document.querySelectorAll('.invoice-service-row');
-        if (rows.length > 0) activeDeliverableRow = rows[rows.length - 1];
-        else { alert("Please add a service item first."); return; }
-    }
-    document.getElementById("deliverableDropdownModal").classList.remove("hidden");
-}
-
-function closeDeliverableDropdown() {
-    document.getElementById("deliverableDropdownModal").classList.add("hidden");
-}
-
-function selectSnapshotDeliverable(id, title, price) {
-    if (!activeDeliverableRow) return;
-    const deliverablesContainer = activeDeliverableRow.querySelector(".deliverables-list");
-    deliverablesContainer.insertAdjacentHTML('beforeend', `
-        <div class="deliverable-item flex justify-between items-center text-[12px] text-gray-600" data-id="${id}" data-price="${price}">
-            <span class="flex items-center gap-2"><span class="text-[8px] text-gray-400">•</span> ${title}</span>
-            <div class="flex items-center gap-2">
-                <span class="text-gray-400">₹${parseFloat(price).toLocaleString('en-IN')}</span>
-                <button type="button" onclick="removeSnapshotDeliverable(this)" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>
-            </div>
-        </div>
-    `);
-    const priceInput = activeDeliverableRow.querySelector('input.price');
-    priceInput.value = ((parseFloat(priceInput.value) || 0) + parseFloat(price)).toFixed(0);
-    calculateTotals();
-    closeDeliverableDropdown();
-}
-
-function removeSnapshotDeliverable(btn) {
-    const row = btn.closest(".invoice-service-row");
-    const item = btn.closest(".deliverable-item");
-    const priceInput = row.querySelector('input.price');
-    priceInput.value = Math.max(0, (parseFloat(priceInput.value) || 0) - parseFloat(item.dataset.price)).toFixed(0);
-    item.remove();
-    calculateTotals();
-}
-
-// ==========================================
-// FORM SUBMIT
-// ==========================================
 document.getElementById("invoiceEditorForm").addEventListener("submit", function(e) {
     e.preventDefault();
     const submitBtn = this.querySelector('button[type="submit"]');
@@ -604,7 +688,7 @@ document.getElementById("invoiceEditorForm").addEventListener("submit", function
         services.push({
             service_name: serviceName,
             deliverable_ids: Array.from(row.querySelectorAll(".deliverable-item")).map(i => parseInt(i.dataset.id)),
-            person_ids: Array.from(row.querySelectorAll(".person-item")).map(i => parseInt(i.dataset.id)),  // ✅
+            sub_service_ids: Array.from(row.querySelectorAll(".sub-service-item")).map(i => parseInt(i.dataset.id)), 
             qty: row.querySelector('input.qty').value,
             price: row.querySelector('input.price').value
         });
@@ -630,21 +714,13 @@ document.getElementById("invoiceEditorForm").addEventListener("submit", function
     });
 });
 
-calculateTotals();
-
-
-// 🌟 NEW: Function to create a new deliverable on the fly
 function createNewDeliverable(btn) {
     const titleInput = document.getElementById("newDelivTitle");
     const priceInput = document.getElementById("newDelivPrice");
     const title = titleInput.value.trim();
     const price = parseFloat(priceInput.value) || 0;
 
-    if (!title) {
-        alert("Please enter a deliverable name.");
-        titleInput.focus();
-        return;
-    }
+    if (!title) { alert("Please enter a deliverable name."); titleInput.focus(); return; }
 
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
@@ -652,26 +728,16 @@ function createNewDeliverable(btn) {
 
     fetch("/add-deliverable-quick/", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": getCookie("csrftoken")
-        },
+        headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
         body: JSON.stringify({ title: title, price: price })
     })
     .then(res => res.json())
     .then(data => {
-        if (data.error) {
-            alert("Error: " + data.error);
-            btn.innerHTML = originalText;
-            btn.disabled = false;
-        } else {
-            // Instantly clear the inputs for next time
-            titleInput.value = "";
-            priceInput.value = "";
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+        if (data.error) { alert("Error: " + data.error); btn.innerHTML = originalText; btn.disabled = false; } 
+        else {
+            titleInput.value = ""; priceInput.value = "";
+            btn.innerHTML = originalText; btn.disabled = false;
 
-            // Add the new item to the top of the modal list so it stays there if they open it again
             const list = document.getElementById("deliverableListItems");
             list.insertAdjacentHTML('afterbegin', `
                 <div class="flex items-center justify-between p-3 border rounded-lg bg-red-50 border-red-200 cursor-pointer transition" onclick="selectSnapshotDeliverable('${data.id}', '${data.title.replace(/'/g, "\\'")}', '${data.price}')">
@@ -679,17 +745,271 @@ function createNewDeliverable(btn) {
                     <p class="font-black text-[#A9323D] text-[15px]">₹ ${data.price.toLocaleString('en-IN')}</p>
                 </div>
             `);
-
-            // Automatically select it and apply it to the invoice row!
             selectSnapshotDeliverable(data.id, data.title, data.price);
         }
     })
     .catch(err => {
-        console.error(err);
-        alert("Failed to create deliverable. Please try again.");
-        btn.innerHTML = originalText;
-        btn.disabled = false;
+        console.error(err); alert("Failed to create deliverable. Please try again.");
+        btn.innerHTML = originalText; btn.disabled = false;
     });
 }
+
+function numberToWords(num) {
+    let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+    let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+    if ((num = num.toString()).length > 9) return '';
+    let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+    if (!n) return '';
+    let str = '';
+    str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+    str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+    str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+    str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+    str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+    return str.trim() ? 'Rupees ' + str.trim() + ' Only' : '';
+}
+
+
+function generateInvoicePDF() {
+    const btn = document.getElementById("btnDownloadPDF");
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    btn.disabled = true;
+
+    const clientName = document.getElementById('uiClientName').innerText.trim() || 'Client';
+    
+    // Parse Date to Indian Format DD/MM/YYYY
+    const rawDate = document.getElementById('uiInvoiceDate').value;
+    
+    Promise.all([
+        fetch('/get-image-base64/?path=images/logo.png').then(r => r.json())
+    ]).then(([logoData]) => {
+        const logoUrl = logoData.data_uri || '';
+        
+        let serviceTotal = 0;
+        let servicesHtml = '';
+
+        document.querySelectorAll(".invoice-service-row").forEach((row, index) => {
+            let serviceName = row.querySelector('input[name="service_name[]"]').value || 'Service';
+            let qty = parseFloat(row.querySelector('input.qty').value) || 1;
+            let price = parseFloat(row.querySelector('input.price').value) || 0;
+            let amount = qty * price;
+            serviceTotal += amount;
+
+            let subItems = [];
+            row.querySelectorAll('.sub-name').forEach(span => {
+                let text = span.innerText.trim();
+                if(text) subItems.push(text);
+            });
+            row.querySelectorAll('.d-title').forEach(span => {
+                let text = span.innerText.trim();
+                if(text) subItems.push(text);
+            });
+
+            let subItemsHtml = subItems.map(item => `<div style="color: #444; font-size: 13px; margin-top: 4px;">1 ${item}</div>`).join('');
+
+            servicesHtml += `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 15px 12px; text-align: center; vertical-align: top; font-weight: bold;">${index + 1}</td>
+                <td style="padding: 15px 12px; vertical-align: top;">
+                    <div style="font-weight: bold; color: #111; font-size: 14px; margin-bottom: 6px;">${serviceName}</div>
+                    ${subItemsHtml}
+                </td>
+                <td style="padding: 15px 12px; text-align: center; vertical-align: top;">${qty.toFixed(2)}</td>
+                <td style="padding: 15px 12px; text-align: right; vertical-align: top;">${price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td style="padding: 15px 12px; text-align: right; vertical-align: top; font-weight: bold;">${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            </tr>`;
+        });
+
+        let discount = parseFloat(document.querySelector('input[name="discount_amount"]').value) || 0;
+        let taxRate = parseFloat(document.querySelector('input[name="tax_rate"]').value) || 0;
+        let prePaid = parseFloat(document.querySelector('input[name="pre_paid_amount"]').value) || 0;
+        
+        let totalPaidSoFar = 0;
+        document.querySelectorAll(".payment-amount-val").forEach(td => {
+            totalPaidSoFar += parseFloat(td.innerText.replace(/[₹, ]/g, "")) || 0;
+        });
+
+        let postDiscount = serviceTotal - discount;
+        let taxAmount = postDiscount * (taxRate / 100);
+        let subtotal = postDiscount + taxAmount; 
+        
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+        const yyyy = today.getFullYear();
+        const formattedDate = `${dd}/${mm}/${yyyy}`;
+    
+        let totalPaymentMade = totalPaidSoFar + prePaid;
+        let balanceDue = Math.max(0, subtotal - totalPaymentMade);
+
+        let totalInWords = numberToWords(Math.round(subtotal));
+
+        let discountRow = discount > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Discount</td>
+            <td style="padding: 8px 12px; text-align: right; color: #111;">(-) ${discount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+
+        let taxRow = taxAmount > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Tax (${taxRate}%)</td>
+            <td style="padding: 8px 12px; text-align: right; color: #111;">${taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+        
+        // 🌟 MERGED PAYMENT ROW
+        let paymentsRow = totalPaymentMade > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Payment Made</td>
+            <td style="padding: 8px 12px; text-align: right; font-weight: bold; color: #dc2626;">(-) ${totalPaymentMade.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+
+        const termsHtml = `
+        <div style="clear: both; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3 style="font-size: 14px; font-weight: bold; color: #111; margin-bottom: 12px;">Terms and Conditions:</h3>
+            <ol style="font-size: 11px; color: #555; line-height: 1.6; padding-left: 20px; margin: 0;">
+                <li style="margin-bottom: 4px;">40% Advance , 60% 1 week before the event day.</li>
+                <li style="margin-bottom: 4px;">You have to submit min. 2TB Hard Disk after the first payment, for your raw data.</li>
+                <li style="margin-bottom: 4px;">For Costumers who dont collect deliverables within 60days We will not hold responsibility for the project or data loss so please collect your data and deliverables at the earliest</li>
+                <li style="margin-bottom: 4px;">All deliverables are given at once (Teaser, Album, Full Length Video).</li>
+                <li style="margin-bottom: 4px;">Any Cancellation Advance will be not refunded.</li>
+                <li style="margin-bottom: 4px;">You shall arrange for travel and accommodation of our shoot crew for all your events occurring in the places away from our office.</li>
+                <li style="margin-bottom: 4px;">Any change of plan or postponement of any event will be accommodated based on our availability on new dates.</li>
+                <li style="margin-bottom: 4px;">For requirement of additional sheets in photo book, cost depends on the dimensions of sheet.</li>
+                <li style="margin-bottom: 4px;">Soft copies will be given only after 90% of the total payment.</li>
+                <li style="margin-bottom: 4px;">Drone cannot be operated at red zones and restricted places if drone is in the package.</li>
+                <li style="margin-bottom: 4px;">Services like Drone, LED Wall, Live Streaming will be only provided upon the customer interest and should be discussed at the time of agreement. All these are third Party and live streaming is completely depends on network strength, if no network wifi should be provided at the venue premises.</li>
+                <li style="margin-bottom: 4px;">Apart from wedding any event is conisdered as 4-5 hours for additional coverage need to discuss for adding the slot</li>
+                <li style="margin-bottom: 4px;">Candid and cinematic team will be present from evening on wedding date , if its morning wedding team will come accordingly</li>
+                <li style="margin-bottom: 4px;">Any charges at the time of shoot like entry and other charges will be paid by the customers only.</li>
+                <li style="margin-bottom: 4px;">We don't cover Food items if you need those shots need to Add a Separate Photo & Video for Food Coverage.</li>
+            </ol>
+        </div>
+        <div style="width: 100%; height: 30px; background-color: #A32E37; margin-top: 30px;"></div>
+        `;
+
+        const primaryColor = "#A32E37";
+
+        const pdfTemplate = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                @page { size: A4 portrait; margin: 0; }
+                body { font-family: Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; background: #fff; }
+            </style>
+        </head>
+        <body>
+            <div style="background:${primaryColor};height:120px;width:100%;display:table;padding:30px 40px;box-sizing:border-box;">
+                <div style="display:table-cell;vertical-align:middle;width:50%;">
+                    <div style="background:#fff;width:60px;height:60px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
+                        <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
+                    </div>
+                </div>
+                <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
+                    <h1 style="color:#fff;font-size:32px;font-weight:900;letter-spacing:2px;margin:0;">INVOICE</h1>
+                </div>
+            </div>
+
+            <div style="padding: 40px;">
+                <table style="width: 100%; margin-bottom: 30px;">
+                    <tr>
+                        <td style="vertical-align: top;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">Bill To</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #111;">${clientName}</div>
+                        </td>
+                        <td style="vertical-align: top; text-align: right;">
+                            <div style="font-size: 14px; display: inline-block; text-align: right;">
+                                <span style="color: #666; margin-right: 15px;">Invoice Date :</span>
+                                <span style="font-weight: bold; color: #111;">${formattedDate}</span>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #333; color: white;">
+                            <th style="padding: 12px; text-align: center; width: 5%;">#</th>
+                            <th style="padding: 12px; text-align: left; width: 50%;">Item & Description</th>
+                            <th style="padding: 12px; text-align: center; width: 10%;">Qty</th>
+                            <th style="padding: 12px; text-align: right; width: 15%;">Rate</th>
+                            <th style="padding: 12px; text-align: right; width: 20%;">Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${servicesHtml}
+                    </tbody>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                        </td>
+                        <td style="width: 50%;">
+                            <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">SubTotal</td>
+                                    <td style="padding: 8px 12px; text-align: right; color: #111;">${serviceTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                                ${discountRow}
+                                ${taxRow}
+                                <tr style="border-top: 1px solid #ddd;">
+                                    <td style="padding: 12px 12px 8px; text-align: right; color: #111; font-weight: bold;">Total</td>
+                                    <td style="padding: 12px 12px 8px; text-align: right; font-weight: bold; color: #111;">₹${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                                ${paymentsRow}
+                                <tr style="background-color: #f3f4f6;">
+                                    <td style="padding: 12px; text-align: right; color: #111; font-weight: bold;">Balance</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: bold; color: #111;">₹${balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <div>
+                    <div style="font-size: 13px; color: #555; text-align: left; margin-bottom: 6px;">Total In Words:</div>
+                    <div style="font-size: 14px; font-weight: bold; font-style: italic; text-align: left; color: #111;">${totalInWords}</div>
+                </div>
+                
+                ${termsHtml}
+            </div>
+        </body>
+        </html>`;
+
+        fetch('/generate-pdf/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ html: pdfTemplate, filename: `Invoice_${clientName.replace(/\s+/g, '_')}.pdf` })
+        })
+        .then(res => {
+            if (!res.ok) throw new Error("Server error");
+            return res.blob();
+        })
+        .then(blob => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Invoice_${clientName.replace(/\s+/g, '_')}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+            
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Downloaded';
+            btn.disabled = false;
+            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to generate PDF.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    });
+}
+
+calculateTotals();
 </script>
 {% endblock %}

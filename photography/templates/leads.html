@@ -69,12 +69,18 @@
             
             <div class="space-y-3 min-h-[50px] cards-container">
                 {% for lead in new_leads %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar-check text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">{% if lead.package %}{{ lead.package.package_name }}{% else %}No Package{% endif %}</span>
+                            <span class="text-[13px] text-gray-700 truncate block">
+                                {% if lead.packages.all %}
+                                    {% for pkg in lead.packages.all %}{{ pkg.package_name }}{% if not forloop.last %} + {% endif %}{% endfor %}
+                                {% else %}
+                                    No Package
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
@@ -95,12 +101,12 @@
                         {% endif %}
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">₹ {{ lead.package.total_cost|default:"0" }}</span>
+                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
                         </div>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', '{{ lead.package.id|default:'' }}', '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
+                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
                             <i class="fa-regular fa-eye"></i> View
                         </button>
                         <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
@@ -127,12 +133,18 @@
             
             <div class="space-y-3 min-h-[50px] cards-container">
                 {% for lead in follow_up %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar-check text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">{% if lead.package %}{{ lead.package.package_name }}{% else %}No Package{% endif %}</span>
+                            <span class="text-[13px] text-gray-700 truncate block">
+                                {% if lead.packages.all %}
+                                    {% for pkg in lead.packages.all %}{{ pkg.package_name }}{% if not forloop.last %} + {% endif %}{% endfor %}
+                                {% else %}
+                                    No Package
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
@@ -153,12 +165,12 @@
                         {% endif %}
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">₹ {{ lead.package.total_cost|default:"0" }}</span>
+                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
                         </div>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', '{{ lead.package.id|default:'' }}', '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
+                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
                             <i class="fa-regular fa-eye"></i> View
                         </button>
                         <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
@@ -185,12 +197,18 @@
             
             <div class="space-y-3 min-h-[50px] cards-container">
                 {% for lead in accepted %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar-check text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">{% if lead.package %}{{ lead.package.package_name }}{% else %}No Package{% endif %}</span>
+                            <span class="text-[13px] text-gray-700 truncate block">
+                                {% if lead.packages.all %}
+                                    {% for pkg in lead.packages.all %}{{ pkg.package_name }}{% if not forloop.last %} + {% endif %}{% endfor %}
+                                {% else %}
+                                    No Package
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
@@ -204,12 +222,12 @@
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">₹ {{ lead.package.total_cost|default:"0" }}</span>
+                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
                         </div>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', '{{ lead.package.id|default:'' }}', '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
+                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
                             <i class="fa-regular fa-eye"></i> View
                         </button>
                         <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
@@ -236,12 +254,18 @@
             
             <div class="space-y-3 min-h-[50px] cards-container">
                 {% for lead in lost %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar-check text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">{% if lead.package %}{{ lead.package.package_name }}{% else %}No Package{% endif %}</span>
+                            <span class="text-[13px] text-gray-700 truncate block">
+                                {% if lead.packages.all %}
+                                    {% for pkg in lead.packages.all %}{{ pkg.package_name }}{% if not forloop.last %} + {% endif %}{% endfor %}
+                                {% else %}
+                                    No Package
+                                {% endif %}
+                            </span>
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
@@ -255,12 +279,12 @@
                         </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">₹ {{ lead.package.total_cost|default:"0" }}</span>
+                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
                         </div>
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', '{{ lead.package.id|default:'' }}', '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
+                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
                             <i class="fa-regular fa-eye"></i> View
                         </button>
                         <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
@@ -276,7 +300,6 @@
                 {% endfor %}
             </div>
         </div>
-
     </div>
 </div>
 
@@ -308,7 +331,7 @@
         </div>
         
         <div class="p-4 border-t bg-gray-50 flex justify-between items-center">
-            <button id="downloadQuoteBtn" type="button" onclick="downloadQuotationPDF()" class="px-4 py-2 bg-[#A9323D] hover:bg-red-800 text-white font-bold rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
+            <button id="downloadQuoteBtn" type="button" onclick="downloadQuotationPDF()" class="px-4 py-2 bg-[#7A2838] hover:bg-[#5E2B3A] text-white font-bold rounded-lg flex items-center gap-2 transition-colors text-sm shadow-sm cursor-pointer">
                 <i class="fa-solid fa-download"></i> Download Quotation
             </button>
             <button type="button" onclick="closeLeadDetails()" class="bg-gray-200 text-gray-800 px-4 py-2 rounded-lg font-semibold hover:bg-gray-300 transition-colors text-sm">Close</button>
@@ -318,7 +341,8 @@
 
 <script>
 // --- Global variables to hold data for the PDF ---
-let currentDownloadPackageId = "";
+let currentDownloadLeadId = "";
+let currentDownloadPackageIds = "";
 let currentDownloadClientName = "";
 let currentDownloadEmail = "";
 let currentDownloadProject = "";
@@ -339,21 +363,18 @@ function getCookie(name) {
     return cookieValue;
 } 
 
-// --- 1. Modal View Logic ---
-function openLeadDetails(name, mobile, email, address, packageId, projectName) {
-    // Populate Modal Text
+function openLeadDetails(leadId, name, mobile, email, address, packageIds, projectName) {
     document.getElementById('modalLeadName').innerText = name;
     document.getElementById('modalLeadMobile').innerText = mobile || '-';
     document.getElementById('modalLeadEmail').innerText = email || '-';
     document.getElementById('modalLeadAddress').innerText = address || '-';
     
-    // Save data globally for the PDF download
-    currentDownloadPackageId = packageId;
+    currentDownloadLeadId = leadId;
+    currentDownloadPackageIds = packageIds || "";
     currentDownloadClientName = name;
     currentDownloadEmail = email;
     currentDownloadProject = projectName;
 
-    // Show Modal
     document.getElementById('leadDetailsModal').classList.remove('hidden');
 }
 
@@ -362,11 +383,10 @@ function closeLeadDetails() {
 }
 
 
-// --- 2. BACKEND PDF GENERATOR (WEASYPRINT) ---
 function downloadQuotationPDF() {
-    if (!currentDownloadPackageId || currentDownloadPackageId === 'None' || currentDownloadPackageId === '') {
-        alert("No package is assigned to this lead. Cannot generate quotation.");
-        return;
+    let fetchUrl = `/get-package/?lead_id=${currentDownloadLeadId}`;
+    if (currentDownloadPackageIds) {
+        fetchUrl += `&ids=${currentDownloadPackageIds}`;
     }
 
     const btn = document.getElementById("downloadQuoteBtn");
@@ -377,152 +397,171 @@ function downloadQuotationPDF() {
     Promise.all([
         fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
         fetch('/get-image-base64/?path=images/Qutation.png').then(r => r.json()),
-        fetch(`/get-package/${currentDownloadPackageId}/`).then(r => r.json())
+        fetch(fetchUrl).then(r => r.json())
     ])
     .then(([logoData, quotationData, data]) => {
-        if (!data.services || data.services.length === 0) {
-            alert("No services found in this package.");
+        
+        let allServices = data.services || [];
+        let deliverables = data.deliverables || [];
+        let additionalServices = data.additional_services || [];
+
+        if (allServices.length === 0 && deliverables.length === 0 && additionalServices.length === 0) {
+            alert("No packages, deliverables, or additional services found for this lead.");
             btn.innerHTML = originalText;
             btn.disabled = false;
             return;
         }
 
-        let rowsHtml = '';
         let subtotal = 0;
-
-        data.services.forEach(service => {
-            let qty = parseFloat(service.qty) || 0;
-            let cost = parseFloat(service.cost) || 0;
-            let sTotal = qty * cost;
-            subtotal += sTotal;
-
-            const deliverableItems = service.deliverables.map(d =>
-                `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d.title}</li>`
-            ).join('');
-
-            // ✅ persons instead of team_names
-            const personItems = (service.persons && service.persons.length > 0)
-                ? service.persons.map(p =>
-                    `<div style="background:#dbeafe; color:#1d4ed8; padding:2px 6px; border-radius:4px; font-size:10px; display:inline-block; margin:0 4px 4px 0; font-weight:bold;">
-                        ${p.name}
-                    </div>`
-                ).join('')
-                : '<span style="color:#9ca3af; font-size:11px; font-style:italic;">No persons</span>';
-
-            rowsHtml += `
-            <tr>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                    <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
-                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">
-                        ${deliverableItems}
-                    </ul>
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                    ${personItems}
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;vertical-align:top;">
-                    <span style="font-weight:bold;font-size:13px;">${qty}</span>
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                    <span style="font-weight:bold;font-size:13px;">₹ ${cost.toLocaleString('en-IN')}</span>
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;vertical-align:top;">
-                    <strong style="font-weight:bold;font-size:13px;">₹ ${sTotal.toLocaleString('en-IN')}</strong>
-                </td>
-            </tr>`;
+        const logoUrl = logoData.data_uri || '';
+        const qutationUrl = quotationData.data_uri || '';
+        
+        // 1. Build Events HTML (Grid style)
+        let eventsHtml = '<div style="text-align:center; margin: 40px 0 25px;"><h2 style="color:#903043; font-size:32px; font-family:serif; margin:0;">Events</h2></div><div style="text-align:center; padding: 0 10px;">';
+        allServices.forEach(service => {
+            const qty = parseFloat(service.qty) || 0; const cost = parseFloat(service.cost) || 0; subtotal += (qty * cost);
+            const subsList = (service.sub_services || []).map(p => `<li style="margin-bottom:8px; font-size:14px; color:#444;">1 ${p.name}</li>`).join('');
+            
+            eventsHtml += `
+            <div style="width:30%; display:inline-block; background:#FCF0EE; border:1px solid #F9EAE8; border-radius:12px; padding:25px; margin:1%; text-align:left; vertical-align:top; box-sizing:border-box;">
+                <h3 style="color:#903043; font-size:20px; margin-top:0; font-family:serif; display:flex; align-items:center;">
+                    <span style="margin-right:8px;">◉</span> ${service.service_name}
+                </h3>
+                <ul style="list-style:none; padding:0; margin:0;">${subsList}</ul>
+            </div>`;
         });
+        eventsHtml += '</div>';
 
+        // 2. Build Deliverables HTML
+        let delivTotal = 0; let delivHtmlList = '';
+        deliverables.forEach((d) => { 
+            delivTotal += parseFloat(d.price) || 0; 
+            delivHtmlList += `<li style="margin-bottom:10px; font-size:16px; color:#444; font-family:serif;">• ${d.title}</li>`; 
+        });
+        subtotal += delivTotal;
+
+        // 3. Build Additional Services HTML
+        let additionalTotal = 0; let addListHtml = '';
+        additionalServices.forEach((a) => {
+            let aPrice = parseFloat(a.price) || 0;
+            let aQty = parseFloat(a.qty) || 1;
+            additionalTotal += aPrice * aQty;
+            addListHtml += `
+            <div style="background:#FCF0EE; border:1px solid #F9EAE8; border-radius:12px; padding:20px 30px; margin-bottom:15px; display:table; width:100%; box-sizing:border-box;">
+                <div style="display:table-cell; vertical-align:middle; width:65%;">
+                    <h4 style="color:#903043; font-size:20px; margin:0; font-family:serif;">${a.title}</h4>
+                    <div style="font-size:15px; color:#666; margin-top:8px; font-weight:bold;">- <span style="background:#903043; color:white; padding:2px 8px; border-radius:4px; margin:0 5px;">${aQty}</span> +</div>
+                </div>
+                <div style="display:table-cell; vertical-align:middle; width:35%; text-align:right;">
+                    <div style="background:white; color:#903043; font-weight:bold; padding:10px 20px; border-radius:8px; display:inline-block; border:1px solid #F9EAE8; font-size:16px;">₹ ${(aPrice * aQty).toLocaleString('en-IN')}</div>
+                    <div style="background:#903043; color:white; font-size:14px; font-weight:bold; padding:10px 20px; border-radius:8px; display:inline-block; margin-left:10px;">☑ Added</div>
+                </div>
+            </div>`;
+        });
+        subtotal += additionalTotal;
+
+        // Terms text
+        const termsHtml = `
+        <div style="margin-top:60px; padding:0 50px; padding-bottom: 50px;">
+            <div style="text-align:center; margin-bottom:30px;">
+                <h2 style="color:#903043; font-size:32px; font-family:serif; margin:0;">Terms & Conditions</h2>
+            </div>
+            <ul style="font-size:14px; color:#444; line-height:1.7; text-align:left; padding-left:25px;">
+                <li style="margin-bottom:8px;">40% Advance, 60% 1 week before the event day.</li>
+                <li style="margin-bottom:8px;">You have to submit min. 2TB Hard Disk after the first payment, for your raw data.</li>
+                <li style="margin-bottom:8px;">For Customers who dont collect deliverables within 60days We will not hold responsibility for the project or data loss so please collect your data and deliverables at the earliest</li>
+                <li style="margin-bottom:8px;">All deliverables are given at once (Teaser, Album, Full Length Video).</li>
+                <li style="margin-bottom:8px;">Any Cancellation Advance will be not refunded.</li>
+                <li style="margin-bottom:8px;">You shall arrange for travel and accommodation of our shoot crew for all your events occurring in the places away from our office.</li>
+                <li style="margin-bottom:8px;">Any change of plan or postponement of any event will be accommodated based on our availability on new dates.</li>
+                <li style="margin-bottom:8px;">For requirement of additional sheets in photo book, cost depends on the dimensions of sheet.</li>
+                <li style="margin-bottom:8px;">Soft copies will be given only after 90% of the total payment.</li>
+                <li style="margin-bottom:8px;">Drone cannot be operated at red zones and restricted places if drone is in the package.</li>
+                <li style="margin-bottom:8px;">Services like Drone, LED Wall, Live Streaming will be only provided upon the customer interest and should be discussed at the time of agreement. All these are third Party and live streaming is completely depends on network strength, if no network wifi should be provided at the venue premises.</li>
+                <li style="margin-bottom:8px;">Apart from wedding any event is considered as 4-5 hours for additional coverage need to discuss for adding the slot</li>
+                <li style="margin-bottom:8px;">Candid and cinematic team will be present from evening on wedding date, if its morning wedding team will come accordingly</li>
+                <li style="margin-bottom:8px;">Any charges at the time of shoot like entry and other charges will be paid by the customers only.</li>
+                <li style="margin-bottom:8px;">We don't cover Food items if you need those shots need to Add a Separate Photo & Video for Food Coverage.</li>
+            </ul>
+        </div>`;
+
+        const primary = "#903043"; 
         const displayName = currentDownloadProject ? `${currentDownloadClientName} - ${currentDownloadProject}` : currentDownloadClientName;
         const initials = currentDownloadClientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
         const emailToUse = currentDownloadEmail || 'No email provided';
-        const primaryColor = "#A32E37";
-        const textColor = "#333333";
-        const logoUrl = logoData.data_uri || '';
-        const QutationUrl = quotationData.data_uri || '';
 
-        const pdfTemplate = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                @page { size: A4 portrait; margin: 0; }
-                body { font-family: Helvetica, Arial, sans-serif; color: ${textColor}; margin: 0; padding: 0; }
-                .content-wrapper { padding: 30px; }
-            </style>
-        </head>
-        <body>
-            <div style="background:${primaryColor};height:128px;width:100%;display:table;padding:40px;box-sizing:border-box;">
-                <div style="display:table-cell;vertical-align:middle;width:50%;">
-                    <div style="background:#fff;width:64px;height:64px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
-                        <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
-                    </div>
-                </div>
-                <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
-                    <h1 style="color:#fff;font-size:30px;font-weight:900;letter-spacing:2px;margin:0;">QUOTATION</h1>
+        const pdfTemplate = `<!DOCTYPE html><html><head><meta charset="UTF-8">
+        <style>
+            @page { size: A4 portrait; margin: 0; }
+            body { font-family: Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; background: #FDFBFB; }
+        </style>
+        </head><body>
+        
+        <div style="background:${primary};height:128px;width:100%;display:table;padding:40px;box-sizing:border-box;">
+            <div style="display:table-cell;vertical-align:middle;width:50%;">
+                <div style="background:#fff;width:64px;height:64px;border-radius:12px;text-align:center;padding:5px;box-sizing:border-box;">
+                    <img src="${logoUrl}" style="max-width:100%;max-height:100%;object-fit:contain;">
                 </div>
             </div>
-
-            <div class="content-wrapper">
-                <div style="margin-bottom:30px;width:100%;text-align:center;">
-                    <img src="${QutationUrl}" alt="Quotation Banner" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
-                </div>
-
-                <h2 style="font-size:26px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
-
-                <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
-                    <tr>
-                        <td style="width:60px;vertical-align:middle;">
-                            <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
-                        </td>
-                        <td style="vertical-align:middle;">
-                            <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
-                            <div style="font-size:12px;color:#666;margin-top:4px;">${emailToUse}</div>
-                        </td>
-                    </tr>
-                </table>
-
-                <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
-
-                <div style="background:#f9f9f9;border-radius:8px;padding:10px;">
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:33%;">Service</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:30%;">Team</th>
-                                <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:5%;">Qty</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
-                                <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:25%;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-
-                    <table style="width:100%;margin-top:30px;border-collapse:collapse;">
-                        <tr>
-                            <td style="width:50%;"></td>
-                            <td style="width:50%;">
-                                <table style="width:100%;font-size:14px;border-collapse:collapse;">
-                                    <tr>
-                                        <td style="padding-bottom:12px;color:#444;">Subtotal</td>
-                                        <td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-bottom:20px;color:#444;">Pre Paid Amount</td>
-                                        <td style="padding-bottom:20px;color:#111;font-weight:bold;text-align:right;">₹ 0</td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;">Total</td>
-                                        <td style="padding-top:15px;border-top:1px solid #ddd;font-weight:900;font-size:18px;text-align:right;">₹ ${subtotal.toLocaleString('en-IN')}</td>
-                                    </tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+            <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
+                <h1 style="color:#fff;font-size:32px;font-weight:900;letter-spacing:3px;margin:0;">QUOTATION</h1>
             </div>
-        </body>
-        </html>`;
+        </div>
+
+        <div style="padding: 40px 30px;">
+            <div style="margin-bottom:30px;width:100%;text-align:center;">
+                <img src="${qutationUrl}" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
+            </div>
+
+            <h2 style="font-size:28px;font-weight:900;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
+            <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+                <tr>
+                    <td style="width:65px;vertical-align:middle;">
+                        <div style="width:50px;height:50px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:50px;font-weight:900;font-size:16px;">${initials}</div>
+                    </td>
+                    <td style="vertical-align:middle;">
+                        <div style="font-weight:900;font-size:18px;color:#111;">${displayName}</div>
+                        <div style="font-size:13px;color:#666;margin-top:4px;font-weight:bold;">${emailToUse}</div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div style="background:${primary}; padding:40px 20px; text-align:center; color:white; font-family:serif; margin-bottom: 30px;">
+            <h1 style="margin:0; font-size:42px; font-weight:normal; letter-spacing:1px;">Payment Price</h1>
+            <p style="margin:10px 0 25px; font-size:16px; font-family:sans-serif; opacity:0.9;">Your Total Package Cost</p>
+            <div style="display:inline-block; background:white; color:${primary}; padding:10px 40px; border-radius:12px; font-size:32px; font-weight:900; font-family:sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                ₹ ${subtotal.toLocaleString('en-IN')}
+            </div>
+        </div>
+
+        ${allServices.length > 0 ? eventsHtml : ''}
+
+        ${deliverables.length > 0 ? `
+        <div style="margin-top:40px;">
+            <div style="background:${primary}; color:white; text-align:center; padding:15px; font-family:serif;">
+                <h2 style="margin:0; font-size:28px; font-weight:normal;">Deliverables</h2>
+            </div>
+            <div style="padding:30px 50px;">
+                <ul style="list-style:none; padding:0; margin:0;">${delivHtmlList}</ul>
+            </div>
+        </div>
+        ` : ''}
+
+        ${additionalServices.length > 0 ? `
+        <div style="margin-top:30px; padding:0 50px;">
+            <div style="text-align:center; margin-bottom:25px;">
+                <h2 style="color:${primary}; font-size:28px; font-family:serif; margin:0;">Additional Services</h2>
+            </div>
+            ${addListHtml}
+        </div>
+        ` : ''}
+
+        ${termsHtml}
+
+        <div style="width: 100%; height: 40px; background-color: ${primary};"></div>
+
+        </body></html>`;
 
         const filename = `Quotation_${currentDownloadClientName.replace(/\s+/g, '_')}.pdf`;
 
@@ -561,11 +600,8 @@ function downloadQuotationPDF() {
     });
 }
 
-// --- 3. AJAX Server Update Function ---
 function sendStatusUpdate(leadId, newStatus) {
     const csrfToken = document.getElementById("csrf_token").value; 
-    
-    // Add a loading state for user experience on confirm
     document.body.style.cursor = 'wait'; 
 
     fetch("/leads/update-status/", { 
@@ -579,9 +615,7 @@ function sendStatusUpdate(leadId, newStatus) {
     .then(res => res.json())
     .then(data => {
         if(data.success) {
-            // 🌟 NEW: Redirection logic based on your request 🌟
             if (newStatus === 'ACCEPTED' && data.invoice_url) {
-                // If lead accepted, automatically open the generated invoice editor URL
                 window.location.href = data.invoice_url; 
             } else {
                 window.location.reload(); 
@@ -598,7 +632,6 @@ function sendStatusUpdate(leadId, newStatus) {
     });
 }
 
-// --- 4. Dropdown Change Logic ---
 function updateLeadStatus(leadId, newStatus) {
     const formattedStatus = newStatus.replace('_', ' ');
     if(!confirm(`Are you sure you want to change this lead's status to ${formattedStatus}?`)) {
@@ -608,7 +641,6 @@ function updateLeadStatus(leadId, newStatus) {
     sendStatusUpdate(leadId, newStatus);
 }
 
-// --- 5. Drag & Drop Logic ---
 let draggedCard = null;
 let sourceColumn = null;
 

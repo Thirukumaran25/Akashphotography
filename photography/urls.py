@@ -29,13 +29,14 @@ urlpatterns = [
 
     path('leads/', create_lead, name='create_lead'),
     path('leads/update-status/', update_lead_status, name='update_lead_status'),
-    
-    path('get-persons/', get_persons, name='get_persons'),
-    path('add-person/', add_person, name='add_person'),
     path('add-deliverable-quick/', add_deliverable_quick, name='add_deliverable_quick'),
-
+    path('add-sub-service/', add_sub_service, name='add_sub_service'),
+    path('get-sub-services/', get_sub_services, name='get_sub_services'),
+    path('add-additional-service/', add_additional_service, name='add_additional_service'),
+    
     path("save-package/",save_package,name="save_package"),
     path("get-package/<int:pk>/",get_package,name="get_package"),
+    path('get-package/', get_package, name='get_package_multi'),
     path('get-task-templates/',  get_task_templates,  name='get_task_templates'),
     path('save-task-template/',  save_task_template,  name='save_task_template'),
     path('save-task-category/',  save_task_category,  name='save_task_category'),

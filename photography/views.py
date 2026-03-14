@@ -123,11 +123,7 @@ def home(request):
     def calculate_leads_total(leads_queryset):
         total = 0
         for lead in leads_queryset:
-            if lead.package:
-                pkg_total = lead.package.services.aggregate(
-                    total=Sum(F('cost') * F('qty'))
-                )['total']
-                total += pkg_total or 0
+            total += lead.total_cost
         return total
 
     new_leads = all_leads.filter(status='NEW')
@@ -163,27 +159,44 @@ def update_lead_status(request):
                 lead.project.status = 'ASSIGNED'
                 lead.project.save()
 
-                if lead.package:
+                if lead.packages.exists() or lead.deliverables.exists() or lead.additional_services.exists():
                     invoice, created = Invoice.objects.get_or_create(
                         lead=lead,
                         defaults={
                             "invoice_number": f"AK-{Lead.objects.count() + 100}",
-                            "due_date": lead.project.start_date,
+                            "due_date": lead.project.start_date if lead.project else None,
                         }
                     )
 
                     if created:
-                        for pkg_service in lead.package.services.all():
-                            invoice_service = InvoiceService.objects.create(
+                        for pkg in lead.packages.all():
+                            for pkg_service in pkg.services.all():
+                                inv_svc = InvoiceService.objects.create(
+                                    invoice=invoice,
+                                    service_name=pkg_service.service_name,
+                                    qty=pkg_service.qty,
+                                    price=pkg_service.cost
+                                )
+                                if pkg_service.sub_services.exists():
+                                    inv_svc.sub_services.set(pkg_service.sub_services.all())
+
+                        if lead.deliverables.exists():
+                            total_deliv_price = sum([d.price for d in lead.deliverables.all()])
+                            deliv_row = InvoiceService.objects.create(
                                 invoice=invoice,
-                                service_name=pkg_service.service_name,
-                                qty=pkg_service.qty,
-                                price=pkg_service.cost
+                                service_name="Deliverables",
+                                qty=1,
+                                price=total_deliv_price
                             )
-                            if pkg_service.deliverables.exists():
-                                invoice_service.deliverables.set(pkg_service.deliverables.all())
-                            if pkg_service.persons.exists():
-                                invoice_service.persons.set(pkg_service.persons.all())
+                            deliv_row.deliverables.set(lead.deliverables.all())
+                            
+                        for add_svc in lead.additional_services.all():
+                            InvoiceService.objects.create(
+                                invoice=invoice,
+                                service_name=f"{add_svc.name} (Additional)",
+                                qty=add_svc.qty,
+                                price=add_svc.price
+                            )
 
                 return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
             return JsonResponse({"success": True})
@@ -314,10 +327,12 @@ def create_lead(request):
             end_date=request.POST.get("end_date")
         )
 
-        package_id = request.POST.get("package")
-        package = Package.objects.filter(id=package_id).first() if package_id else None
+        package_ids_str = request.POST.get("package")
+        package_ids = [int(id) for id in package_ids_str.split(',')] if package_ids_str else []
+        deliverable_ids_str = request.POST.get("deliverables")
+        deliverable_ids = [int(id) for id in deliverable_ids_str.split(',')] if deliverable_ids_str else []
 
-        Lead.objects.create(
+        lead = Lead.objects.create(
             name=request.POST.get("name"),
             mobile_number=request.POST.get("mobile_number"),
             email=request.POST.get("email") or None,
@@ -325,31 +340,62 @@ def create_lead(request):
             lead_source=request.POST.get("lead_source") or 'Other',
             follow_up_date=request.POST.get("follow_up_date") or None,
             status='NEW',
-            package=package,
             project=project
         )
+        
+        if package_ids:
+            lead.packages.set(Package.objects.filter(id__in=package_ids))
+        if deliverable_ids:
+            lead.deliverables.set(Deliverable.objects.filter(id__in=deliverable_ids))
+
+        additional_services_str = request.POST.get("additional_services")
+        if additional_services_str:
+            for item in additional_services_str.split(','):
+                parts = item.split('|')
+                if len(parts) == 3:
+                    LeadAdditionalService.objects.create(
+                        lead=lead,
+                        name=parts[0],
+                        price=float(parts[1]),
+                        qty=int(parts[2])
+                    )
+
         return redirect('home')
 
     packages = Package.objects.all()
     teams = Team.objects.all()
-    available_deliverables = Deliverable.objects.all()
-    available_persons = Person.objects.all()
+    available_sub_services = SubService.objects.all()
+    available_deliverables = Deliverable.objects.all() 
+    available_additional_services = AdditionalService.objects.all()
 
     packages_with_total = []
     for pkg in packages:
         packages_with_total.append({
             "id": pkg.id,
             "package_name": pkg.package_name,
-            "total_cost": pkg.total_cost
+            "total_cost": f"{pkg.total_cost:,.0f}" 
         })
 
     return render(request, "create_lead.html", {
         "packages": packages_with_total,
         "teams": teams,
+        "available_sub_services": available_sub_services,
         "available_deliverables": available_deliverables,
-        "available_persons": available_persons,
+        "available_additional_services": available_additional_services,
     })
 
+@csrf_exempt
+def add_additional_service(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        name = data.get("name", "").strip()
+        price = data.get("price", 0)
+        if not name:
+            return JsonResponse({"error": "Name required"}, status=400)
+            
+        svc = AdditionalService.objects.create(name=name, price=price)
+        return JsonResponse({"id": svc.id, "name": svc.name, "price": float(svc.price)})
+    return JsonResponse({"error": "Invalid"}, status=400)
 
 @csrf_exempt
 def delete_package(request, pk):
@@ -421,6 +467,8 @@ def save_task_category(request):
     cat, _ = TaskCategory.objects.get_or_create(name=name)
     return JsonResponse({"id": cat.id, "name": cat.name})
  
+
+@csrf_exempt
 def save_package(request):
     if request.method != "POST":
         return JsonResponse({"status": "error"}, status=400)
@@ -429,12 +477,10 @@ def save_package(request):
     package_id   = data.get("package_id")
     package_name = data.get("package_name", "").strip()
     services     = data.get("services", [])
-    task_ids_map = data.get("task_template_ids", {}) 
  
     if not package_name:
         return JsonResponse({"status": "error", "message": "Package name required"}, status=400)
  
-    # ── Create or update package ──────────────────────────────────────────────
     if package_id:
         pkg = get_object_or_404(Package, id=package_id)
         pkg.package_name = package_name
@@ -443,72 +489,159 @@ def save_package(request):
     else:
         pkg = Package.objects.create(package_name=package_name)
  
-    # ── Save services (unchanged logic) ──────────────────────────────────────
     for s in services:
+        safe_qty = int(s.get("qty") or 1)
+        safe_cost = float(s.get("cost") or 0)
+
         svc = PackageService.objects.create(
             package      = pkg,
             service_name = s["service_name"],
-            qty          = int(s.get("qty", 1)),
-            cost         = float(s.get("cost", 0)),
+            qty          = safe_qty,
+            cost         = safe_cost,
         )
-        for pid in s.get("person_ids", []):
+        for pid in s.get("sub_service_ids", []):
             try:
-                svc.persons.add(Person.objects.get(id=pid))
-            except Person.DoesNotExist:
+                svc.sub_services.add(SubService.objects.get(id=pid))
+            except SubService.DoesNotExist:
                 pass
-        for did in s.get("deliverable_ids", []):
-            try:
-                svc.deliverables.add(Deliverable.objects.get(id=did))
-            except Deliverable.DoesNotExist:
-                pass
- 
-    # ── Save task template associations ──────────────────────────────────────
-    pkg.task_templates.clear()
-    for phase_key, ids in task_ids_map.items():
-        for tid in ids:
-            try:
-                pkg.task_templates.add(TaskList.objects.get(id=tid))
-            except TaskList.DoesNotExist:
-                pass
- 
     return JsonResponse({"status": "success", "package_id": pkg.id})
 
+
 def get_package(request, pk=None, package_id=None):
-    """
-    GET /get-package/<id>/
-    Returns package details including task_template_ids for the edit modal.
-    Accepts both ?pk and ?package_id URL kwargs for compatibility.
-    """
     lookup = pk or package_id
-    pkg = get_object_or_404(Package, id=lookup)
- 
+    ids_param = request.GET.get('ids')
+    lead_id = request.GET.get('lead_id')
+
+    packages = Package.objects.none()
+    
+    if ids_param:
+        lookup_ids = [int(id) for id in ids_param.split(',')]
+        packages = Package.objects.filter(id__in=lookup_ids)
+    elif lookup and lookup != 'None':
+        packages = Package.objects.filter(id=lookup)
+
     services = []
-    for svc in pkg.services.prefetch_related('persons', 'deliverables').all():
-        services.append({
-            "service_name": svc.service_name,
-            "qty":          svc.qty,
-            "cost":         str(svc.cost),
-            "persons": [
-                {"id": p.id, "name": p.name, "price": str(p.price)}
-                for p in svc.persons.all()
-            ],
-            "deliverables": [
-                {"id": d.id, "title": d.title, "price": str(d.price)}
-                for d in svc.deliverables.all()
-            ],
-        })
- 
-    task_template_ids = {"PRE": [], "SELECTION": [], "POST": []}
-    for t in pkg.task_templates.select_related('category').all():
-        if t.phase in task_template_ids:
-            task_template_ids[t.phase].append(t.id)
- 
+    combined_name = " + ".join([pkg.package_name for pkg in packages])
+
+    for pkg in packages:
+        for svc in pkg.services.prefetch_related('sub_services').all():
+            services.append({
+                "service_name": svc.service_name,
+                "qty":          svc.qty,
+                "cost":         str(svc.cost),
+                "sub_services": [
+                    {"id": p.id, "name": p.name, "price": str(p.price)}
+                    for p in svc.sub_services.all()
+                ]
+            })
+
+    deliverables = []
+    additional_services = []
+    
+    if lead_id and lead_id != 'None':
+        try:
+            lead = Lead.objects.get(id=lead_id)
+            for d in lead.deliverables.all():
+                deliverables.append({"title": d.title, "price": str(d.price)})
+            for a in lead.additional_services.all():
+                additional_services.append({"title": a.name, "price": str(a.price), "qty": a.qty})
+        except Lead.DoesNotExist:
+            pass
+
     return JsonResponse({
-        "id":                pkg.id,
-        "name":              pkg.package_name,
-        "services":          services,
-        "task_template_ids": task_template_ids,
+        "id":       packages.first().id if packages.count() == 1 else None,
+        "name":     combined_name,
+        "services": services,
+        "deliverables": deliverables,          
+        "additional_services": additional_services 
     })
+
+@csrf_exempt
+def add_sub_service(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        name = data.get("name", "").strip()
+        price = data.get("price", 0)
+        if not name:
+            return JsonResponse({"error": "Name required"}, status=400)
+        sub = SubService.objects.create(name=name, price=price)
+        return JsonResponse({"id": sub.id, "name": sub.name, "price": float(sub.price)})
+    return JsonResponse({"error": "Invalid"}, status=400)
+
+def get_sub_services(request):
+    subs = list(SubService.objects.values('id', 'name', 'price'))
+    for p in subs:
+        p['price'] = float(p['price'])
+    return JsonResponse({"sub_services": subs})
+
+@csrf_exempt
+def update_lead_status(request):
+    if request.method == "POST":
+        lead_id = request.POST.get("lead_id")
+        new_status = request.POST.get("status")
+
+        if lead_id and new_status:
+            lead = get_object_or_404(Lead, id=lead_id)
+            lead.status = new_status
+            lead.save()
+
+            if new_status == 'ACCEPTED' and lead.project:
+                lead.project.status = 'ASSIGNED'
+                lead.project.save()
+
+                if lead.packages.exists() or lead.deliverables.exists() or lead.additional_services.exists():
+                    invoice = Invoice.objects.filter(lead=lead).first()
+                    created = False
+                    
+                    if not invoice:
+                        base_count = Invoice.objects.count() + 100
+                        invoice_num = f"AK-{base_count}"
+                        
+                        while Invoice.objects.filter(invoice_number=invoice_num).exists():
+                            base_count += 1
+                            invoice_num = f"AK-{base_count}"
+                            
+                        invoice = Invoice.objects.create(
+                            lead=lead,
+                            invoice_number=invoice_num,
+                            due_date=lead.project.start_date if lead.project else None
+                        )
+                        created = True
+
+                    if created:
+                        for pkg in lead.packages.all():
+                            for pkg_service in pkg.services.all():
+                                inv_svc = InvoiceService.objects.create(
+                                    invoice=invoice,
+                                    service_name=pkg_service.service_name,
+                                    qty=pkg_service.qty,
+                                    price=pkg_service.cost
+                                )
+                                if pkg_service.sub_services.exists():
+                                    inv_svc.sub_services.set(pkg_service.sub_services.all())
+
+                        if lead.deliverables.exists():
+                            total_deliv_price = sum([d.price for d in lead.deliverables.all()])
+                            deliv_row = InvoiceService.objects.create(
+                                invoice=invoice,
+                                service_name="Deliverables",
+                                qty=1,
+                                price=total_deliv_price
+                            )
+                            deliv_row.deliverables.set(lead.deliverables.all())
+                            
+                        for add_svc in lead.additional_services.all():
+                            InvoiceService.objects.create(
+                                invoice=invoice,
+                                service_name=f"{add_svc.name} (Additional)",
+                                qty=add_svc.qty,
+                                price=add_svc.price
+                            )
+
+                return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
+            return JsonResponse({"success": True})
+    return JsonResponse({"success": False}, status=400)
+
 
 def invoice(request):
     all_invoices = Invoice.objects.all().select_related('lead', 'lead__project').order_by('-created_at')
@@ -519,6 +652,7 @@ def invoice(request):
     today = date.today()
 
     pending_invoices = []
+    partial_invoices = [] # 🌟 NEW: Dedicated list for Partial Invoices
     completed_invoices = []
 
     for inv in all_invoices:
@@ -529,20 +663,25 @@ def invoice(request):
         inv.balance = balance
         inv.project_name = inv.lead.project.project_name if inv.lead.project else inv.lead.name
 
-        if inv.status in [Invoice.PaymentStatus.PENDING, Invoice.PaymentStatus.PARTIAL]:
+        if inv.status == Invoice.PaymentStatus.PENDING:
             pending_invoices.append(inv)
+        elif inv.status == Invoice.PaymentStatus.PARTIAL:
+            partial_invoices.append(inv)
+        else:
+            completed_invoices.append(inv)
+
+        if inv.status in [Invoice.PaymentStatus.PENDING, Invoice.PaymentStatus.PARTIAL]:
             if inv.due_date and inv.due_date < today:
                 total_past_due += balance
             else:
                 total_upcoming += balance
-        else:
-            completed_invoices.append(inv)
 
     context = {
         'total_paid': total_paid,
         'total_upcoming': total_upcoming,
         'total_past_due': total_past_due,
         'pending_invoices': pending_invoices,
+        'partial_invoices': partial_invoices,
         'completed_invoices': completed_invoices,
     }
 
@@ -553,7 +692,8 @@ def create_invoice(request, lead_id):
     lead = get_object_or_404(Lead, id=lead_id)
     invoice = get_object_or_404(Invoice, lead=lead)
     available_deliverables = Deliverable.objects.all()
-    available_persons = Person.objects.all()
+    available_sub_services = SubService.objects.all()
+    available_additional_services = AdditionalService.objects.all() 
 
     context = {
         'lead': lead,
@@ -564,7 +704,8 @@ def create_invoice(request, lead_id):
         'tax_amount': invoice.tax_amount,
         'pre_paid': invoice.pre_paid_amount,
         'available_deliverables': available_deliverables,
-        'available_persons': available_persons,
+        'available_sub_services': available_sub_services,
+        'available_additional_services': available_additional_services,
     }
     return render(request, "create_invoice.html", context)
 
@@ -620,8 +761,6 @@ def save_invoice(request):
                 invoice.due_date = due_date
 
             invoice.save()
-            
-            # Clear old services to rebuild them based on the updated form
             invoice.services.all().delete()
 
             for s_data in data.get("services", []):
@@ -636,9 +775,9 @@ def save_invoice(request):
                 if deliverable_ids:
                     new_service.deliverables.set(Deliverable.objects.filter(id__in=deliverable_ids))
 
-                person_ids = s_data.get("person_ids", [])
-                if person_ids:
-                    new_service.persons.set(Person.objects.filter(id__in=person_ids))
+                sub_service_ids = s_data.get("sub_service_ids", [])
+                if sub_service_ids:
+                    new_service.sub_services.set(SubService.objects.filter(id__in=sub_service_ids))
 
             if invoice.lead and invoice.lead.project:
                 if invoice.lead.project.status in ['PRE', 'SELECTION', 'POST', 'COMPLETED']:
@@ -647,6 +786,7 @@ def save_invoice(request):
             return JsonResponse({"status": "success", "invoice_id": invoice.id})
 
         except Exception as e:
+            print("Invoice Save Error:", str(e)) 
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
             
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
@@ -672,27 +812,39 @@ def generate_invoice_from_lead(request):
                 base_count += 1
                 invoice_number = f"AK-{base_count}"
 
-            due_date = lead.project.start_date if lead.project else None
-
             new_invoice = Invoice.objects.create(
                 lead=lead,
                 invoice_number=invoice_number,
-                due_date=due_date,
+                due_date=lead.project.start_date if lead.project else None,
             )
 
-            if lead.package:
-                for pkg_service in lead.package.services.all():
-                    invoice_service = InvoiceService.objects.create(
+            for pkg in lead.packages.all():
+                for pkg_service in pkg.services.all():
+                    inv_svc = InvoiceService.objects.create(
                         invoice=new_invoice,
                         service_name=pkg_service.service_name,
                         qty=pkg_service.qty,
                         price=pkg_service.cost
                     )
-                    if pkg_service.deliverables.exists():
-                        invoice_service.deliverables.set(pkg_service.deliverables.all())
-                    if pkg_service.persons.exists():
-                        invoice_service.persons.set(pkg_service.persons.all())
+                    if pkg_service.sub_services.exists():
+                        inv_svc.sub_services.set(pkg_service.sub_services.all())
 
+            if lead.deliverables.exists():
+                deliv_row = InvoiceService.objects.create(
+                    invoice=new_invoice,
+                    service_name="Deliverables",
+                    qty=1,
+                    price=sum([d.price for d in lead.deliverables.all()])
+                )
+                deliv_row.deliverables.set(lead.deliverables.all())
+
+            for add_svc in lead.additional_services.all():
+                InvoiceService.objects.create(
+                    invoice=new_invoice,
+                    service_name=f"{add_svc.name} (Additional)",
+                    qty=add_svc.qty,
+                    price=add_svc.price
+                )
         return JsonResponse({"success": True, "invoice_url": f"/invoice/edit/{lead.id}/"})
     return JsonResponse({"success": False}, status=400)
 
@@ -762,17 +914,6 @@ def search_leads_for_invoice(request):
     return JsonResponse({"results": results})
 
 
-@csrf_exempt
-def add_person(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        name = data.get("name", "").strip()
-        price = data.get("price", 0)
-        if not name:
-            return JsonResponse({"error": "Name required"}, status=400)
-        person = Person.objects.create(name=name, price=price)
-        return JsonResponse({"id": person.id, "name": person.name, "price": float(person.price)})
-    return JsonResponse({"error": "Invalid"}, status=400)
 
 
 @csrf_exempt
@@ -786,13 +927,6 @@ def add_deliverable_quick(request):
         d = Deliverable.objects.create(title=title, price=price)
         return JsonResponse({"id": d.id, "title": d.title, "price": float(d.price)})
     return JsonResponse({"error": "Invalid"}, status=400)
-
-
-def get_persons(request):
-    persons = list(Person.objects.values('id', 'name', 'price'))
-    for p in persons:
-        p['price'] = float(p['price'])
-    return JsonResponse({"persons": persons})
 
 
 def employees_list(request):
@@ -930,47 +1064,31 @@ def get_project_details_api(request, project_id):
 
 
 def auto_generate_deliverable_tasks(project):
+    """
+    Since task_templates and deliverables are removed, we just create a single 
+    generic Post-Production task for every Service to keep the pipeline moving!
+    """
     lead = project.lead_set.first()
-
     if not lead:
         return
 
-    # 1. Fetch all Master Task Templates attached to the Package (PRE, SELECTION, POST)
-    if lead.package:
-        # Loop through all the templates you selected for this package in the admin panel
-        for template in lead.package.task_templates.all():
-            cat_name = template.category.name if template.category else "General"
-            
-            # get_or_create ensures we never duplicate tasks if this runs twice
+    invoice = Invoice.objects.filter(lead=lead).first()
+    
+    if invoice:
+        for service in invoice.services.all():
             Task.objects.get_or_create(
                 project=project,
-                task_name=template.task_name,
-                phase=template.phase,
-                category=cat_name,
+                task_name=f"Complete {service.service_name}",
+                phase='POST',
+                category=service.service_name, 
                 defaults={'status': 'ON_HOLD'}
             )
-
-    # 2. Fetch specific Deliverables for POST PRODUCTION
-    # We prioritize the final Invoice services, but fallback to the base Package services if no invoice exists yet.
-    invoice = Invoice.objects.filter(lead=lead).first()
-
-    if invoice:
-        # Generate from Invoice Services
-        for service in invoice.services.all():
-            for d in service.deliverables.all():
+    elif lead.packages.exists():
+        for pkg in lead.packages.all():
+            for service in pkg.services.all():
                 Task.objects.get_or_create(
                     project=project,
-                    task_name=d.title,
-                    phase='POST',
-                    category=service.service_name, 
-                    defaults={'status': 'ON_HOLD'}
-                )
-    elif lead.package:
-        for service in lead.package.services.all():
-            for d in service.deliverables.all():
-                Task.objects.get_or_create(
-                    project=project,
-                    task_name=d.title,
+                    task_name=f"Complete {service.service_name}",
                     phase='POST',
                     category=service.service_name, 
                     defaults={'status': 'ON_HOLD'}

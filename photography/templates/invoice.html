@@ -52,10 +52,11 @@
             <div class="grid grid-cols-12 gap-4 text-[13px] font-bold text-gray-400 mb-3 px-4">
                 <div class="col-span-1">Project ID</div>
                 <div class="col-span-3">Project Name</div>
-                <div class="col-span-2">Amount</div>
+                <div class="col-span-2">Total Amount</div>
+                <div class="col-span-1">Balance</div>
                 <div class="col-span-2">Due On</div>
-                <div class="col-span-2">Created</div>
-                <div class="col-span-2">Invoice Status</div>
+                <div class="col-span-1">Created</div>
+                <div class="col-span-2 text-right pr-4">Invoice Status</div>
             </div>
 
             <div class="bg-[#fef2f2] text-[#dc2626] font-bold text-[13px] px-4 py-2 mb-2 uppercase tracking-wide border border-[#fecaca] flex items-center gap-2">
@@ -67,11 +68,14 @@
                 <div class="grid grid-cols-12 gap-4 items-center bg-white px-4 py-3 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all rounded text-[14px] font-medium text-gray-800">
                     <div class="col-span-1 text-gray-500 font-semibold">{{ inv.invoice_number }}</div>
                     <div class="col-span-3 pr-4 truncate" title="{{ inv.project_name }}">{{ inv.project_name }}</div>
-                    <div class="col-span-2 font-bold text-black">₹ {{ inv.display_amount|floatformat:0 }}</div>
-                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
-                    <div class="col-span-2 text-gray-500">{{ inv.created_at|date:"M d, Y" }}</div>
                     
-                    <div class="col-span-2 flex items-center justify-between">
+                    <div class="col-span-2 font-bold text-black">₹ {{ inv.subtotal|floatformat:0 }}</div>
+                    
+                    <div class="col-span-1 font-bold text-[#A9323D]">₹ {{ inv.balance|floatformat:0 }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
+                    <div class="col-span-1 text-gray-500 text-[13px]">{{ inv.created_at|date:"M d, Y" }}</div>
+                    
+                    <div class="col-span-2 flex items-center justify-end gap-3">
                         <button class="bg-[#A9323D] text-white px-3 py-1.5 rounded flex items-center justify-between w-24 text-[12px] font-bold">
                             Pending <i class="fas fa-caret-down text-[10px]"></i>
                         </button>
@@ -88,6 +92,36 @@
                 {% endfor %}
             </div>
 
+            <div class="bg-[#fffbeb] text-[#d97706] font-bold text-[13px] px-4 py-2 mb-2 uppercase tracking-wide border border-[#fde68a] flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-[#d97706]"></div> PARTIALLY PAID
+            </div>
+            
+            <div class="space-y-1.5 mb-8">
+                {% for inv in partial_invoices %}
+                <div class="grid grid-cols-12 gap-4 items-center bg-white px-4 py-3 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all rounded text-[14px] font-medium text-gray-800">
+                    <div class="col-span-1 text-gray-500 font-semibold">{{ inv.invoice_number }}</div>
+                    <div class="col-span-3 pr-4 truncate" title="{{ inv.project_name }}">{{ inv.project_name }}</div>
+                    <div class="col-span-2 font-bold text-black">₹ {{ inv.subtotal|floatformat:0 }}</div>
+                    <div class="col-span-1 font-bold text-[#d97706]">₹ {{ inv.balance|floatformat:0 }}</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
+                    <div class="col-span-1 text-gray-500 text-[13px]">{{ inv.created_at|date:"M d, Y" }}</div>
+                    
+                    <div class="col-span-2 flex items-center justify-end gap-3">
+                        <button class="bg-[#d97706] text-white px-3 py-1.5 rounded flex items-center justify-between w-24 text-[12px] font-bold">
+                            Partial <i class="fas fa-caret-down text-[10px]"></i>
+                        </button>
+                        <div class="flex gap-3 text-gray-500 text-[15px]">
+                            <a href="{% url 'create_invoice' inv.lead.id %}" class="hover:text-black transition" title="Edit Invoice"><i class="fas fa-pen"></i></a>
+                            <button onclick="downloadInvoice('{{ inv.id }}', this)" class="hover:text-black transition" title="Download"><i class="fas fa-download"></i></button>
+                            <button onclick="openPreviewModal('{{ inv.invoice_number }}', '{{ inv.project_name|escapejs }}')" class="hover:text-black transition" title="Preview/Share"><i class="fas fa-share"></i></button>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="p-6 text-center text-gray-400 bg-white border border-gray-100 text-sm font-medium">No partial invoices.</div>
+                {% endfor %}
+            </div>
+
             <div class="bg-[#f0fdf4] text-[#16a34a] font-bold text-[13px] px-4 py-2 mb-2 uppercase tracking-wide border border-[#bbf7d0] flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-[#16a34a]"></div> PAYMENT CLOSED
             </div>
@@ -97,11 +131,14 @@
                 <div class="grid grid-cols-12 gap-4 items-center bg-white px-4 py-3 border border-gray-100 hover:border-gray-200 hover:shadow-sm transition-all rounded text-[14px] font-medium text-gray-800 opacity-80 hover:opacity-100">
                     <div class="col-span-1 text-gray-500 font-semibold">{{ inv.invoice_number }}</div>
                     <div class="col-span-3 pr-4 truncate" title="{{ inv.project_name }}">{{ inv.project_name }}</div>
-                    <div class="col-span-2 font-bold text-black">₹ {{ inv.display_amount|floatformat:0 }}</div>
-                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
-                    <div class="col-span-2 text-gray-500">{{ inv.created_at|date:"M d, Y" }}</div>
                     
-                    <div class="col-span-2 flex items-center justify-between">
+                    <div class="col-span-2 font-bold text-black">₹ {{ inv.subtotal|floatformat:0 }}</div>
+                    
+                    <div class="col-span-1 font-bold text-[#16a34a]">₹ 0</div>
+                    <div class="col-span-2 text-gray-500">{{ inv.due_date|date:"M d, Y"|default:"-" }}</div>
+                    <div class="col-span-1 text-gray-500 text-[13px]">{{ inv.created_at|date:"M d, Y" }}</div>
+                    
+                    <div class="col-span-2 flex items-center justify-end gap-3">
                         <button class="bg-[#16a34a] text-white px-3 py-1.5 rounded flex items-center justify-between w-28 text-[12px] font-bold">
                             Completed <i class="fas fa-caret-down text-[10px]"></i>
                         </button>
@@ -140,7 +177,7 @@
             </div>
             
             <div id="invoiceSearchResults" class="hidden absolute w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-xl z-50 max-h-64 overflow-y-auto">
-                </div>
+            </div>
         </div>
         
         <input type="hidden" id="selectedLeadIdForInvoice">
@@ -180,7 +217,6 @@
         </div>
 
         <div class="bg-white w-full max-w-3xl mx-auto shadow-md border border-gray-200 min-h-[600px] relative overflow-hidden flex-shrink-0">
-            
             <div class="bg-[#111] h-32 w-full flex justify-between items-center px-10">
                 <div class="bg-white w-16 h-16 rounded flex items-center justify-center font-bold text-xl">Logo</div>
                 <div class="text-right">
@@ -252,7 +288,6 @@
         document.body.style.overflow = 'auto';
     }
 
-
    function downloadInvoice(invoiceId, btnElement) {
     const icon = btnElement.querySelector('i');
     const originalClass = icon.className;
@@ -265,34 +300,110 @@
     ])
     .then(([logoData, data]) => {
         const logoUrl = logoData.data_uri || '';
+        
+        let servicesHtml = '';
 
-        let rowsHtml = '';
-        data.services.forEach(service => {
-            let deliverableItems = service.deliverables.map(d => `<li style="color:#555;font-size:11px;margin-top:4px;">• ${d}</li>`).join('');
+        data.services.forEach((service, index) => {
+            let qty = parseFloat(service.qty) || 1;
+            let price = parseFloat(service.price) || 0;
+            let amount = qty * price;
 
-            rowsHtml += `
-            <tr>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;vertical-align:top;">
-                    <strong style="font-size:14px;color:#111;">${service.service_name}</strong>
-                    <ul style="margin:5px 0 0 0;padding:0;list-style:none;">${deliverableItems}</ul>
+            let subItemsHtml = service.deliverables.map(item => `<div style="color: #444; font-size: 13px; margin-top: 4px;">1 ${item}</div>`).join('');
+
+            servicesHtml += `
+            <tr style="border-bottom: 1px solid #eee;">
+                <td style="padding: 15px 12px; text-align: center; vertical-align: top; font-weight: bold;">${index + 1}</td>
+                <td style="padding: 15px 12px; vertical-align: top;">
+                    <div style="font-weight: bold; color: #111; font-size: 14px; margin-bottom: 6px;">${service.service_name}</div>
+                    ${subItemsHtml}
                 </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:center;">
-                    <span style="font-weight:bold;font-size:13px;">${service.qty}</span>
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;">
-                    <span style="font-weight:bold;font-size:13px;">₹ ${service.price.toLocaleString('en-IN')}</span>
-                </td>
-                <td style="padding:15px 10px;border-bottom:1px solid #eaeaea;text-align:right;">
-                    <strong style="font-size:14px;color:#111;">₹ ${service.total_amount.toLocaleString('en-IN')}</strong>
-                </td>
+                <td style="padding: 15px 12px; text-align: center; vertical-align: top;">${qty.toFixed(2)}</td>
+                <td style="padding: 15px 12px; text-align: right; vertical-align: top;">${price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td style="padding: 15px 12px; text-align: right; vertical-align: top; font-weight: bold;">${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
             </tr>`;
         });
 
         const displayName = data.project_name ? `${data.client_name}` : data.client_name;
-        const initials = data.client_name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
+        const emailToUse = data.email || 'No email provided';
+
+        // Format Date to DD/MM/YYYY
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0'); 
+        const yyyy = today.getFullYear();
+        const formattedDate = `${dd}/${mm}/${yyyy}`;
+
+        let subtotal = parseFloat(data.subtotal) || 0;
+        let discount = parseFloat(data.discount_amount) || 0;
+        let taxAmount = parseFloat(data.tax_amount) || 0;
+        let prePaid = parseFloat(data.pre_paid_amount) || 0;
+        let totalPaidSoFar = parseFloat(data.paid_amount) || 0;
+        let grandTotal = parseFloat(data.total_amount) || 0;
+        
+        // 🌟 COMBINED PAYMENT TOTAL HERE
+        let totalPaymentMade = totalPaidSoFar + prePaid;
+        let balanceDue = parseFloat(data.balance_due) || 0;
+        
+        let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
+        let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
+        function numberToWords(num) {
+            if ((num = num.toString()).length > 9) return '';
+            let n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+            if (!n) return '';
+            let str = '';
+            str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + 'Crore ' : '';
+            str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + 'Lakh ' : '';
+            str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + 'Thousand ' : '';
+            str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + 'Hundred ' : '';
+            str += (n[5] != 0) ? ((str != '') ? 'and ' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+            return str.trim() ? 'Rupees ' + str.trim() + ' Only' : '';
+        }
+        let totalInWords = numberToWords(Math.round(grandTotal));
+
+        let discountRow = discount > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Discount</td>
+            <td style="padding: 8px 12px; text-align: right; color: #111;">(-) ${discount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+
+        let taxRow = taxAmount > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Tax Amount</td>
+            <td style="padding: 8px 12px; text-align: right; color: #111;">${taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+
+        // 🌟 MERGED PAYMENT ROW
+        let paymentsRow = totalPaymentMade > 0 ? `
+        <tr>
+            <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Payment Made</td>
+            <td style="padding: 8px 12px; text-align: right; font-weight: bold; color: #dc2626;">(-) ${totalPaymentMade.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+        </tr>` : '';
+
+        const termsHtml = `
+        <div style="clear: both; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
+            <h3 style="font-size: 14px; font-weight: bold; color: #111; margin-bottom: 12px;">Terms and Conditions:</h3>
+            <ol style="font-size: 11px; color: #555; line-height: 1.6; padding-left: 20px; margin: 0;">
+                <li style="margin-bottom: 4px;">40% Advance , 60% 1 week before the event day.</li>
+                <li style="margin-bottom: 4px;">You have to submit min. 2TB Hard Disk after the first payment, for your raw data.</li>
+                <li style="margin-bottom: 4px;">For Costumers who dont collect deliverables within 60days We will not hold responsibility for the project or data loss so please collect your data and deliverables at the earliest</li>
+                <li style="margin-bottom: 4px;">All deliverables are given at once (Teaser, Album, Full Length Video).</li>
+                <li style="margin-bottom: 4px;">Any Cancellation Advance will be not refunded.</li>
+                <li style="margin-bottom: 4px;">You shall arrange for travel and accommodation of our shoot crew for all your events occurring in the places away from our office.</li>
+                <li style="margin-bottom: 4px;">Any change of plan or postponement of any event will be accommodated based on our availability on new dates.</li>
+                <li style="margin-bottom: 4px;">For requirement of additional sheets in photo book, cost depends on the dimensions of sheet.</li>
+                <li style="margin-bottom: 4px;">Soft copies will be given only after 90% of the total payment.</li>
+                <li style="margin-bottom: 4px;">Drone cannot be operated at red zones and restricted places if drone is in the package.</li>
+                <li style="margin-bottom: 4px;">Services like Drone, LED Wall, Live Streaming will be only provided upon the customer interest and should be discussed at the time of agreement. All these are third Party and live streaming is completely depends on network strength, if no network wifi should be provided at the venue premises.</li>
+                <li style="margin-bottom: 4px;">Apart from wedding any event is conisdered as 4-5 hours for additional coverage need to discuss for adding the slot</li>
+                <li style="margin-bottom: 4px;">Candid and cinematic team will be present from evening on wedding date , if its morning wedding team will come accordingly</li>
+                <li style="margin-bottom: 4px;">Any charges at the time of shoot like entry and other charges will be paid by the customers only.</li>
+                <li style="margin-bottom: 4px;">We don't cover Food items if you need those shots need to Add a Separate Photo & Video for Food Coverage.</li>
+            </ol>
+        </div>
+        <div style="width: 100%; height: 30px; background-color: #A32E37; margin-top: 30px;"></div>
+        `;
 
         const primaryColor = "#A32E37";
-        const textColor = "#333333";
 
         const pdfTemplate = `
         <!DOCTYPE html>
@@ -300,90 +411,87 @@
         <head>
             <meta charset="UTF-8">
             <style>
-                @page {
-                    size: A4 portrait;
-                    margin: 0;
-                }
-                body {
-                    font-family: Helvetica, Arial, sans-serif;
-                    color: ${textColor};
-                    margin: 0;
-                    padding: 0;
-                }
-                .content-wrapper {
-                    padding: 30px;
-                }
+                @page { size: A4 portrait; margin: 0; }
+                body { font-family: Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; background: #fff; }
             </style>
         </head>
         <body>
-            <div style="background:${primaryColor}; height:128px; width:100%; display:table; padding:40px; box-sizing:border-box;">
-                <div style="display:table-cell; vertical-align:middle; width:50%;">
-                    <div style="background:#fff; width:64px; height:64px; border-radius:8px; text-align:center; padding:5px; box-sizing:border-box;">
-                        <img src="${logoUrl}" alt="Logo" style="max-width:100%; max-height:100%; object-fit:contain;">
+            <div style="background:${primaryColor};height:120px;width:100%;display:table;padding:30px 40px;box-sizing:border-box;">
+                <div style="display:table-cell;vertical-align:middle;width:50%;">
+                    <div style="background:#fff;width:60px;height:60px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
+                        <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
                     </div>
                 </div>
-                <div style="display:table-cell; vertical-align:middle; text-align:right; width:50%;">
-                    <h1 style="color:#fff; font-size:30px; font-weight:900; letter-spacing:2px; margin:0;">INVOICE</h1>
+                <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
+                    <h1 style="color:#fff;font-size:32px;font-weight:900;letter-spacing:2px;margin:0;">INVOICE</h1>
                 </div>
             </div>
 
-            <div class="content-wrapper">
-                <h2 style="font-size:15px;font-weight:800;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
-                <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
+            <div style="padding: 40px;">
+                <table style="width: 100%; margin-bottom: 30px;">
                     <tr>
-                        <td style="width:60px;vertical-align:middle;">
-                            <div style="width:45px;height:45px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:45px;font-weight:bold;font-size:14px;">${initials}</div>
+                        <td style="vertical-align: top;">
+                            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">Bill To</div>
+                            <div style="font-size: 18px; font-weight: bold; color: #111;">${displayName}</div>
                         </td>
-                        <td style="vertical-align:middle;">
-                            <div style="font-weight:800;font-size:16px;color:#111;">${displayName}</div>
-                            <div style="font-size:12px;color:#666;margin-top:4px;">${data.email}</div>
-                        </td>
-                        <td style="text-align:right;vertical-align:middle;">
-                            <div style="font-size:18px;font-weight:900;color:#A9323D;">${data.invoice_number}</div>
-                            <div style="font-size:12px;color:#666;margin-top:4px;">Due: ${data.due_date}</div>
+                        <td style="vertical-align: top; text-align: right;">
+                            <div style="font-size: 14px; display: inline-block; text-align: right;">
+                                <span style="color: #666; margin-right: 15px;">Invoice Date :</span>
+                                <span style="font-weight: bold; color: #111;">${formattedDate}</span>
+                            </div>
                         </td>
                     </tr>
                 </table>
 
-                <h3 style="font-size:18px;font-weight:800;color:#111;margin-bottom:15px;">Services</h3>
-                <div style="background:#f9f9f9;border-radius:8px;padding:20px;">
-                    <table style="width:100%;border-collapse:collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:45%;">Service</th>
-                                <th style="text-align:center;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:15%;">Qty</th>
-                                <th style="text-align:left;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Price</th>
-                                <th style="text-align:right;padding:0 10px 10px;border-bottom:1px solid #ddd;font-size:11px;color:#777;width:20%;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>${rowsHtml}</tbody>
-                    </table>
-
-                    <table style="width:100%;margin-top:30px;border-collapse:collapse;">
-                        <tr>
-                            <td style="width:50%;"></td>
-                            <td style="width:50%;">
-                                <table style="width:100%;font-size:14px;border-collapse:collapse;">
-                                    <tr><td style="padding-bottom:12px;color:#444;">Subtotal</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">₹ ${data.subtotal.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding-bottom:8px;color:#444;">Discount</td><td style="padding-bottom:8px;color:#111;font-weight:bold;text-align:right;">- ₹ ${data.discount_amount.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding-bottom:12px;color:#444;">Tax Amount</td><td style="padding-bottom:12px;color:#111;font-weight:bold;text-align:right;">+ ₹ ${data.tax_amount.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;">Total Amount</td><td style="padding-top:12px;border-top:1px solid #eaeaea;color:#111;font-weight:900;font-size:15px;text-align:right;">₹ ${data.total_amount.toLocaleString('en-IN')}</td></tr>
-                                </table>
-
-                                <table style="width:100%;font-size:13px;border-collapse:collapse;margin-top:20px;background:#f5fdf5;padding:15px;border-radius:8px;">
-                                    <tr><td style="padding:15px 10px 8px 15px;color:#666;">Pre Paid Amount</td><td style="padding:15px 15px 8px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.pre_paid_amount.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding:0 10px 12px 15px;color:#666;">Paid Amounts</td><td style="padding:0 15px 12px 10px;color:#16a34a;font-weight:bold;text-align:right;">- ₹ ${data.paid_amount.toLocaleString('en-IN')}</td></tr>
-                                    <tr><td style="padding:12px 10px 15px 15px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;">Remaining Amount</td><td style="padding:12px 15px 15px 10px;border-top:1px solid #eaeaea;color:#A9323D;font-weight:900;font-size:16px;text-align:right;">₹ ${data.balance_due.toLocaleString('en-IN')}</td></tr>
-                                </table>
-                            </td>
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #333; color: white;">
+                            <th style="padding: 12px; text-align: center; width: 5%;">#</th>
+                            <th style="padding: 12px; text-align: left; width: 50%;">Item & Description</th>
+                            <th style="padding: 12px; text-align: center; width: 10%;">Qty</th>
+                            <th style="padding: 12px; text-align: right; width: 15%;">Rate</th>
+                            <th style="padding: 12px; text-align: right; width: 20%;">Amount</th>
                         </tr>
-                    </table>
+                    </thead>
+                    <tbody>
+                        ${servicesHtml}
+                    </tbody>
+                </table>
+
+                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <tr>
+                        <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                        </td>
+                        <td style="width: 50%;">
+                            <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+                                <tr>
+                                    <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">SubTotal</td>
+                                    <td style="padding: 8px 12px; text-align: right; color: #111;">${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                                ${discountRow}
+                                ${taxRow}
+                                <tr style="border-top: 1px solid #ddd;">
+                                    <td style="padding: 12px 12px 8px; text-align: right; color: #111; font-weight: bold;">Total</td>
+                                    <td style="padding: 12px 12px 8px; text-align: right; font-weight: bold; color: #111;">₹${grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                                ${paymentsRow}
+                                <tr style="background-color: #f3f4f6;">
+                                    <td style="padding: 12px; text-align: right; color: #111; font-weight: bold;">Balance</td>
+                                    <td style="padding: 12px; text-align: right; font-weight: bold; color: #111;">₹${balanceDue.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+                <div>
+                    <div style="font-size: 13px; color: #555; text-align: left; margin-bottom: 6px;">Total In Words:</div>
+                    <div style="font-size: 14px; font-weight: bold; font-style: italic; text-align: left; color: #111;">${totalInWords}</div>
                 </div>
+                
+                ${termsHtml}
             </div>
         </body>
         </html>`;
-
-        const filename = `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf`;
 
         return fetch('/generate-pdf/', {
             method: 'POST',
@@ -391,7 +499,7 @@
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({ html: pdfTemplate, filename: filename })
+            body: JSON.stringify({ html: pdfTemplate, filename: `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf` })
         })
         .then(res => {
             if (!res.ok) throw new Error("Server error generating PDF");
@@ -401,7 +509,7 @@
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = filename;
+            a.download = `Invoice_${data.invoice_number}_${data.client_name.replace(/\s+/g, '_')}.pdf`;
             document.body.appendChild(a);
             a.click();
             a.remove();
@@ -431,12 +539,9 @@
 
 
 
-// --- Search Logic ---
     let searchTimeout = null;
-
     function searchLeads(query) {
         const resultsContainer = document.getElementById("invoiceSearchResults");
-        
         if (query.length < 2) {
             resultsContainer.classList.add("hidden");
             return;
