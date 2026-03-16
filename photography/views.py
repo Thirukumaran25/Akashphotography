@@ -645,22 +645,24 @@ def update_lead_status(request):
 
 def invoice(request):
     all_invoices = Invoice.objects.all().select_related('lead', 'lead__project').order_by('-created_at')
-    total_paid = PaymentRecord.objects.aggregate(total=Sum('amount'))['total'] or 0.00
+    payments_sum = PaymentRecord.objects.aggregate(total=Sum('amount'))['total'] or 0.00
+    pre_paid_sum = all_invoices.aggregate(total=Sum('pre_paid_amount'))['total'] or 0.00
+    total_paid = float(payments_sum) + float(pre_paid_sum)
 
     total_upcoming = 0.0
     total_past_due = 0.0
     today = date.today()
 
     pending_invoices = []
-    partial_invoices = [] # 🌟 NEW: Dedicated list for Partial Invoices
+    partial_invoices = [] 
     completed_invoices = []
 
     for inv in all_invoices:
         paid_amount = inv.payments.aggregate(total=Sum('amount'))['total'] or 0.00
-        balance = float(inv.grand_total) - float(paid_amount)
+        balance = float(inv.grand_total) - float(paid_amount) - float(inv.pre_paid_amount)
 
         inv.display_amount = inv.grand_total
-        inv.balance = balance
+        inv.balance = max(0, balance)
         inv.project_name = inv.lead.project.project_name if inv.lead.project else inv.lead.name
 
         if inv.status == Invoice.PaymentStatus.PENDING:
@@ -672,9 +674,9 @@ def invoice(request):
 
         if inv.status in [Invoice.PaymentStatus.PENDING, Invoice.PaymentStatus.PARTIAL]:
             if inv.due_date and inv.due_date < today:
-                total_past_due += balance
+                total_past_due += inv.balance
             else:
-                total_upcoming += balance
+                total_upcoming += inv.balance
 
     context = {
         'total_paid': total_paid,
@@ -684,7 +686,6 @@ def invoice(request):
         'partial_invoices': partial_invoices,
         'completed_invoices': completed_invoices,
     }
-
     return render(request, 'invoice.html', context)
 
 
