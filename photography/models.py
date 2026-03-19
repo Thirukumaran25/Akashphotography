@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 from decimal import Decimal
 from django.utils import timezone
 from django.contrib.auth.models import User
+import uuid
 
 
 class ProjectDetail(models.Model):
@@ -18,6 +19,8 @@ class ProjectDetail(models.Model):
     project_address = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(blank=True, null=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time   = models.TimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ASSIGNED')
     assigned_employees = models.ManyToManyField('Employee', blank=True, related_name='assigned_projects')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -46,6 +49,7 @@ class Team(models.Model):
 class Employee(models.Model):
     name = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='employee_profile')
     team = models.ForeignKey(Team, on_delete=models.SET_NULL, null=True, blank=True, related_name='members')
+    subservices = models.ManyToManyField('SubService', blank=True, related_name='employees')
     date_joined = models.DateField(auto_now_add=True)
 
     class Meta:
@@ -127,6 +131,7 @@ class Lead(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='NEW')
     project = models.ForeignKey(ProjectDetail, on_delete=models.SET_NULL, null=True, blank=True)
     follow_up_date = models.DateField(blank=True, null=True)
+    secure_token = models.UUIDField(default=uuid.uuid4, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -296,3 +301,44 @@ class LeadAdditionalService(models.Model):
 
     def __str__(self):
         return f"{self.qty}x {self.name} for {self.lead.name}"
+    
+
+
+class QuotationShowcase(models.Model):
+    SECTION_CHOICES = (
+        ('HERO', 'Hero Section (Top Masonry Grid - Needs 3 images)'),
+        ('STORY', 'Our Story Section (Polaroids - Needs 2 images)'),
+        ('SIGNATURE', 'Signature Works (Gallery - Needs 4 images)'),
+        ('FOOTER', 'Footer Strip (Needs 5 images)'),
+    )
+    
+    section = models.CharField(max_length=20, choices=SECTION_CHOICES)
+    image = models.ImageField(upload_to='quotation_showcase/images/', null=True, blank=True)
+    video = models.FileField(upload_to='quotation_showcase/videos/', null=True, blank=True, help_text="Optional: Replaces image with a video if provided.")
+    order = models.PositiveIntegerField(default=0, help_text="Sorting order (0 is first)")
+
+    class Meta:
+        ordering = ['order', 'id']
+        verbose_name = "Quotation Showcase Media"
+        verbose_name_plural = "Quotation Showcase Media"
+
+    def __str__(self):
+        return f"{self.get_section_display()} - Media {self.id}"
+    
+
+class QuotationSettings(models.Model):
+    name = models.CharField(max_length=50, default="Default Settings", help_text="Just a name for the admin panel")
+    logo = models.ImageField(upload_to='quotation_assets/logos/', null=True, blank=True)
+    banner_image = models.ImageField(upload_to='quotation_assets/banners/', null=True, blank=True, help_text="The large image shown at the top of the quotation")
+    
+    terms_and_conditions = models.TextField(
+        default="40% Advance, 60% 1 week before the event day.\nYou have to submit min. 2TB Hard Disk after the first payment.",
+        help_text="Enter terms separated by new lines."
+    )
+
+    class Meta:
+        verbose_name = "Quotation PDF Setting"
+        verbose_name_plural = "Quotation PDF Settings"
+
+    def __str__(self):
+        return self.name

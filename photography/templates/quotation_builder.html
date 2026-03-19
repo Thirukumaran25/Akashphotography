@@ -1,0 +1,325 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proposal - AR Akash Photography</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root { --maroon: #9A2A31; --bg-cream: #FCFAF7; --light-pink: #FFF0F2; --border-pink: #FCE4E7; }
+        body { font-family: "Inter", sans-serif; background-color: var(--bg-cream); color: #333; overflow-x: hidden; padding-top: 80px; }
+        h1, h2, h3, h4, h5, .font-serif { font-family: 'Playfair Display', serif; }
+        .bg-maroon { background-color: var(--maroon); }
+        .text-maroon { color: var(--maroon); }
+        .card-unselected { border: 1px solid #EAEAEA; background-color: #FFFFFF; transition: all 0.2s ease; }
+        .card-selected { border: 2px solid var(--maroon); background-color: var(--light-pink); box-shadow: 0 4px 15px rgba(154, 42, 49, 0.1); transform: translateY(-2px); transition: all 0.2s ease; }
+        .select-circle { color: #ccc; transition: all 0.2s ease; }
+        .card-selected .select-circle { color: var(--maroon); font-weight: 900; }
+        .card-selected .select-circle::before { content: "\f058"; font-family: "Font Awesome 6 Free"; }
+        .hide-arrows::-webkit-outer-spin-button, .hide-arrows::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .hide-arrows { -moz-appearance: textfield; }
+        .polaroid { background: white; padding: 12px 12px 40px 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+    <div class="fixed top-0 left-0 w-full bg-maroon z-50 shadow-md h-[80px] flex items-center px-6 md:px-12 justify-between border-b-[4px] border-black/10">
+        <div class="flex items-center w-1/3 gap-6">
+            <div class="text-white font-serif tracking-widest leading-none text-center">
+                <span class="text-4xl">A</span><br><span class="text-[9px] tracking-[0.3em] font-sans uppercase">AKASH</span>
+            </div>
+        </div>
+        <div class="w-1/3 text-center hidden md:block"><h2 class="text-white font-semibold text-xl tracking-wide font-sans">Proposal</h2></div>
+        <div class="w-1/3 flex justify-end items-center gap-4">
+            <button onclick="submitQuotation()" class="w-10 h-10 border border-white/40 rounded flex items-center justify-center text-white hover:bg-white/10 transition" title="Download Proposal">
+                <i class="fas fa-download"></i>
+            </button>
+            <div class="bg-white text-maroon font-black text-[18px] md:text-[22px] px-6 py-2 rounded shadow-sm tracking-wide font-sans flex items-center gap-1 whitespace-nowrap">
+                <span>₹</span> <span id="navGrandTotal">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="w-full text-center py-3 bg-[#F8F5EE] border-b border-gray-200">
+        <span class="text-maroon font-bold text-xs tracking-[0.15em] uppercase">WELCOME TO AR AKASH PHOTOGRAPHY &rarr;</span>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-16 text-center">
+        <h1 class="text-4xl md:text-5xl lg:text-[44px] font-bold text-maroon leading-tight mb-6 max-w-4xl mx-auto font-serif">Every Occasion Deserves To Be Beautifully Remembered And Cherished Forever</h1>
+        <p class="text-gray-600 text-[15px] leading-relaxed max-w-3xl mx-auto mb-10 font-medium">Since 2015, AR Akash Photography has been crafting stories through bespoke photography and videography...</p>
+        <div class="flex justify-center gap-4 mb-16">
+            <button onclick="document.getElementById('builderSection').scrollIntoView({behavior: 'smooth'})" class="bg-maroon text-white px-8 py-3 rounded font-bold hover:bg-red-900 transition shadow-md">Get Quotation Now!</button>
+            <button class="bg-transparent border border-gray-400 text-gray-700 px-8 py-3 rounded font-bold hover:bg-gray-100 transition">View Our Work</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-20">
+            <div class="bg-maroon text-white p-10 flex flex-col justify-center items-center text-center rounded-sm">
+                <i class="fas fa-camera text-3xl mb-4 opacity-80"></i>
+                <h3 class="font-serif text-2xl font-bold mb-3">A Unique Story</h3>
+                <p class="text-xs opacity-90 leading-relaxed">We ensure that the essence and atmosphere of your exceptional day are beautifully preserved forever in stunning photographs.</p>
+            </div>
+            {% for media in hero_media|slice:":3" %}
+                {% if forloop.counter == 1 %}
+                <div class="col-span-1 md:col-span-1 row-span-2">
+                    {% if media.video %}<video src="{{ media.video.url }}" controls autoplay loop muted playsinline class="w-full h-full object-cover rounded-sm"></video>
+                    {% elif media.image %}<img src="{{ media.image.url }}" class="w-full h-full object-cover rounded-sm">{% endif %}
+                </div>
+                {% else %}
+                <div class="col-span-1 h-64">
+                    {% if media.video %}<video src="{{ media.video.url }}" controls autoplay loop muted playsinline class="w-full h-full object-cover rounded-sm"></video>
+                    {% elif media.image %}<img src="{{ media.image.url }}" class="w-full h-full object-cover rounded-sm">{% endif %}
+                </div>
+                {% endif %}
+            {% endfor %}
+            <div class="bg-maroon text-white p-10 flex flex-col justify-center items-center text-center rounded-sm h-64">
+                <i class="fas fa-images text-3xl mb-4 opacity-80"></i>
+                <h3 class="font-serif text-2xl font-bold mb-3">Lasting Impression</h3>
+                <p class="text-xs opacity-90 leading-relaxed">We ensure that the essence and atmosphere of your exceptional day are beautifully preserved.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-maroon text-white py-24 relative overflow-hidden">
+        <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+            <div class="relative h-[400px] hidden md:block">
+                {% if story_media.0 %}
+                <div class="polaroid absolute top-0 left-10 w-56 transform -rotate-6 z-10">
+                    {% if story_media.0.video %}<video src="{{ story_media.0.video.url }}" controls autoplay loop muted playsinline class="w-full h-auto mb-3"></video>
+                    {% elif story_media.0.image %}<img src="{{ story_media.0.image.url }}" class="w-full h-auto mb-3">{% endif %}
+                    <div class="flex justify-between text-maroon px-2 text-lg"><i class="far fa-heart"></i><i class="far fa-paper-plane"></i></div>
+                </div>
+                {% endif %}
+                {% if story_media.1 %}
+                <div class="polaroid absolute top-20 left-48 w-64 transform rotate-6 z-20">
+                    {% if story_media.1.video %}<video src="{{ story_media.1.video.url }}" controls autoplay loop muted playsinline class="w-full h-auto mb-3"></video>
+                    {% elif story_media.1.image %}<img src="{{ story_media.1.image.url }}" class="w-full h-auto mb-3">{% endif %}
+                    <div class="flex justify-between text-maroon px-2 text-lg"><i class="fas fa-heart"></i><i class="far fa-paper-plane"></i></div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="md:pl-10">
+                <h2 class="text-4xl font-bold mb-6 font-serif">Our Story</h2>
+                <p class="text-[15px] leading-relaxed mb-8 opacity-90">AR Akash Photography has captured love stories, turning wedding moments into enduring memories...</p>
+                <h3 class="font-bold text-xl text-white/90">Owned by Akash Ramchandran</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-20 text-center border-b border-gray-200">
+        <h2 class="text-4xl font-bold text-maroon mb-6 font-serif">Our Signature Works</h2>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {% for media in signature_media|slice:":4" %}
+                {% if media.video %}<video src="{{ media.video.url }}" controls autoplay loop muted playsinline class="w-full h-56 object-cover rounded-sm"></video>
+                {% elif media.image %}<img src="{{ media.image.url }}" class="w-full h-56 object-cover rounded-sm">{% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div id="builderSection" class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+
+        <div class="mb-20">
+            <h2 class="text-center text-[36px] text-maroon font-bold font-serif mb-12">Events</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {% for pkg in packages %}
+                    {% if pkg.services.all|length >= 2 %}
+                        <div class="col-span-1 sm:col-span-2 lg:col-span-4 pricing-item card-unselected rounded-2xl p-6 md:p-8 cursor-pointer relative flex flex-col" 
+                             data-price="{{ pkg.total_cost }}" data-type="package" data-id="{{ pkg.id }}" onclick="toggleCardSelection(this)">
+                            
+                            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 border-b border-gray-100 pb-5">
+                                <div class="flex items-center gap-4">
+                                    <i class="fa-regular fa-circle text-[26px] select-circle"></i>
+                                    <h3 class="text-[26px] text-maroon font-bold font-serif leading-tight">{{ pkg.package_name }}</h3>
+                                </div>
+                            </div>
+                            {% if pkg.image %}<div class="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6 bg-gray-100"><img src="{{ pkg.image.url }}" class="w-full h-full object-cover"></div>
+                            {% elif pkg.video_url %}<div class="w-full h-48 md:h-64 rounded-xl overflow-hidden mb-6 bg-black"><video src="{{ pkg.video_url }}" controls class="w-full h-full object-cover"></video></div>{% endif %}
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 bg-white/50 p-4 rounded-xl border border-gray-50">
+                                {% for service in pkg.services.all %}
+                                <div class="bg-white border border-pink/50 rounded-lg p-5 shadow-sm">
+                                    <h4 class="text-[18px] text-maroon font-bold font-serif mb-3 border-b border-gray-50 pb-2">{{ service.service_name }}</h4>
+                                    <ul class="space-y-2 text-[13px] text-gray-700 font-medium">
+                                        {% for sub in service.sub_services.all %}<li>{{ sub.name }}</li>{% endfor %}
+                                    </ul>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="col-span-1 pricing-item card-unselected rounded-2xl p-6 cursor-pointer relative flex flex-col" 
+                             data-price="{{ pkg.total_cost }}" data-type="package" data-id="{{ pkg.id }}" onclick="toggleCardSelection(this)">
+                            <div class="flex items-center gap-3 mb-4 border-b border-gray-100 pb-3">
+                                <i class="fa-regular fa-circle text-[20px] select-circle"></i>
+                                <h3 class="text-[20px] text-maroon font-bold font-serif leading-tight">{{ pkg.package_name }}</h3>
+                            </div>
+                            {% if pkg.image %}<div class="w-full h-32 rounded-lg overflow-hidden mb-4 bg-gray-100"><img src="{{ pkg.image.url }}" class="w-full h-full object-cover"></div>
+                            {% elif pkg.video_url %}<div class="w-full h-32 rounded-lg overflow-hidden mb-4 bg-black"><video src="{{ pkg.video_url }}" controls class="w-full h-full object-cover"></video></div>{% endif %}
+                            <ul class="space-y-2.5 text-[13px] text-gray-700 font-medium flex-grow mb-2">
+                                {% for service in pkg.services.all %}{% for sub in service.sub_services.all %}<li>{{ sub.name }}</li>{% endfor %}{% endfor %}
+                            </ul>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mb-20">
+            <div class="bg-maroon w-full py-5 text-center mb-10 shadow-sm border-y border-red-900/20"><h2 class="text-[32px] text-white font-bold font-serif tracking-wide">Deliverables</h2></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto px-2">
+                {% for d in deliverables %}
+                <div class="pricing-item card-unselected rounded-xl p-4 cursor-pointer flex items-center gap-3 transition-all shadow-sm" data-price="{{ d.price }}" data-type="deliverable" data-id="{{ d.id }}" onclick="toggleCardSelection(this)">
+                    <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center border border-gray-100 flex-shrink-0 transition-all"><i class="fa-regular fa-circle text-[20px] select-circle"></i></div>
+                    <div class="flex flex-col flex-grow"><span class="deliverable-title text-[16px] text-gray-900 font-bold font-serif leading-snug">{{ d.title }}</span></div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mb-16">
+            <h2 class="text-center text-[36px] text-maroon font-bold font-serif mb-10">Additional Services</h2>
+            <div class="max-w-3xl mx-auto space-y-4">
+                {% for svc in additional_services %}
+                <div class="add-svc-row bg-light-pink rounded-xl p-5 flex flex-col md:flex-row justify-between items-center border border-pink shadow-sm" data-price="{{ svc.price }}" data-id="{{ svc.id }}" data-active="false">
+                     <div class="w-full md:w-1/2 flex flex-col md:flex-row items-center gap-4 mb-4 md:mb-0">
+                         <h4 class="add-svc-title text-[18px] text-maroon font-bold font-serif md:w-2/3 text-center md:text-left">{{ svc.name }}</h4>
+                         <div class="flex items-center gap-3">
+                             <button type="button" class="text-maroon font-bold text-xl px-2" onclick="changeQty(this, -1)">-</button>
+                             <div class="bg-maroon rounded px-2 py-1"><input type="number" class="svc-qty bg-transparent border-none text-center w-6 text-white text-sm font-bold focus:ring-0 p-0 hide-arrows" value="1" min="1" onchange="calculateGrandTotal()" readonly></div>
+                             <button type="button" class="text-maroon font-bold text-xl px-2" onclick="changeQty(this, 1)">+</button>
+                         </div>
+                     </div>
+                     <div class="w-full md:w-1/2 flex flex-col md:flex-row items-center justify-between md:justify-end gap-4 md:gap-6">
+                         <div class="bg-white text-maroon font-bold px-6 py-2 rounded-full border border-pink shadow-sm">₹ {{ svc.price|floatformat:0 }}</div>
+                         <button type="button" class="flex items-center gap-2 bg-white border border-maroon text-maroon font-bold px-5 py-2 rounded-md hover:bg-maroon hover:text-white transition w-[140px] justify-center" onclick="toggleAddService(this)"><i class="far fa-plus-square"></i> Add Service</button>
+                     </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-center mt-12 pt-16">
+            <button id="btnGeneratePDF" onclick="submitQuotation()" class="bg-maroon text-white px-10 py-4 rounded font-bold text-lg hover:bg-red-900 transition shadow-lg mb-16 flex items-center justify-center gap-3 mx-auto">
+                <i class="fas fa-file-pdf"></i> Generate & Download Quotation
+            </button>
+        </div>
+    </div>
+    
+    <form id="csrfForm" class="hidden">{% csrf_token %}</form>
+
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) { cookieValue = decodeURIComponent(cookie.substring(name.length + 1)); break; }
+                }
+            }
+            return cookieValue;
+        }
+
+        function toggleCardSelection(card) {
+            if (card.dataset.active === 'true') { card.dataset.active = 'false'; card.classList.remove('card-selected'); card.classList.add('card-unselected'); } 
+            else { card.dataset.active = 'true'; card.classList.remove('card-unselected'); card.classList.add('card-selected'); }
+            calculateGrandTotal();
+        }
+
+        function toggleAddService(btn) {
+            const row = btn.closest('.add-svc-row');
+            if (row.dataset.active === 'true') {
+                row.dataset.active = 'false'; btn.innerHTML = '<i class="far fa-plus-square"></i> Add Service'; btn.classList.remove('bg-maroon', 'text-white'); btn.classList.add('bg-white', 'text-maroon');
+            } else {
+                row.dataset.active = 'true'; btn.innerHTML = '<i class="fas fa-check-square"></i> Added'; btn.classList.remove('bg-white', 'text-maroon'); btn.classList.add('bg-maroon', 'text-white');
+            }
+            calculateGrandTotal();
+        }
+
+        function changeQty(btn, delta) {
+            const row = btn.closest('.add-svc-row'); const qtyInput = row.querySelector('.svc-qty');
+            let newQty = (parseInt(qtyInput.value) || 1) + delta;
+            if (newQty < 1) newQty = 1; qtyInput.value = newQty;
+            if (row.dataset.active === 'true') calculateGrandTotal();
+        }
+
+        function calculateGrandTotal() {
+            let total = 0;
+            document.querySelectorAll('.pricing-item[data-active="true"]').forEach(item => { total += parseFloat(item.dataset.price) || 0; });
+            document.querySelectorAll('.add-svc-row[data-active="true"]').forEach(row => { total += (parseFloat(row.dataset.price) || 0) * (parseInt(row.querySelector('.svc-qty').value) || 1); });
+            document.getElementById('navGrandTotal').innerText = total.toLocaleString('en-IN');
+            return total;
+        }
+
+        function submitQuotation() {
+            const grandTotal = calculateGrandTotal();
+            if (grandTotal === 0) { alert("Please select at least one item."); return; }
+
+            const btn = document.getElementById('btnGeneratePDF');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating PDF...'; btn.disabled = true;
+
+            let payload = {
+                show_bill_to: false, // 🌟 Hides Bill To on Public Page
+                display_name: "Valued Client",
+                initials: "VC",
+                email: "",
+                packages: [],
+                single_packages: [],
+                deliverables: [], additional_services: [],
+                grand_total: grandTotal.toLocaleString('en-IN')
+            };
+
+            // 🌟 FIX: Split Packages based on UI layout
+            document.querySelectorAll('.pricing-item[data-type="package"][data-active="true"]').forEach(card => {
+                let pkgName = card.querySelector('h3').innerText;
+                let innerCards = card.querySelectorAll('.bg-white.border'); // The inner cards inside a Wedding Package
+                
+                if(innerCards.length > 0) {
+                    let pkgObj = { name: pkgName, services: [] };
+                    innerCards.forEach(inner => {
+                        let srvName = inner.querySelector('h4').innerText;
+                        let items = Array.from(inner.querySelectorAll('li')).map(li => li.innerText);
+                        pkgObj.services.push({ name: srvName, items: items });
+                    });
+                    payload.packages.push(pkgObj); // Pushed to Multi-Services
+                } else {
+                    let pkgObj = { name: pkgName, services: [] };
+                    let items = Array.from(card.querySelectorAll('li')).map(li => li.innerText);
+                    pkgObj.services.push({ name: pkgName, items: items });
+                    payload.single_packages.push(pkgObj); // Pushed to 4-Column Single Services
+                }
+            });
+
+            document.querySelectorAll('.pricing-item[data-type="deliverable"][data-active="true"]').forEach(card => {
+                payload.deliverables.push(card.querySelector('.deliverable-title').innerText);
+            });
+
+            document.querySelectorAll('.add-svc-row[data-active="true"]').forEach(row => {
+                let name = row.querySelector('.add-svc-title').innerText;
+                let qty = parseInt(row.querySelector('.svc-qty').value) || 1;
+                let price = parseFloat(row.dataset.price) || 0;
+                payload.additional_services.push({ name, qty, total_price: (price * qty).toLocaleString('en-IN') });
+            });
+
+            const filename = `Proposal_AR_Akash_Photography.pdf`;
+
+            fetch('/generate-pdf/', {
+                method: 'POST', headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') }, body: JSON.stringify(payload)
+            })
+            .then(res => { if (!res.ok) throw new Error("Server error"); return res.blob(); })
+            .then(blob => {
+                const url = URL.createObjectURL(blob); 
+                const a = document.createElement('a'); a.href = url; a.download = filename; 
+                document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Downloaded!'; setTimeout(() => { btn.innerHTML = originalText; btn.disabled = false; }, 3000);
+            }).catch(err => { console.error(err); alert("Failed to generate PDF."); btn.innerHTML = originalText; btn.disabled = false; });
+        }
+    </script>
+</body>
+</html>

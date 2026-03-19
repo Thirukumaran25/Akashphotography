@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quotation | {{ lead.project.project_name|default:lead.name }}</title>
+    <style>
+        /* 🌟 Web Page Background 🌟 */
+        body { 
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
+            color: #333; 
+            background-color: #f3f4f6; /* Gray background for web view */
+            margin: 0; 
+            padding: 40px 20px; 
+        }
+
+        /* 🌟 Paper Container 🌟 */
+        .web-document {
+            max-width: 850px;
+            margin: 0 auto;
+            background-color: #FCFAF7;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .serif { font-family: "Times New Roman", Times, serif; }
+        .text-maroon { color: #903043; }
+        .bg-maroon { background-color: #903043; color: white; }
+        
+        .content-wrapper { padding: 40px 50px; }
+        
+        /* 🌟 Perfect Grid System 🌟 */
+        .service-grid {
+            width: 100%;
+            font-size: 0; /* Fixes inline-block whitespace bugs */
+        }
+        .service-grid > * {
+            font-size: 14px; /* Restores font size */
+        }
+        
+        /* 3-Column Inner Cards (Reception, Wedding) */
+        .multi-service-card {
+            display: inline-block; width: 32%; margin-right: 2%; margin-bottom: 15px;
+            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px;
+            background: white; box-sizing: border-box; vertical-align: top;
+        }
+        .multi-service-card:nth-child(3n) { margin-right: 0; }
+        
+        /* 4-Column Single Event Cards (Engagement, Haldi) */
+        .single-pkg-card {
+            display: inline-block; width: 23.5%; margin-right: 2%; margin-bottom: 20px;
+            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px;
+            background: white; box-sizing: border-box; vertical-align: top;
+        }
+        .single-pkg-card:nth-child(4n) { margin-right: 0; }
+        
+        /* 3-Column Deliverables */
+        .deliv-card {
+            display: inline-block; width: 32%; margin-right: 2%; margin-bottom: 15px;
+            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px 20px;
+            background: white; box-sizing: border-box; vertical-align: top;
+        }
+        .deliv-card:nth-child(3n) { margin-right: 0; }
+
+        .layout-table { display: table; width: 100%; box-sizing: border-box; }
+        .layout-cell { display: table-cell; vertical-align: middle; }
+        
+        .radio-circle {
+            display: inline-block; width: 16px; height: 16px;
+            border: 2px solid #EAEAEA; border-radius: 50%; vertical-align: middle;
+        }
+
+        /* 🌟 Mobile Responsiveness for Client Phones 🌟 */
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .content-wrapper { padding: 20px 25px; }
+            .multi-service-card, .single-pkg-card, .deliv-card {
+                width: 100% !important; margin-right: 0 !important;
+            }
+            .layout-cell { display: block; width: 100% !important; text-align: left !important; }
+            .header-cell { text-align: center !important; margin-bottom: 15px; }
+            .payment-banner { font-size: 24px !important; padding: 25px 15px !important; }
+            .payment-banner div { font-size: 24px !important; padding: 10px 20px !important; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="web-document">
+        
+        <div class="bg-maroon layout-table" style="padding: 40px 50px; height: auto; min-height: 60px;">
+            <div class="layout-cell header-cell" style="width: 50%;">
+                {% if settings.logo %}
+                <div style="background: white; padding: 8px; border-radius: 8px; width: 60px; height: 60px; text-align: center; display: inline-block;">
+                    <img src="{{ settings.logo.url }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
+                </div>
+                {% endif %}
+            </div>
+            <div class="layout-cell header-cell" style="width: 50%; text-align: right;">
+                <h1 class="serif" style="margin: 0; font-size: 32px; letter-spacing: 2px;">PROPOSAL</h1>
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            
+            {% if settings.banner_image %}
+            <div style="text-align: center; margin-bottom: 40px;">
+                <img src="{{ settings.banner_image.url }}" style="max-width: 100%; border-radius: 12px;">
+            </div>
+            {% endif %}
+
+            <h2 class="serif" style="font-size: 24px; color: #111; margin: 0 0 15px 0;">Prepared For</h2>
+            <div class="layout-table" style="margin-bottom: 40px;">
+                <div class="layout-cell" style="width: 65px;">
+                    <div style="background: #111; color: white; width: 50px; height: 50px; border-radius: 25px; line-height: 50px; text-align: center; font-weight: bold; font-size: 16px;">
+                        {{ lead.name.0|upper }}{{ lead.name.1|upper }}
+                    </div>
+                </div>
+                <div class="layout-cell">
+                    <div style="font-weight: bold; font-size: 18px; color: #111;">{{ lead.project.project_name|default:lead.name }}</div>
+                    <div style="font-size: 13px; color: #666; margin-top: 4px;">{{ lead.email|default:"No email provided" }}</div>
+                </div>
+            </div>
+
+            <div class="bg-maroon text-center payment-banner" style="padding: 40px 20px; margin-bottom: 50px; border-radius: 4px;">
+                <h2 class="serif" style="margin: 0 0 10px 0; font-size: 32px; font-weight: normal; color: white;">Payment Price</h2>
+                <p style="margin: 0 0 25px 0; font-size: 16px; opacity: 0.9; color: white;">Your Total Package Cost</p>
+                <div style="display: inline-block; background: white; color: #903043; padding: 12px 40px; border-radius: 8px; font-size: 32px; font-weight: bold;">
+                    ₹ {{ total_cost|floatformat:0 }}
+                </div>
+            </div>
+
+            {% if packages %}
+            <h2 class="text-maroon serif" style="text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 30px;">Events</h2>
+            {% endif %}
+
+            <div style="width: 100%;">
+                {% for pkg in packages %}
+                    {% if pkg.services.count > 1 %}
+                    <div style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 25px; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
+                        
+                        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #F5F5F5;">
+                            <div class="radio-circle"></div>
+                            <span class="text-maroon serif" style="font-size: 22px; font-weight: bold; vertical-align: middle; margin-left: 10px;">{{ pkg.package_name }}</span>
+                        </div>
+                        
+                        <div class="service-grid">
+                            {% for svc in pkg.services.all %}
+                            <div class="multi-service-card">
+                                <h4 class="text-maroon serif" style="margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">{{ svc.service_name }}</h4>
+                                <div style="font-size: 12px; color: #444; line-height: 1.8;">
+                                    {% for sub in svc.sub_services.all %}<div>1 {{ sub.name }}</div>{% endfor %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="service-grid">
+                {% for pkg in packages %}
+                    {% if pkg.services.count <= 1 %}
+                    <div class="single-pkg-card">
+                        <div style="border-bottom: 1px solid #F5F5F5; padding-bottom: 12px; margin-bottom: 12px;">
+                            <div class="radio-circle"></div>
+                            <span class="text-maroon serif" style="font-size: 16px; font-weight: bold; vertical-align: middle; margin-left: 8px;">{{ pkg.package_name }}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #444; line-height: 1.8;">
+                            {% for svc in pkg.services.all %}
+                                {% for sub in svc.sub_services.all %}<div>1 {{ sub.name }}</div>{% endfor %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if deliverables %}
+            <div class="bg-maroon serif" style="text-align: center; padding: 15px; font-size: 26px; font-weight: bold; color: white; margin: 30px 0 25px 0;">
+                Deliverables
+            </div>
+            <div class="service-grid">
+                {% for d in deliverables %}
+                <div class="deliv-card">
+                    <div class="radio-circle"></div>
+                    <span class="serif" style="font-size: 15px; font-weight: bold; color: #111; vertical-align: middle; margin-left: 10px;">{{ d.title }}</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if additional_services %}
+            <h2 class="text-maroon serif" style="text-align: center; font-size: 28px; font-weight: bold; margin: 40px 0 25px 0;">Additional Services</h2>
+            
+            <div style="width: 100%;">
+                {% for svc in additional_services %}
+                <div class="layout-table" style="background: white; border: 1px solid #EAEAEA; border-radius: 8px; padding: 20px 25px; margin-bottom: 15px;">
+                    <div class="layout-cell" style="width: 50%;">
+                        <h4 class="text-maroon serif" style="margin: 0; font-size: 18px; font-weight: bold; display: inline-block; vertical-align: middle;">{{ svc.name }}</h4>
+                        <span style="font-size: 16px; color: #903043; font-weight: bold; display: inline-block; vertical-align: middle; margin-left: 20px;">
+                            - &nbsp;<span style="background: #903043; color: white; padding: 4px 10px; border-radius: 4px; font-size: 14px;">{{ svc.qty }}</span>&nbsp; +
+                        </span>
+                    </div>
+                    <div class="layout-cell" style="width: 50%; text-align: right; padding-top: 10px;">
+                        <span class="text-maroon" style="border: 1px solid #EAEAEA; border-radius: 20px; padding: 8px 25px; font-weight: bold; font-size: 16px; margin-right: 15px;">
+                            ₹ {% widthratio svc.price 1 svc.qty %}
+                        </span>
+                        <span class="bg-maroon" style="padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: bold; color: white;">
+                            ☑ Added
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 35px; margin-top: 50px; margin-bottom: 50px;">
+                <h2 class="text-maroon serif" style="margin: 0 0 20px 0; font-size: 22px; text-align: center;">Terms & Conditions</h2>
+                <div style="font-size: 13px; color: #444; line-height: 1.8;">
+                    {{ settings.terms_and_conditions|default:"Terms and conditions will be applied as per company policy."|linebreaks }}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bg-maroon" style="width: 100%; height: 30px;"></div>
+    </div>
+
+</body>
+</html>

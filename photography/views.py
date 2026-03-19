@@ -15,6 +15,12 @@ from django.contrib.staticfiles import finders
 from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.template.loader import render_to_string
+import json
+from io import BytesIO
+from django.http import HttpResponse
+from django.template.loader import get_template
+from weasyprint import HTML
 
 
 def custom_login_view(request):
@@ -65,20 +71,32 @@ def get_static_image_base64(relative_path):
         return ""
 
 
-@csrf_exempt
-def generate_pdf(request):
-    if request.method == "POST":
+def generate_pdf_endpoint(request):
+    if request.method == 'POST':
         data = json.loads(request.body)
-        html_content = data.get("html", "")
-        filename = data.get("filename", "Invoice.pdf")
-        try:
-            pdf_bytes = HTML(string=html_content).write_pdf()
-            response = HttpResponse(pdf_bytes, content_type='application/pdf')
-            response['Content-Disposition'] = f'attachment; filename="{filename}"'
-            return response
-        except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
-    return JsonResponse({"error": "Invalid request"}, status=400)
+        raw_html = data.get('html')
+        
+        if raw_html:
+            html_string = raw_html
+        else:
+            settings = QuotationSettings.objects.first()
+            context = {
+                'show_bill_to': data.get('show_bill_to', True),
+                'display_name': data.get('display_name', 'Valued Client'),
+                'initials': data.get('initials', '--'),
+                'email': data.get('email', ''),
+                'grand_total': data.get('grand_total', '0'),
+                'packages': data.get('packages', []),
+                'single_packages': data.get('single_packages', []),
+                'deliverables': data.get('deliverables', []),
+                'additional_services': data.get('additional_services', []),
+                'settings': settings,
+            }
+            html_string = render_to_string('quotation_pdf_template.html', context)
+        
+        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        return response
 
 
 def get_image_base64(request):
@@ -113,6 +131,39 @@ def get_image_base64(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+
+def quotation_builder_view(request):
+    all_packages = Package.objects.prefetch_related('services__sub_services').all()
+    all_deliverables = Deliverable.objects.all()
+    all_additional_services = AdditionalService.objects.all()
+
+    showcase_media = QuotationShowcase.objects.all()
+    context = {
+        'packages': all_packages,
+        'deliverables': all_deliverables,
+        'additional_services': all_additional_services,
+        'base_total': 0,
+
+        'hero_media': showcase_media.filter(section='HERO'),
+        'story_media': showcase_media.filter(section='STORY'),
+        'signature_media': showcase_media.filter(section='SIGNATURE'),
+        'footer_media': showcase_media.filter(section='FOOTER'),
+    }
+    
+    return render(request, 'quotation_builder.html', context)
+
+def public_quotation_view(request, token):
+    lead = get_object_or_404(Lead, secure_token=token)
+    settings = QuotationSettings.objects.first()
+    context = {
+        'lead': lead,
+        'packages': lead.packages.all(),
+        'deliverables': lead.deliverables.all(),
+        'additional_services': lead.additional_services.all(),
+        'total_cost': lead.total_cost,
+        'settings': settings,
+    }
+    return render(request, 'public_quotation_view.html', context)
 
 def home(request):
     today = date.today()
@@ -360,7 +411,10 @@ def create_lead(request):
                         qty=int(parts[2])
                     )
 
-        return redirect('home')
+        return JsonResponse({
+            "success": True, 
+            "secure_token": str(lead.secure_token)
+        })
 
     packages = Package.objects.all()
     teams = Team.objects.all()
@@ -971,97 +1025,188 @@ def employees_list(request):
     return render(request, 'employees.html', context)
 
 
+def _is_fully_assigned(project):
+    lead = project.lead_set.first()
+    if not lead:
+        return False
+ 
+    required_ss_ids = set()
+ 
+    invoice = Invoice.objects.filter(lead=lead).prefetch_related(
+        'services__sub_services'
+    ).first()
+    if invoice:
+        for inv_svc in invoice.services.all():
+            for ss in inv_svc.sub_services.all():
+                required_ss_ids.add(ss.id)
+ 
+    if not required_ss_ids:
+        for pkg in lead.packages.prefetch_related('services__sub_services').all():
+            for pkg_svc in pkg.services.all():
+                for ss in pkg_svc.sub_services.all():
+                    required_ss_ids.add(ss.id)
+ 
+    if not required_ss_ids:
+        return False   
+ 
+    covered_ss_ids = set()
+    for emp in project.assigned_employees.prefetch_related('subservices').all():
+        for ss in emp.subservices.all():
+            covered_ss_ids.add(ss.id)
+ 
+    return required_ss_ids.issubset(covered_ss_ids)
+ 
+ 
+# ─────────────────────────────────────────────────────────────────────────────
+# SESSION LIST VIEW
+# ─────────────────────────────────────────────────────────────────────────────
 def session_list_view(request):
-    all_projects = ProjectDetail.objects.filter(
-        lead__status='ACCEPTED'
-    ).order_by('start_date').prefetch_related('assigned_employees').distinct()
-
-    today = datetime.now().date()
+    today = date.today()
+    all_projects = (
+        ProjectDetail.objects
+        .filter(lead__status='ACCEPTED')
+        .order_by('start_date')
+        .prefetch_related('assigned_employees__subservices', 'lead_set')
+        .distinct()
+    )
+ 
     grouped_projects = {}
-
     for proj in all_projects:
-        if proj.start_date:
-            month_key = proj.start_date.strftime('%B %Y')
-            if month_key not in grouped_projects:
-                grouped_projects[month_key] = []
-            grouped_projects[month_key].append(proj)
-
-    context = {
+        proj.fully_assigned = _is_fully_assigned(proj)   # attach flag
+        key = proj.start_date.strftime('%B %Y') if proj.start_date else 'To Be Decided'
+        grouped_projects.setdefault(key, []).append(proj)
+ 
+    return render(request, 'sessions.html', {
         'grouped_projects': grouped_projects,
-    }
-    return render(request, 'sessions.html', context)
+        'all_projects':     all_projects,
+        'today':            today,
+    })
 
 
 def get_project_details_api(request, project_id):
     project = get_object_or_404(ProjectDetail, id=project_id)
-
-    # 🌟 FIX: Find overlapping projects in the SAME MONTH and YEAR
+    lead    = project.lead_set.first()
+ 
+    # ── 1. Build: { invoice_service_name: [SubService, ...] } ────────────────
+    #    Preserve insertion order so panel shows services in invoice order.
+    #    Use list-of-tuples to allow duplicate SubService across different services.
+    service_map = {}   # { service_name: [SubService, ...] }
+ 
+    if lead:
+        invoice = Invoice.objects.filter(lead=lead).prefetch_related(
+            'services__sub_services'
+        ).first()
+ 
+        if invoice:
+            for inv_svc in invoice.services.all():
+                subs = list(inv_svc.sub_services.all())
+                if not subs:
+                    continue
+                # Keep service even if name repeats (shouldn't, but safe)
+                svc_key = inv_svc.service_name
+                if svc_key not in service_map:
+                    service_map[svc_key] = []
+                for ss in subs:
+                    if ss not in service_map[svc_key]:
+                        service_map[svc_key].append(ss)
+ 
+        # Fallback → PackageService.sub_services
+        if not service_map:
+            for pkg in lead.packages.prefetch_related('services__sub_services').all():
+                for pkg_svc in pkg.services.all():
+                    subs = list(pkg_svc.sub_services.all())
+                    if not subs:
+                        continue
+                    svc_key = pkg_svc.service_name
+                    if svc_key not in service_map:
+                        service_map[svc_key] = []
+                    for ss in subs:
+                        if ss not in service_map[svc_key]:
+                            service_map[svc_key].append(ss)
+ 
+    # Last resort: every SubService, all under one heading
+    if not service_map:
+        all_ss = list(SubService.objects.all())
+        if all_ss:
+            service_map['All Services'] = all_ss
+ 
+    # ── 2. Booking conflicts (same exact date only) ───────────────────────────
+    booked_info = {}   # emp_id -> [conflict label, ...]
     if project.start_date:
-        overlapping_projects = ProjectDetail.objects.filter(
-            start_date__year=project.start_date.year,
-            start_date__month=project.start_date.month
+        overlapping = ProjectDetail.objects.filter(
+            start_date=project.start_date   # exact same day
         ).exclude(id=project.id)
-    else:
-        overlapping_projects = ProjectDetail.objects.none()
-
-    booked_employee_details = {}
-    for p in overlapping_projects:
-        date_str = p.start_date.strftime('%d %b, %Y') if p.start_date else 'TBD'
-        booking_info = f"{p.project_name} ({date_str})"
-        
-        for emp_id in p.assigned_employees.values_list('id', flat=True):
-            if emp_id not in booked_employee_details:
-                booked_employee_details[emp_id] = []
-            booked_employee_details[emp_id].append(booking_info)
-
+ 
+        for p in overlapping:
+            ds = p.start_date.strftime('%d %b, %Y')
+            label = f"{p.project_name} ({ds})"
+            for eid in p.assigned_employees.values_list('id', flat=True):
+                booked_info.setdefault(eid, []).append(label)
+ 
     assigned_ids = list(project.assigned_employees.values_list('id', flat=True))
-
-    availability_data = {}
-    teams = Team.objects.prefetch_related('members').all()
-
-    for team in teams:
-        team_members = []
-        for emp in team.members.all():
-            if emp.name:
-                display_name = emp.name.get_full_name() or emp.name.username
-            else:
-                display_name = "Unknown"
-
-            initials = "".join([n[0] for n in display_name.split() if n])[:2].upper()
-            
-            # If the employee is in ANY project this month, they are booked
-            is_booked = emp.id in booked_employee_details
-            
-            # Join multiple bookings into a single string with new lines
-            booking_text = " \n".join(booked_employee_details.get(emp.id, []))
-
-            team_members.append({
-                'id': emp.id,
-                'name': display_name,
-                'initials': initials,
-                'is_booked': is_booked,
-                'booking_text': booking_text,
+    assigned_set = set(assigned_ids)
+ 
+    # ── 3. Build availability payload ─────────────────────────────────────────
+    # Shape:
+    # {
+    #   "Traditional Photography": {
+    #     "subservices": [
+    #       { "id": 1, "name": "Candid",   "members": [...] },
+    #       { "id": 2, "name": "Portrait", "members": [...] },
+    #     ]
+    #   },
+    #   "Videography": {
+    #     "subservices": [
+    #       { "id": 3, "name": "Cinematic", "members": [...] },
+    #     ]
+    #   }
+    # }
+ 
+    availability = {}
+ 
+    for svc_name, subservices in service_map.items():
+        ss_payload = []
+        for ss in subservices:
+            members = []
+            for emp in Employee.objects.filter(subservices=ss).select_related('name'):
+                display = (
+                    (emp.name.get_full_name() or emp.name.username)
+                    if emp.name else 'Unknown'
+                )
+                initials  = ''.join([c[0] for c in display.split() if c])[:2].upper()
+                is_booked = (emp.id in booked_info) and (emp.id not in assigned_set)
+                members.append({
+                    'id':           emp.id,
+                    'name':         display,
+                    'initials':     initials,
+                    'is_booked':    is_booked,
+                    'booking_text': ', '.join(booked_info.get(emp.id, [])),
+                })
+ 
+            # Always include subservice even with 0 members (shows "no one linked" msg)
+            ss_payload.append({
+                'id':      ss.id,
+                'name':    ss.name,
+                'members': members,
             })
-        availability_data[team.name] = team_members
-
-    # Format time strings safely
-    start_time_str = project.start_time.strftime('%H:%M') if getattr(project, 'start_time', None) else ''
-    end_time_str = project.end_time.strftime('%H:%M') if getattr(project, 'end_time', None) else ''
-
-    response_data = {
+ 
+        availability[svc_name] = {'subservices': ss_payload}
+ 
+    st = project.start_time.strftime('%H:%M') if getattr(project, 'start_time', None) else ''
+    et = project.end_time.strftime('%H:%M')   if getattr(project, 'end_time',   None) else ''
+ 
+    return JsonResponse({
         'project': {
-            'id': project.id,
-            'name': project.project_name,
-            'address': project.project_address,
-            'start_date': project.start_date.strftime('%d/%m/%Y') if project.start_date else '',
-            'end_date': project.end_date.strftime('%Y-%m-%d') if project.end_date else '',
-            'start_time': start_time_str, 
-            'end_time': end_time_str,     
+            'id':         project.id,
+            'name':       project.project_name,
+            'address':    project.project_address,
+            'start_date': project.start_date.strftime('%Y-%m-%d') if project.start_date else '',
+            'start_time': st,
+            'end_time':   et,
         },
-        'availability': availability_data,
-        'assigned_ids': assigned_ids, 
-    }
-    return JsonResponse(response_data)
+        'availability': availability,
+        'assigned_ids':  assigned_ids,
+    })
 
 
 def auto_generate_deliverable_tasks(project):
@@ -1097,39 +1242,50 @@ def auto_generate_deliverable_tasks(project):
 
 @csrf_exempt
 def save_team_assignment_api(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        project_id = data.get('project_id')
-        selected_employee_ids = data.get('employee_ids', [])
-        deadline_date = data.get('deadline_date')
-        start_time = data.get('start_time')
-        end_time = data.get('end_time')
-
-        project = get_object_or_404(ProjectDetail, id=project_id)
-        project.assigned_employees.set(selected_employee_ids)
-
-        if deadline_date:
-            try:
-                project.end_date = datetime.strptime(deadline_date, '%Y-%m-%d').date()
-            except ValueError:
-                pass
-        else:
-            project.end_date = None
-                
-        project.start_time = start_time if start_time else None
-        project.end_time = end_time if end_time else None
-
-        if project.status == 'ASSIGNED':
-            project.status = 'PRE'
-            
-        project.save()
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error'}, status=405)
+ 
+    project_id    = request.POST.get('project_id')
+    raw_ids       = request.POST.get('employee_ids', '[]')
+    deadline_date = request.POST.get('deadline_date', '')
+    start_time    = request.POST.get('start_time', '')
+    end_time      = request.POST.get('end_time', '')
+ 
+    try:
+        emp_ids = json.loads(raw_ids)
+    except (ValueError, TypeError):
+        emp_ids = [int(x) for x in raw_ids.split(',') if x.strip()]
+ 
+    project = get_object_or_404(ProjectDetail, id=project_id)
+    project.assigned_employees.set(emp_ids)
+ 
+    if deadline_date:
+        try:
+            project.end_date = datetime.strptime(deadline_date, '%Y-%m-%d').date()
+        except ValueError:
+            pass
+ 
+    if hasattr(project, 'start_time'):
+        project.start_time = start_time or None
+    if hasattr(project, 'end_time'):
+        project.end_time = end_time or None
+ 
+    if project.status == 'ASSIGNED':
+        project.status = 'PRE'
+ 
+    project.save()
+ 
+    try:
+        from .views import auto_generate_deliverable_tasks
         auto_generate_deliverable_tasks(project)
-        if project.end_date:
-            project.tasks.all().update(due_date=project.end_date)
-
-        return JsonResponse({'status': 'success', 'message': 'Team assigned successfully.'})
-
-    return JsonResponse({'status': 'error', 'message': 'Invalid request.'}, status=400)
+    except Exception:
+        pass
+ 
+    if project.end_date:
+        project.tasks.all().update(due_date=project.end_date)
+ 
+    return JsonResponse({'status': 'success'})
+ 
 
 
 def get_admin_project_tasks(request, project_id):
@@ -1418,6 +1574,8 @@ def delete_project_task(request):
         task.delete()
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"}, status=400)
+
+
 
 
 # ----------------------------------------

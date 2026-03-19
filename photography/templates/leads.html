@@ -14,10 +14,8 @@
     body { overflow-x: hidden; overflow-y: auto; }
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
     @keyframes slideIn { from { right: -420px; opacity: .7; } to { right: 0; opacity: 1; } }
     @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
-    
     .filter-drawer.open { animation: slideIn .45s ease forwards; }
     .card.shake { animation: shake 0.4s; border-color: #ef4444 !important; }
     .card.dragging { opacity: 0.5; transform: scale(0.98); }
@@ -340,14 +338,12 @@
 </div>
 
 <script>
-// --- Global variables to hold data for the PDF ---
 let currentDownloadLeadId = "";
 let currentDownloadPackageIds = "";
 let currentDownloadClientName = "";
 let currentDownloadEmail = "";
 let currentDownloadProject = "";
 
-// Helper to get CSRF token from cookies
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== "") {
@@ -382,221 +378,148 @@ function closeLeadDetails() {
     document.getElementById('leadDetailsModal').classList.add('hidden');
 }
 
-
+// 🌟 FIXED: Fetches Packages via their IDs to preserve the Wedding Package Wrapper perfectly!
 function downloadQuotationPDF() {
-    let fetchUrl = `/get-package/?lead_id=${currentDownloadLeadId}`;
-    if (currentDownloadPackageIds) {
-        fetchUrl += `&ids=${currentDownloadPackageIds}`;
-    }
-
     const btn = document.getElementById("downloadQuoteBtn");
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
     btn.disabled = true;
 
-    Promise.all([
-        fetch('/get-image-base64/?path=images/logo.png').then(r => r.json()),
-        fetch('/get-image-base64/?path=images/Qutation.png').then(r => r.json()),
-        fetch(fetchUrl).then(r => r.json())
-    ])
-    .then(([logoData, quotationData, data]) => {
-        
-        let allServices = data.services || [];
-        let deliverables = data.deliverables || [];
-        let additionalServices = data.additional_services || [];
+    // 1. Fetch Lead Details (For Deliverables & Additional Services)
+    let leadFetchUrl = `/get-package/?lead_id=${currentDownloadLeadId}`;
+    let leadPromise = fetch(leadFetchUrl).then(r => r.json());
 
-        if (allServices.length === 0 && deliverables.length === 0 && additionalServices.length === 0) {
+    // 2. Fetch Packages identically to create_lead.html to preserve nested wrapping
+    let packageIds = currentDownloadPackageIds ? currentDownloadPackageIds.split(',').filter(id => id.trim() !== '') : [];
+    let pkgPromises = packageIds.map(id => fetch(`/get-package/?ids=${id}`).then(r => r.json()));
+
+    Promise.all([leadPromise, Promise.all(pkgPromises)])
+    .then(([leadData, pkgResults]) => {
+        
+        let deliverables = leadData.deliverables || [];
+        let additionalServices = leadData.additional_services || [];
+        let standaloneServices = leadData.services || [];
+
+        if (pkgResults.length === 0 && standaloneServices.length === 0 && deliverables.length === 0 && additionalServices.length === 0) {
             alert("No packages, deliverables, or additional services found for this lead.");
-            btn.innerHTML = originalText;
-            btn.disabled = false;
+            btn.innerHTML = originalText; btn.disabled = false;
             return;
         }
 
         let subtotal = 0;
-        const logoUrl = logoData.data_uri || '';
-        const qutationUrl = quotationData.data_uri || '';
-        
-        // 1. Build Events HTML (Grid style)
-        let eventsHtml = '<div style="text-align:center; margin: 40px 0 25px;"><h2 style="color:#903043; font-size:32px; font-family:serif; margin:0;">Events</h2></div><div style="text-align:center; padding: 0 10px;">';
-        allServices.forEach(service => {
-            const qty = parseFloat(service.qty) || 0; const cost = parseFloat(service.cost) || 0; subtotal += (qty * cost);
-            const subsList = (service.sub_services || []).map(p => `<li style="margin-bottom:8px; font-size:14px; color:#444;">1 ${p.name}</li>`).join('');
+        let payload = {
+            show_bill_to: true,
+            display_name: currentDownloadProject ? `${currentDownloadClientName} - ${currentDownloadProject}` : currentDownloadClientName,
+            initials: (currentDownloadClientName || "C").split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+            email: currentDownloadEmail || 'No email provided',
+            packages: [],
+            single_packages: [],
+            deliverables: [],
+            additional_services: []
+        };
+
+        // 🌟 Process Nested Packages exactly like create_lead.html does
+        pkgResults.forEach(data => {
+            let pkgsArray = Array.isArray(data) ? data : (data.packages || [data]);
             
-            eventsHtml += `
-            <div style="width:30%; display:inline-block; background:#FCF0EE; border:1px solid #F9EAE8; border-radius:12px; padding:25px; margin:1%; text-align:left; vertical-align:top; box-sizing:border-box;">
-                <h3 style="color:#903043; font-size:20px; margin-top:0; font-family:serif; display:flex; align-items:center;">
-                    <span style="margin-right:8px;">◉</span> ${service.service_name}
-                </h3>
-                <ul style="list-style:none; padding:0; margin:0;">${subsList}</ul>
-            </div>`;
-        });
-        eventsHtml += '</div>';
+            pkgsArray.forEach(pkg => {
+                let servicesArr = pkg.services || [];
+                if (servicesArr.length === 0) return;
 
-        // 2. Build Deliverables HTML
-        let delivTotal = 0; let delivHtmlList = '';
+                let is_single = servicesArr.length <= 1;
+                let pkgObj = { name: pkg.name || pkg.package_name || "Package", services: [] };
+
+                servicesArr.forEach(service => {
+                    const qty = parseFloat(service.qty) || 1; 
+                    const cost = parseFloat(service.cost) || parseFloat(service.price) || 0; 
+                    subtotal += (qty * cost);
+                    
+                    pkgObj.services.push({
+                        name: service.service_name || service.name,
+                        // Force the "1 " prefix
+                        items: (service.sub_services || service.items || []).map(p => {
+                            let itemName = p.name || p.title || p;
+                            return String(itemName).startsWith("1 ") ? itemName : `1 ${itemName}`;
+                        })
+                    });
+                });
+
+                if (is_single) payload.single_packages.push(pkgObj);
+                else payload.packages.push(pkgObj);
+            });
+        });
+
+        // 🌟 Fallback: If lead has services but NO packages, map them directly to single_packages
+        if (pkgResults.length === 0 && standaloneServices.length > 0) {
+            standaloneServices.forEach(service => {
+                const qty = parseFloat(service.qty) || 1; 
+                const cost = parseFloat(service.cost) || parseFloat(service.price) || 0; 
+                subtotal += (qty * cost);
+
+                let pkgObj = {
+                    name: service.service_name || service.name || "Event Service",
+                    services: [{
+                        name: service.service_name || service.name || "Event Service",
+                        items: (service.sub_services || service.items || []).map(p => {
+                            let itemName = p.name || p.title || p;
+                            return String(itemName).startsWith("1 ") ? itemName : `1 ${itemName}`;
+                        })
+                    }]
+                };
+                payload.single_packages.push(pkgObj);
+            });
+        }
+
+        // 🌟 Process Deliverables
         deliverables.forEach((d) => { 
-            delivTotal += parseFloat(d.price) || 0; 
-            delivHtmlList += `<li style="margin-bottom:10px; font-size:16px; color:#444; font-family:serif;">• ${d.title}</li>`; 
+            let dPrice = parseFloat(d.price) || 0;
+            subtotal += dPrice; 
+            payload.deliverables.push(d.title || d.name || d); 
         });
-        subtotal += delivTotal;
 
-        // 3. Build Additional Services HTML
-        let additionalTotal = 0; let addListHtml = '';
+        // 🌟 Process Additional Services
         additionalServices.forEach((a) => {
             let aPrice = parseFloat(a.price) || 0;
             let aQty = parseFloat(a.qty) || 1;
-            additionalTotal += aPrice * aQty;
-            addListHtml += `
-            <div style="background:#FCF0EE; border:1px solid #F9EAE8; border-radius:12px; padding:20px 30px; margin-bottom:15px; display:table; width:100%; box-sizing:border-box;">
-                <div style="display:table-cell; vertical-align:middle; width:65%;">
-                    <h4 style="color:#903043; font-size:20px; margin:0; font-family:serif;">${a.title}</h4>
-                    <div style="font-size:15px; color:#666; margin-top:8px; font-weight:bold;">- <span style="background:#903043; color:white; padding:2px 8px; border-radius:4px; margin:0 5px;">${aQty}</span> +</div>
-                </div>
-                <div style="display:table-cell; vertical-align:middle; width:35%; text-align:right;">
-                    <div style="background:white; color:#903043; font-weight:bold; padding:10px 20px; border-radius:8px; display:inline-block; border:1px solid #F9EAE8; font-size:16px;">₹ ${(aPrice * aQty).toLocaleString('en-IN')}</div>
-                    <div style="background:#903043; color:white; font-size:14px; font-weight:bold; padding:10px 20px; border-radius:8px; display:inline-block; margin-left:10px;">☑ Added</div>
-                </div>
-            </div>`;
+            const sTotal = aPrice * aQty;
+            subtotal += sTotal;
+            payload.additional_services.push({
+                name: a.title || a.name, 
+                qty: aQty, 
+                total_price: sTotal.toLocaleString('en-IN')
+            });
         });
-        subtotal += additionalTotal;
 
-        // Terms text
-        const termsHtml = `
-        <div style="margin-top:60px; padding:0 50px; padding-bottom: 50px;">
-            <div style="text-align:center; margin-bottom:30px;">
-                <h2 style="color:#903043; font-size:32px; font-family:serif; margin:0;">Terms & Conditions</h2>
-            </div>
-            <ul style="font-size:14px; color:#444; line-height:1.7; text-align:left; padding-left:25px;">
-                <li style="margin-bottom:8px;">40% Advance, 60% 1 week before the event day.</li>
-                <li style="margin-bottom:8px;">You have to submit min. 2TB Hard Disk after the first payment, for your raw data.</li>
-                <li style="margin-bottom:8px;">For Customers who dont collect deliverables within 60days We will not hold responsibility for the project or data loss so please collect your data and deliverables at the earliest</li>
-                <li style="margin-bottom:8px;">All deliverables are given at once (Teaser, Album, Full Length Video).</li>
-                <li style="margin-bottom:8px;">Any Cancellation Advance will be not refunded.</li>
-                <li style="margin-bottom:8px;">You shall arrange for travel and accommodation of our shoot crew for all your events occurring in the places away from our office.</li>
-                <li style="margin-bottom:8px;">Any change of plan or postponement of any event will be accommodated based on our availability on new dates.</li>
-                <li style="margin-bottom:8px;">For requirement of additional sheets in photo book, cost depends on the dimensions of sheet.</li>
-                <li style="margin-bottom:8px;">Soft copies will be given only after 90% of the total payment.</li>
-                <li style="margin-bottom:8px;">Drone cannot be operated at red zones and restricted places if drone is in the package.</li>
-                <li style="margin-bottom:8px;">Services like Drone, LED Wall, Live Streaming will be only provided upon the customer interest and should be discussed at the time of agreement. All these are third Party and live streaming is completely depends on network strength, if no network wifi should be provided at the venue premises.</li>
-                <li style="margin-bottom:8px;">Apart from wedding any event is considered as 4-5 hours for additional coverage need to discuss for adding the slot</li>
-                <li style="margin-bottom:8px;">Candid and cinematic team will be present from evening on wedding date, if its morning wedding team will come accordingly</li>
-                <li style="margin-bottom:8px;">Any charges at the time of shoot like entry and other charges will be paid by the customers only.</li>
-                <li style="margin-bottom:8px;">We don't cover Food items if you need those shots need to Add a Separate Photo & Video for Food Coverage.</li>
-            </ul>
-        </div>`;
+        payload.grand_total = subtotal.toLocaleString('en-IN');
+        const filename = `Quotation_${(currentDownloadClientName || "Client").replace(/\s+/g, '_')}.pdf`;
 
-        const primary = "#903043"; 
-        const displayName = currentDownloadProject ? `${currentDownloadClientName} - ${currentDownloadProject}` : currentDownloadClientName;
-        const initials = currentDownloadClientName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '--';
-        const emailToUse = currentDownloadEmail || 'No email provided';
-
-        const pdfTemplate = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-        <style>
-            @page { size: A4 portrait; margin: 0; }
-            body { font-family: Helvetica, Arial, sans-serif; color: #333; margin: 0; padding: 0; background: #FDFBFB; }
-        </style>
-        </head><body>
-        
-        <div style="background:${primary};height:128px;width:100%;display:table;padding:40px;box-sizing:border-box;">
-            <div style="display:table-cell;vertical-align:middle;width:50%;">
-                <div style="background:#fff;width:64px;height:64px;border-radius:12px;text-align:center;padding:5px;box-sizing:border-box;">
-                    <img src="${logoUrl}" style="max-width:100%;max-height:100%;object-fit:contain;">
-                </div>
-            </div>
-            <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
-                <h1 style="color:#fff;font-size:32px;font-weight:900;letter-spacing:3px;margin:0;">QUOTATION</h1>
-            </div>
-        </div>
-
-        <div style="padding: 40px 30px;">
-            <div style="margin-bottom:30px;width:100%;text-align:center;">
-                <img src="${qutationUrl}" style="max-width:100%;height:auto;object-fit:contain;border-radius:8px;">
-            </div>
-
-            <h2 style="font-size:28px;font-weight:900;color:#111;margin-bottom:25px;margin-top:0;">Bill To</h2>
-            <table style="width:100%;margin-bottom:35px;border-collapse:collapse;">
-                <tr>
-                    <td style="width:65px;vertical-align:middle;">
-                        <div style="width:50px;height:50px;background:#111;color:#fff;border-radius:50%;text-align:center;line-height:50px;font-weight:900;font-size:16px;">${initials}</div>
-                    </td>
-                    <td style="vertical-align:middle;">
-                        <div style="font-weight:900;font-size:18px;color:#111;">${displayName}</div>
-                        <div style="font-size:13px;color:#666;margin-top:4px;font-weight:bold;">${emailToUse}</div>
-                    </td>
-                </tr>
-            </table>
-        </div>
-        
-        <div style="background:${primary}; padding:40px 20px; text-align:center; color:white; font-family:serif; margin-bottom: 30px;">
-            <h1 style="margin:0; font-size:42px; font-weight:normal; letter-spacing:1px;">Payment Price</h1>
-            <p style="margin:10px 0 25px; font-size:16px; font-family:sans-serif; opacity:0.9;">Your Total Package Cost</p>
-            <div style="display:inline-block; background:white; color:${primary}; padding:10px 40px; border-radius:12px; font-size:32px; font-weight:900; font-family:sans-serif; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                ₹ ${subtotal.toLocaleString('en-IN')}
-            </div>
-        </div>
-
-        ${allServices.length > 0 ? eventsHtml : ''}
-
-        ${deliverables.length > 0 ? `
-        <div style="margin-top:40px;">
-            <div style="background:${primary}; color:white; text-align:center; padding:15px; font-family:serif;">
-                <h2 style="margin:0; font-size:28px; font-weight:normal;">Deliverables</h2>
-            </div>
-            <div style="padding:30px 50px;">
-                <ul style="list-style:none; padding:0; margin:0;">${delivHtmlList}</ul>
-            </div>
-        </div>
-        ` : ''}
-
-        ${additionalServices.length > 0 ? `
-        <div style="margin-top:30px; padding:0 50px;">
-            <div style="text-align:center; margin-bottom:25px;">
-                <h2 style="color:${primary}; font-size:28px; font-family:serif; margin:0;">Additional Services</h2>
-            </div>
-            ${addListHtml}
-        </div>
-        ` : ''}
-
-        ${termsHtml}
-
-        <div style="width: 100%; height: 40px; background-color: ${primary};"></div>
-
-        </body></html>`;
-
-        const filename = `Quotation_${currentDownloadClientName.replace(/\s+/g, '_')}.pdf`;
-
-        return fetch('/generate-pdf/', {
+        // 🌟 Request the generated PDF
+        fetch('/generate-pdf/', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ html: pdfTemplate, filename: filename })
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify(payload)
         })
-        .then(res => {
-            if (!res.ok) throw new Error("Server error generating PDF");
-            return res.blob();
-        })
+        .then(res => { if (!res.ok) throw new Error("Server error"); return res.blob(); })
         .then(blob => {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
-
+            a.href = url; a.download = filename;
+            document.body.appendChild(a); a.click(); a.remove(); window.URL.revokeObjectURL(url);
+            
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Downloaded';
-            btn.disabled = false;
-            setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+            btn.disabled = false; setTimeout(() => { btn.innerHTML = originalText; }, 2000);
+        })
+        .catch(err => {
+            console.error("PDF generation error:", err);
+            btn.innerHTML = originalText; btn.disabled = false;
+            alert("Failed to generate PDF. Check console for details.");
         });
+
     })
     .catch(err => {
-        console.error("PDF generation failed:", err);
-        btn.innerHTML = originalText;
-        btn.disabled = false;
-        alert("Failed to generate PDF. Check console for details.");
+        console.error("Fetch lead data error:", err);
+        btn.innerHTML = originalText; btn.disabled = false;
+        alert("Failed to fetch lead data from the server.");
     });
 }
 
@@ -606,37 +529,23 @@ function sendStatusUpdate(leadId, newStatus) {
 
     fetch("/leads/update-status/", { 
         method: "POST", 
-        headers: { 
-            "Content-Type": "application/x-www-form-urlencoded", 
-            "X-CSRFToken": csrfToken 
-        }, 
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken }, 
         body: new URLSearchParams({ lead_id: leadId, status: newStatus }) 
     })
     .then(res => res.json())
     .then(data => {
         if(data.success) {
-            if (newStatus === 'ACCEPTED' && data.invoice_url) {
-                window.location.href = data.invoice_url; 
-            } else {
-                window.location.reload(); 
-            }
+            if (newStatus === 'ACCEPTED' && data.invoice_url) window.location.href = data.invoice_url; 
+            else window.location.reload(); 
         } else {
-            alert("Error updating lead status.");
-            document.body.style.cursor = 'default';
+            alert("Error updating lead status."); document.body.style.cursor = 'default';
         }
-    })
-    .catch(err => {
-        console.error("AJAX Error:", err);
-        alert("Failed to communicate with the server.");
-        document.body.style.cursor = 'default';
-    });
+    }).catch(err => { console.error(err); document.body.style.cursor = 'default'; });
 }
 
 function updateLeadStatus(leadId, newStatus) {
-    const formattedStatus = newStatus.replace('_', ' ');
-    if(!confirm(`Are you sure you want to change this lead's status to ${formattedStatus}?`)) {
-        window.location.reload(); 
-        return;
+    if(!confirm(`Are you sure you want to change this lead's status to ${newStatus.replace('_', ' ')}?`)) {
+        window.location.reload(); return;
     }
     sendStatusUpdate(leadId, newStatus);
 }
@@ -646,61 +555,38 @@ let sourceColumn = null;
 
 document.querySelectorAll(".card").forEach(card => {
     card.addEventListener("dragstart", () => {
-        draggedCard = card;
-        sourceColumn = card.closest('.column');
+        draggedCard = card; sourceColumn = card.closest('.column');
         setTimeout(() => card.classList.add("dragging"), 0);
     });
-
-    card.addEventListener("dragend", () => {
-        card.classList.remove("dragging");
-        draggedCard = null;
-    });
+    card.addEventListener("dragend", () => { card.classList.remove("dragging"); draggedCard = null; });
 });
 
 document.querySelectorAll(".column").forEach(column => {
     column.addEventListener("dragover", e => {
-        if (!draggedCard) return;
-        e.preventDefault();
-        
+        if (!draggedCard) return; e.preventDefault();
         const container = column.querySelector('.cards-container') || column;
-        
         const rect = column.getBoundingClientRect();
-        const threshold = 60;
-        const scrollSpeed = 10;
-        if (e.clientY < rect.top + threshold) column.scrollTop -= scrollSpeed;
-        if (e.clientY > rect.bottom - threshold) column.scrollTop += scrollSpeed;
+        if (e.clientY < rect.top + 60) column.scrollTop -= 10;
+        if (e.clientY > rect.bottom - 60) column.scrollTop += 10;
 
         const cards = [...container.querySelectorAll(".card:not(.dragging)")];
         let inserted = false;
         for (const card of cards) {
-            const middle = card.getBoundingClientRect().top + card.offsetHeight / 2;
-            if (e.clientY < middle) {
-                container.insertBefore(draggedCard, card);
-                inserted = true;
-                break;
+            if (e.clientY < card.getBoundingClientRect().top + card.offsetHeight / 2) {
+                container.insertBefore(draggedCard, card); inserted = true; break;
             }
         }
-        if(!inserted) {
-            container.appendChild(draggedCard);
-        }
+        if(!inserted) container.appendChild(draggedCard);
     });
 
     column.addEventListener("drop", () => {
         const targetStatus = column.dataset.status;
-        const leadId = draggedCard.dataset.id;
-        const fromStatus = sourceColumn.dataset.status;
-        
-        if (fromStatus === targetStatus) return;
-
-        const formattedStatus = targetStatus.replace('_', ' ');
-        if(!confirm(`Do you want to update this lead to ${formattedStatus}?`)) {
-            sourceColumn.querySelector('.cards-container').appendChild(draggedCard);
-            return;
+        if (sourceColumn.dataset.status === targetStatus) return;
+        if(!confirm(`Do you want to update this lead to ${targetStatus.replace('_', ' ')}?`)) {
+            sourceColumn.querySelector('.cards-container').appendChild(draggedCard); return;
         }
-
-        sendStatusUpdate(leadId, targetStatus);
+        sendStatusUpdate(draggedCard.dataset.id, targetStatus);
     });
 });
 </script>
-
 {% endblock %}

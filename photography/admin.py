@@ -26,9 +26,8 @@ class TeamAdmin(admin.ModelAdmin):
 
 @admin.register(Employee)
 class EmployeeAdmin(admin.ModelAdmin):
-    list_display = ['name', 'team', 'date_joined']
-    list_filter = ['team', 'date_joined']
-    search_fields = ['name']
+    list_display  = ['__str__', 'team']
+    filter_horizontal = ['subservices']
 
 
 class PackageServiceInline(admin.TabularInline):
@@ -87,3 +86,33 @@ class TaskListAdmin(admin.ModelAdmin):
 class AdditionalServiceAdmin(admin.ModelAdmin):
     list_display = ('name', 'price')
     search_fields = ('name',)
+
+
+@admin.register(QuotationShowcase)
+class QuotationShowcaseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'section', 'order', 'has_image', 'has_video')
+    list_filter = ('section',)
+    list_editable = ('order',)
+    
+    def has_image(self, obj):
+        return bool(obj.image)
+    has_image.boolean = True
+    
+    def has_video(self, obj):
+        return bool(obj.video)
+    has_video.boolean = True
+
+
+@admin.register(QuotationSettings)
+class QuotationSettingsAdmin(admin.ModelAdmin):
+    list_display = ('name', 'has_logo', 'has_banner')
+    
+    def has_logo(self, obj):
+        return bool(obj.logo)
+    has_logo.boolean = True
+    has_logo.short_description = 'Logo Uploaded'
+
+    def has_banner(self, obj):
+        return bool(obj.banner_image)
+    has_banner.boolean = True
+    has_banner.short_description = 'Banner Uploaded'

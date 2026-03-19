@@ -288,6 +288,7 @@
         document.body.style.overflow = 'auto';
     }
 
+    // 🌟 PIXEL PERFECT PDF GENERATOR FOR INVOICES
    function downloadInvoice(invoiceId, btnElement) {
     const icon = btnElement.querySelector('i');
     const originalClass = icon.className;
@@ -303,23 +304,24 @@
         
         let servicesHtml = '';
 
+        // Generate Table Rows
         data.services.forEach((service, index) => {
             let qty = parseFloat(service.qty) || 1;
             let price = parseFloat(service.price) || 0;
             let amount = qty * price;
 
-            let subItemsHtml = service.deliverables.map(item => `<div style="color: #444; font-size: 13px; margin-top: 4px;">1 ${item}</div>`).join('');
+            let subItemsHtml = service.deliverables.map(item => `<div style="color: #666; font-size: 13px; margin-top: 4px;">1 ${item}</div>`).join('');
 
             servicesHtml += `
-            <tr style="border-bottom: 1px solid #eee;">
-                <td style="padding: 15px 12px; text-align: center; vertical-align: top; font-weight: bold;">${index + 1}</td>
-                <td style="padding: 15px 12px; vertical-align: top;">
-                    <div style="font-weight: bold; color: #111; font-size: 14px; margin-bottom: 6px;">${service.service_name}</div>
+            <tr>
+                <td style="padding: 16px 12px; text-align: center; vertical-align: top; font-weight: bold; color: #111;">${index + 1}</td>
+                <td style="padding: 16px 12px; vertical-align: top;">
+                    <div style="font-weight: bold; color: #111; font-size: 14px;">${service.service_name}</div>
                     ${subItemsHtml}
                 </td>
-                <td style="padding: 15px 12px; text-align: center; vertical-align: top;">${qty.toFixed(2)}</td>
-                <td style="padding: 15px 12px; text-align: right; vertical-align: top;">${price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
-                <td style="padding: 15px 12px; text-align: right; vertical-align: top; font-weight: bold;">${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td style="padding: 16px 12px; text-align: center; vertical-align: top; color: #444;">${qty.toFixed(2)}</td>
+                <td style="padding: 16px 12px; text-align: right; vertical-align: top; color: #444;">${price.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                <td style="padding: 16px 12px; text-align: right; vertical-align: top; font-weight: bold; color: #111;">${amount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
             </tr>`;
         });
 
@@ -340,10 +342,10 @@
         let totalPaidSoFar = parseFloat(data.paid_amount) || 0;
         let grandTotal = parseFloat(data.total_amount) || 0;
         
-        // 🌟 COMBINED PAYMENT TOTAL HERE
         let totalPaymentMade = totalPaidSoFar + prePaid;
         let balanceDue = parseFloat(data.balance_due) || 0;
         
+        // Convert numbers to words generator
         let a = ['','One ','Two ','Three ','Four ', 'Five ','Six ','Seven ','Eight ','Nine ','Ten ','Eleven ','Twelve ','Thirteen ','Fourteen ','Fifteen ','Sixteen ','Seventeen ','Eighteen ','Nineteen '];
         let b = ['', '', 'Twenty','Thirty','Forty','Fifty', 'Sixty','Seventy','Eighty','Ninety'];
         function numberToWords(num) {
@@ -372,7 +374,6 @@
             <td style="padding: 8px 12px; text-align: right; color: #111;">${taxAmount.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
         </tr>` : '';
 
-        // 🌟 MERGED PAYMENT ROW
         let paymentsRow = totalPaymentMade > 0 ? `
         <tr>
             <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">Payment Made</td>
@@ -380,9 +381,9 @@
         </tr>` : '';
 
         const termsHtml = `
-        <div style="clear: both; margin-top: 40px; padding-top: 20px; border-top: 1px solid #eee;">
-            <h3 style="font-size: 14px; font-weight: bold; color: #111; margin-bottom: 12px;">Terms and Conditions:</h3>
-            <ol style="font-size: 11px; color: #555; line-height: 1.6; padding-left: 20px; margin: 0;">
+        <div>
+            <h3 style="font-size: 14px; font-weight: bold; color: #111; margin-bottom: 12px; margin-top: 0;">Terms and Conditions:</h3>
+            <ol style="font-size: 12px; color: #555; line-height: 1.8; padding-left: 20px; margin: 0;">
                 <li style="margin-bottom: 4px;">40% Advance , 60% 1 week before the event day.</li>
                 <li style="margin-bottom: 4px;">You have to submit min. 2TB Hard Disk after the first payment, for your raw data.</li>
                 <li style="margin-bottom: 4px;">For Costumers who dont collect deliverables within 60days We will not hold responsibility for the project or data loss so please collect your data and deliverables at the earliest</li>
@@ -400,7 +401,6 @@
                 <li style="margin-bottom: 4px;">We don't cover Food items if you need those shots need to Add a Separate Photo & Video for Food Coverage.</li>
             </ol>
         </div>
-        <div style="width: 100%; height: 30px; background-color: #A32E37; margin-top: 30px;"></div>
         `;
 
         const primaryColor = "#A32E37";
@@ -416,39 +416,38 @@
             </style>
         </head>
         <body>
-            <div style="background:${primaryColor};height:120px;width:100%;display:table;padding:30px 40px;box-sizing:border-box;">
+            <div style="background:${primaryColor};height:130px;width:100%;display:table;padding:35px 40px;box-sizing:border-box;">
                 <div style="display:table-cell;vertical-align:middle;width:50%;">
-                    <div style="background:#fff;width:60px;height:60px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
+                    <div style="background:#fff;width:75px;height:75px;border-radius:8px;text-align:center;padding:5px;box-sizing:border-box;">
                         <img src="${logoUrl}" alt="Logo" style="max-width:100%;max-height:100%;object-fit:contain;">
                     </div>
                 </div>
                 <div style="display:table-cell;vertical-align:middle;text-align:right;width:50%;">
-                    <h1 style="color:#fff;font-size:32px;font-weight:900;letter-spacing:2px;margin:0;">INVOICE</h1>
+                    <h1 style="color:#fff;font-size:38px;font-weight:900;letter-spacing:2px;margin:0;">INVOICE</h1>
                 </div>
             </div>
 
             <div style="padding: 40px;">
-                <table style="width: 100%; margin-bottom: 30px;">
+                
+                <table style="width: 100%; margin-bottom: 40px;">
                     <tr>
-                        <td style="vertical-align: top;">
-                            <div style="font-size: 14px; color: #666; margin-bottom: 4px;">Bill To</div>
-                            <div style="font-size: 18px; font-weight: bold; color: #111;">${displayName}</div>
+                        <td style="vertical-align: top; width: 50%;">
+                            <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Bill To</div>
+                            <div style="font-size: 20px; font-weight: bold; color: #111;">${displayName}</div>
                         </td>
-                        <td style="vertical-align: top; text-align: right;">
-                            <div style="font-size: 14px; display: inline-block; text-align: right;">
-                                <span style="color: #666; margin-right: 15px;">Invoice Date :</span>
-                                <span style="font-weight: bold; color: #111;">${formattedDate}</span>
-                            </div>
+                        <td style="vertical-align: top; text-align: right; width: 50%;">
+                            <div style="font-size: 13px; color: #666; display: inline-block; margin-right: 10px;">Invoice Date :</div>
+                            <div style="font-size: 14px; font-weight: bold; color: #111; display: inline-block;">${formattedDate}</div>
                         </td>
                     </tr>
                 </table>
 
-                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px;">
                     <thead>
-                        <tr style="background-color: #333; color: white;">
-                            <th style="padding: 12px; text-align: center; width: 5%;">#</th>
-                            <th style="padding: 12px; text-align: left; width: 50%;">Item & Description</th>
-                            <th style="padding: 12px; text-align: center; width: 10%;">Qty</th>
+                        <tr style="background-color: #2a2a2a; color: white;">
+                            <th style="padding: 12px; text-align: center; width: 8%;">#</th>
+                            <th style="padding: 12px; text-align: left; width: 45%;">Item & Description</th>
+                            <th style="padding: 12px; text-align: center; width: 12%;">Qty</th>
                             <th style="padding: 12px; text-align: right; width: 15%;">Rate</th>
                             <th style="padding: 12px; text-align: right; width: 20%;">Amount</th>
                         </tr>
@@ -458,21 +457,23 @@
                     </tbody>
                 </table>
 
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                <table style="width: 100%; margin-top: 10px; border-collapse: collapse;">
                     <tr>
-                        <td style="width: 50%; vertical-align: top; padding-right: 20px;">
+                        <td style="width: 50%; vertical-align: bottom; padding-right: 20px; padding-bottom: 10px;">
+                            <div style="font-size: 13px; color: #666; margin-bottom: 6px;">Total In Words:</div>
+                            <div style="font-size: 14px; font-weight: bold; font-style: italic; color: #111;">${totalInWords}</div>
                         </td>
-                        <td style="width: 50%;">
-                            <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
-                                <tr>
-                                    <td style="padding: 8px 12px; text-align: right; color: #444; font-weight: bold;">SubTotal</td>
-                                    <td style="padding: 8px 12px; text-align: right; color: #111;">${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                        <td style="width: 50%; vertical-align: top;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <tr style="border-top: 1px solid #EAEAEA;">
+                                    <td style="padding: 12px 12px 8px; text-align: right; color: #444; font-weight: bold;">SubTotal</td>
+                                    <td style="padding: 12px 12px 8px; text-align: right; color: #111;">${subtotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                                 </tr>
                                 ${discountRow}
                                 ${taxRow}
-                                <tr style="border-top: 1px solid #ddd;">
-                                    <td style="padding: 12px 12px 8px; text-align: right; color: #111; font-weight: bold;">Total</td>
-                                    <td style="padding: 12px 12px 8px; text-align: right; font-weight: bold; color: #111;">₹${grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                <tr>
+                                    <td style="padding: 8px 12px; text-align: right; color: #111; font-weight: bold;">Total</td>
+                                    <td style="padding: 8px 12px; text-align: right; font-weight: bold; color: #111;">₹${grandTotal.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                                 </tr>
                                 ${paymentsRow}
                                 <tr style="background-color: #f3f4f6;">
@@ -483,11 +484,9 @@
                         </td>
                     </tr>
                 </table>
-                <div>
-                    <div style="font-size: 13px; color: #555; text-align: left; margin-bottom: 6px;">Total In Words:</div>
-                    <div style="font-size: 14px; font-weight: bold; font-style: italic; text-align: left; color: #111;">${totalInWords}</div>
-                </div>
-                
+
+                <div style="width: 100%; border-top: 1px solid #EAEAEA; margin: 40px 0 25px 0;"></div>
+
                 ${termsHtml}
             </div>
         </body>
@@ -536,8 +535,6 @@
         if (e.target === newModal) closeNewInvoiceModal();
         if (e.target === prevModal) closePreviewModal();
     });
-
-
 
     let searchTimeout = null;
     function searchLeads(query) {
@@ -614,7 +611,6 @@
 
         const formData = new URLSearchParams({ lead_id: leadId });
 
-        // Call the new, dedicated endpoint
         fetch("/invoice/generate-from-lead/", { 
             method: "POST", 
             headers: { 
