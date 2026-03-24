@@ -21,7 +21,6 @@
   @keyframes sectionIn { to   { opacity:1; transform:translateY(0); } }
   @keyframes popupScale{ from { opacity:0; transform:scale(0.85); } to { opacity:1; transform:scale(1); } }
   @keyframes pulseIn   { from { transform:scale(0.95); opacity:0; } to { transform:scale(1); opacity:1; } }
-  @keyframes chipPop   { 50%  { transform:scale(1.08); } }
 
   .filter-overlay  { animation: overlayFade 0.35s ease forwards; }
   .filter-panel    { animation: panelSpringIn 0.55s cubic-bezier(.22,1.2,.36,1) forwards; }
@@ -32,164 +31,77 @@
   .filter-section:nth-of-type(3){ animation-delay:.34s }
   .filter-section:nth-of-type(4){ animation-delay:.42s }
 
-  .assign-popup  { animation: fadeIn 0.35s ease forwards; }
-  .popup-box     { animation: popupScale 0.45s cubic-bezier(.4,0,.2,1); }
-
   .project-card.dragging  { opacity: 0.4; }
   .project-column.hover   { outline: 2px dashed #999; background: #ffecec; }
 
   /* ============================================================
-     TASK TABLE — pixel-perfect match to screenshot
+     TASK TABLE 
   ============================================================ */
   .tt-wrap { width:100%; overflow-x:auto; font-family:'Inter',sans-serif; }
-  .tt-table {
-    width:100%; border-collapse:collapse; min-width:820px;
-    font-size:13px; color:#222;
-  }
-
-  /* Header */
-  .tt-head th {
-    padding:11px 14px; text-align:left; font-size:13px; font-weight:700;
-    color:#555; border-bottom:2px solid #111; white-space:nowrap;
-    background:#fff; position:sticky; top:0; z-index:5;
-  }
-
-  /* Category stripe */
-  .tt-cat-row td {
-    padding:9px 14px; font-size:13.5px; font-weight:700; color:#111;
-    background:#f8f8f8;
-    border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;
-  }
-
-  /* Task row */
+  .tt-table { width:100%; border-collapse:collapse; min-width:820px; font-size:13px; color:#222; }
+  .tt-head th { padding:11px 14px; text-align:left; font-size:13px; font-weight:700; color:#555; border-bottom:2px solid #111; white-space:nowrap; background:#fff; position:sticky; top:0; z-index:5; }
+  .tt-cat-row td { padding:9px 14px; font-size:13.5px; font-weight:700; color:#111; background:#f8f8f8; border-top:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; }
   .tt-row td { padding:10px 14px; border-bottom:1px solid #f0f0f0; vertical-align:middle; background:#fff; }
   .tt-row:hover td { background:#fafafa; }
-
-  /* Task ID */
   .tt-id { font-size:12px; color:#888; font-weight:600; font-family:monospace; white-space:nowrap; }
-
-  /* Task name inline-edit */
-  .tt-name {
-    font-size:13.5px; font-weight:500; color:#111; outline:none;
-    display:block; min-width:120px; border-bottom:1px solid transparent;
-    transition:border-color .15s;
-  }
+  .tt-name { font-size:13.5px; font-weight:500; color:#111; outline:none; display:block; min-width:120px; border-bottom:1px solid transparent; transition:border-color .15s; }
   .tt-name:hover { border-bottom-color:#ddd; }
   .tt-name:focus { border-bottom-color:#888; }
-
-  /* Avatar */
-  .t-avatar {
-    display:inline-flex; align-items:center; justify-content:center;
-    width:30px; height:30px; border-radius:50%;
-    background:#111; color:#fff; font-size:11px; font-weight:700; flex-shrink:0;
-  }
+  .t-avatar { display:inline-flex; align-items:center; justify-content:center; width:30px; height:30px; border-radius:50%; background:#111; color:#fff; font-size:11px; font-weight:700; flex-shrink:0; }
   .t-assignee-label { font-size:13px; font-weight:500; color:#222; }
-
-  /* Assignee dropdown wrapper */
   .tt-dd-wrap { position:relative; display:inline-block; }
-  .tt-dd-trigger {
-    display:flex; align-items:center; gap:8px; cursor:pointer;
-    padding:3px 6px; border-radius:8px; transition:background .1s;
-  }
+  .tt-dd-trigger { display:flex; align-items:center; gap:8px; cursor:pointer; padding:3px 6px; border-radius:8px; transition:background .1s; }
   .tt-dd-trigger:hover { background:#f0f0f0; }
-  .tt-dd-menu {
-    display:none; position:absolute; top:calc(100% + 4px); left:0;
-    background:#fff; border:1px solid #e5e7eb; border-radius:10px;
-    box-shadow:0 8px 28px rgba(0,0,0,.13); min-width:200px; z-index:200; overflow:hidden;
-  }
+  .tt-dd-menu { display:none; position:absolute; top:calc(100% + 4px); left:0; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.13); min-width:200px; z-index:200; overflow:hidden; }
   .tt-dd-wrap:hover .tt-dd-menu { display:block; }
-  .tt-dd-item {
-    display:flex; align-items:center; gap:8px; padding:9px 14px;
-    font-size:13px; cursor:pointer; transition:background .1s;
-  }
+  .tt-dd-item { display:flex; align-items:center; gap:8px; padding:9px 14px; font-size:13px; cursor:pointer; transition:background .1s; }
   .tt-dd-item:hover { background:#f5f5f5; }
-
-  /* Status pill */
-  .t-pill {
-    display:inline-block; padding:4px 16px; border-radius:6px;
-    font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer;
-  }
+  .t-pill { display:inline-block; padding:4px 16px; border-radius:6px; font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer; }
   .t-pill-open      { background:#22c55e; color:#fff; }
   .t-pill-on_hold   { background:#facc15; color:#333; }
   .t-pill-completed { background:#e5e7eb; color:#555; }
-
-  /* Date inputs */
-  .tt-date {
-    border:none; background:transparent; font-size:12.5px; color:#444;
-    font-family:inherit; cursor:pointer; width:100%; outline:none;
-  }
+  .tt-date { border:none; background:transparent; font-size:12.5px; color:#444; font-family:inherit; cursor:pointer; width:100%; outline:none; }
   .tt-date:focus { border-bottom:1px solid #aaa; }
-
-  /* Progress slider */
-  .t-progress-track {
-    position:relative; height:3px; background:#e5e7eb;
-    border-radius:99px; width:100%; min-width:80px;
-  }
-  .t-progress-fill {
-    position:absolute; left:0; top:0; bottom:0;
-    border-radius:99px; transition:width .4s ease;
-  }
-  .t-progress-dot {
-    position:absolute; top:50%; transform:translate(-50%,-50%);
-    width:10px; height:10px; border-radius:50%;
-    border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15);
-    transition:left .4s ease;
-  }
-
-  /* Action buttons */
-  .tt-btn {
-    background:none; border:none; cursor:pointer; font-size:15px;
-    padding:3px 5px; border-radius:5px; transition:background .1s; line-height:1;
-  }
+  .t-progress-track { position:relative; height:3px; background:#e5e7eb; border-radius:99px; width:100%; min-width:80px; }
+  .t-progress-fill { position:absolute; left:0; top:0; bottom:0; border-radius:99px; transition:width .4s ease; }
+  .t-progress-dot { position:absolute; top:50%; transform:translate(-50%,-50%); width:10px; height:10px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 1px rgba(0,0,0,.15); transition:left .4s ease; }
+  .tt-btn { background:none; border:none; cursor:pointer; font-size:15px; padding:3px 5px; border-radius:5px; transition:background .1s; line-height:1; }
   .tt-btn:hover { background:#f0f0f0; }
   .tt-btn-save   { color:#16a34a; }
   .tt-btn-del    { color:#aaa; }
   .tt-btn-del:hover { color:#ef4444; }
-
-  /* Add task row */
   .tt-add-row td { padding:8px 14px 14px; background:#fff; border-bottom:2px solid #e9e9e9; }
   .tt-add-inner  { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .tt-tpl-select {
-    border:1px solid #d1d5db; border-radius:8px; padding:6px 10px;
-    font-size:12.5px; outline:none; min-width:240px; background:#fff;
-    color:#333; font-family:inherit;
-  }
+  .tt-tpl-select { border:1px solid #d1d5db; border-radius:8px; padding:6px 10px; font-size:12.5px; outline:none; min-width:240px; background:#fff; color:#333; font-family:inherit; }
   .tt-tpl-select:focus { border-color:#111; }
-  .tt-add-btn {
-    background:#a12b2b; color:#fff; border:none; border-radius:7px;
-    padding:7px 18px; font-size:12px; font-weight:700; cursor:pointer;
-    font-family:inherit; transition:background .15s, transform .1s;
-  }
+  .tt-add-btn { background:#a12b2b; color:#fff; border:none; border-radius:7px; padding:7px 18px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:background .15s, transform .1s; }
   .tt-add-btn:hover { background:#851e1e; transform:translateY(-1px); }
-  .tt-custom-btn {
-    background:none; border:none; font-size:12px; font-weight:600;
-    color:#999; cursor:pointer; font-family:inherit; text-decoration:underline;
-  }
+  .tt-custom-btn { background:none; border:none; font-size:12px; font-weight:600; color:#999; cursor:pointer; font-family:inherit; text-decoration:underline; }
   .tt-custom-btn:hover { color:#111; }
-
-  /* Empty phase */
   .tt-empty td { padding:10px 14px; color:#bbb; font-size:13px; font-style:italic; }
-
-  /* Scrollbar for task container */
   #taskContainer::-webkit-scrollbar        { width:5px; height:5px; }
   #taskContainer::-webkit-scrollbar-track  { background:#f0f0f0; border-radius:99px; }
   #taskContainer::-webkit-scrollbar-thumb  { background:#ccc; border-radius:99px; }
   #taskContainer::-webkit-scrollbar-thumb:hover { background:#aaa; }
+
+  .edit-crew-btn {
+    display:flex; align-items:center; gap:4px;
+    background:#f0f0f0; border:none; color:#444;
+    font-size:11px; font-weight:700; padding:5px 10px;
+    border-radius:8px; cursor:pointer; transition:all .15s;
+    font-family:'Inter',sans-serif; white-space:nowrap;
+  }
+  .edit-crew-btn:hover { background:#e0e0e0; color:#111; }
 </style>
 
-<!-- ═══════════════════════════════════════════════════
-     FILTER PANEL
-════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ FILTER OVERLAY ═══════════════════════════════ -->
 <div class="filter-overlay fixed inset-0 bg-black/45 hidden justify-end z-[10000]" id="filterOverlay">
   <div class="filter-panel w-[380px] h-full bg-white p-6 shadow-[-10px_0_30px_rgba(0,0,0,0.2)] flex flex-col translate-x-full font-['Inter']">
-
     <div class="filter-header flex justify-between items-center">
       <h3 class="text-[22px] font-bold m-0">Filters</h3>
       <button class="filter-close bg-black text-white border-none w-[30px] h-[30px] rounded-lg text-[18px] cursor-pointer transition-all duration-200 hover:rotate-90 hover:scale-105 flex justify-center items-center" onclick="closeFilter()">×</button>
     </div>
-
     <div class="flex-1 overflow-y-auto pr-2 no-scrollbar">
-
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Month & Year</label>
         <div class="flex items-center justify-between bg-[#f5f5f5] p-3 rounded-[14px]">
@@ -203,7 +115,6 @@
           <button class="bg-black text-white border-none w-8 h-8 rounded-lg cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="nextMonth()">›</button>
         </div>
       </div>
-
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Custom Date Range</label>
         <div class="flex items-center gap-2 mt-2">
@@ -212,7 +123,6 @@
           <input type="date" id="toDate" class="flex-1 p-2 rounded-lg border border-[#ccc] text-[13px] outline-none focus:border-[#9f2727]">
         </div>
       </div>
-
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Project Status</label>
         <div class="flex flex-wrap gap-3 mt-2">
@@ -222,7 +132,6 @@
           <label class="bg-[#f2f2f2] px-3 py-2 rounded-full text-[13px] cursor-pointer hover:-translate-y-0.5"><input type="checkbox" value="COMPLETED" class="mr-1.5 accent-[#9e2a2f]"> Completed</label>
         </div>
       </div>
-
       <div class="filter-section mt-[22px]">
         <label class="text-[13px] font-bold block mb-2 relative pb-1.5 text-[#111] after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-[80px] after:h-[3px] after:rounded-[3px] after:bg-gradient-to-r after:from-[#9f2727] after:to-[#e57373]">Completion</label>
         <div class="flex flex-wrap gap-3 mt-2">
@@ -232,7 +141,6 @@
         </div>
       </div>
     </div>
-
     <div class="mt-auto flex justify-between pt-4">
       <button class="bg-[#eee] border-none px-[22px] py-2.5 rounded-[10px] font-semibold cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="resetFilter()">Clear All</button>
       <button class="bg-[#9f2727] text-white border-none px-[28px] py-2.5 rounded-[10px] font-semibold cursor-pointer hover:-translate-y-0.5 active:scale-95" onclick="applyFilter()">Apply Filters</button>
@@ -240,18 +148,13 @@
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     MAIN WRAPPER
-════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ MAIN BOARD ═══════════════════════════════ -->
 <div class="projects-wrapper p-[30px] max-w-[1500px] mx-auto min-w-0">
 
-  <!-- Header + toolbar -->
   <div class="project-header mt-[-30px] bg-[#fafafa] p-5 mb-5 rounded-xl min-w-0">
-
     <h2 class="page-title text-[28px] font-semibold m-[0_0_18px_50px] text-black relative
                after:content-[''] after:block after:w-[95px] after:h-[3px] after:bg-black after:mt-1.5
                after:transition-all after:duration-350 hover:after:w-[140px]">Projects</h2>
-
     <div class="project-toolbar flex items-center gap-[34px] px-8 py-3.5 ml-[18px]
                 [&>div]:transition-transform [&>div]:duration-250 hover:[&>div]:-translate-y-[3px]
                 [&>div]:flex [&>div]:items-center [&>div]:gap-1.5 [&>div]:cursor-pointer
@@ -279,11 +182,11 @@
     </div>
   </div>
 
-  <!-- ── BOARD VIEW ── -->
+  <!-- BOARD VIEW -->
   <div id="boardView">
     <div class="projects-board flex gap-1.5 overflow-x-auto min-w-0 pb-4">
 
-      <!-- To Be Assigned -->
+      <!-- ── TO BE ASSIGNED ── -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="ASSIGNED">
         <div class="column-head flex items-center gap-[19px] mb-[15px]">
           <span class="bg-[#f7e6fb] text-[#9b2fae] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● To Be Assigned</span>
@@ -312,11 +215,14 @@
             <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
             <span class="w-5 h-5 rounded-full bg-[#ccc]"></span>
           </div>
+          <button onclick="openTeamPopup('{{ p.id }}')" class="mt-3 flex items-center justify-center w-full bg-[#f7e6fb] hover:bg-[#9b2fae] text-[#9b2fae] hover:text-white border border-[#f5d0fe] py-2 rounded-lg text-[12px] font-bold transition-colors cursor-pointer">
+            <i class="fas fa-user-plus mr-1.5"></i> Assign Team
+          </button>
         </div>
         {% endfor %}
       </div>
 
-      <!-- Pre Production -->
+      <!-- ── PRE PRODUCTION ── -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all precard" data-status="PRE">
         <div class="column-head flex items-center gap-[19px] mb-[15px]">
           <span class="bg-[#e8edff] text-[#2b2bd8] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Pre Production</span>
@@ -340,16 +246,19 @@
             </span>
           </div>
           <hr class="border-none border-t border-[#eee] my-2.5"/>
-          <div class="flex items-center mt-2">
-            {% for m in p.team %}
-            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </div>
+            <div class="flex items-center">
+              {% for m in p.team %}
+              <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+              {% endfor %}
+            </div>
+            <button onclick="event.stopPropagation(); openTeamPopup('{{ p.id }}')" class="edit-crew-btn">
+              <i class="fas fa-pen" style="font-size:9px;"></i> Edit
+            </button>
         </div>
         {% endfor %}
       </div>
 
-      <!-- Selection -->
+      <!-- ── SELECTION ── -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="SELECTION">
         <div class="column-head flex items-center gap-[19px] mb-[15px]">
           <span class="bg-[#fff8dc] text-[#c2b000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Selection</span>
@@ -369,16 +278,21 @@
               <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-          <div class="flex mt-3">
-            {% for m in p.team %}
-            <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </div>
+         
+            <div class="flex">
+              {% for m in p.team %}
+              <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+              {% endfor %}
+            </div>
+            <button onclick="event.stopPropagation(); openTeamPopup('{{ p.id }}')" class="edit-crew-btn">
+              <i class="fas fa-pen" style="font-size:9px;"></i> Edit
+            </button>
+        
         </div>
         {% endfor %}
       </div>
 
-      <!-- Post Production -->
+      <!-- ── POST PRODUCTION ── -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="POST">
         <div class="column-head flex items-center gap-[19px] mb-[15px]">
           <span class="bg-[#ffeaea] text-[#d60000] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Post Production</span>
@@ -398,16 +312,19 @@
               <img src="{% static 'images/calender.svg' %}" class="w-[14px] opacity-70">{{ p.start_date }} – {{ p.end_date }}
             </span>
           </div>
-          <div class="flex mt-3">
-            {% for m in p.team %}
-            <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </div>
+            <div class="flex">
+              {% for m in p.team %}
+              <span class="w-[30px] h-[30px] rounded-full bg-[#000] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+              {% endfor %}
+            </div>
+            <button onclick="event.stopPropagation(); openTeamPopup('{{ p.id }}')" class="edit-crew-btn">
+              <i class="fas fa-pen" style="font-size:9px;"></i> Edit
+            </button>
         </div>
         {% endfor %}
       </div>
 
-      <!-- Completed -->
+      <!-- ── COMPLETED ── -->
       <div class="project-column w-[240px] shrink-0 bg-[#fafafa] rounded-2xl p-3 min-h-[500px] transition-all" data-status="COMPLETED">
         <div class="column-head flex items-center gap-[19px] mb-[15px]">
           <span class="bg-[#e6fff0] text-[#0f8a42] px-4 py-2 rounded-full text-[17px] font-bold flex items-center gap-1.5 w-max">● Completed</span>
@@ -430,20 +347,16 @@
         </div>
         {% endfor %}
       </div>
-
     </div>
   </div>
 
-  <!-- ── LIST VIEW ── -->
+  <!-- LIST VIEW -->
   <div id="listView" style="display:none" class="animate-[fadeIn_0.4s_ease]">
     <div class="w-full max-w-[1200px] mx-auto bg-white p-0 relative max-h-[calc(100vh-220px)] overflow-y-auto">
-
       <div class="grid grid-cols-[120px_1fr_200px_180px_2fr_160px] font-semibold text-[#666] px-5 py-3.5 text-[16px] bg-white gap-5 border-b-[2px] border-black sticky top-0 z-50 shadow-[0_4px_10px_rgba(0,0,0,0.04)]">
         <span>Project ID</span><span>Project Name</span><span>Event Date</span>
         <span>Assigned To</span><span>Tasks</span><span>Task Status</span>
       </div>
-
-      <!-- Pre Production section -->
       <div>
         <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#f2f1ff] text-[#5b4ce6] border-y border-[#eee]">● PRE PRODUCTION</div>
         {% for p in pre_cards %}
@@ -462,51 +375,10 @@
         </div>
         {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
       </div>
-
-      <!-- Selection section -->
-      <div>
-        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#fff7e6] text-[#c98a00] border border-[#ffe2a8]">● SELECTION</div>
-        {% for p in selection %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
-             data-project-id="{{ p.id }}">
-          <span>AK-{{ p.id }}</span>
-          <span class="text-[18px]">{{ p.client_name }}</span>
-          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
-          <span class="flex items-center pl-5">
-            {% for m in p.team %}
-            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </span>
-          <span></span>
-          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">Selection</span>
-        </div>
-        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
-      </div>
-
-      <!-- Post Production section -->
-      <div>
-        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#ffecec] text-[#c62828] border border-[#ffcaca]">● POST PRODUCTION</div>
-        {% for p in post %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
-             data-project-id="{{ p.id }}">
-          <span>AK-{{ p.id }}</span>
-          <span class="text-[18px]">{{ p.client_name }}</span>
-          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
-          <span class="flex items-center pl-5">
-            {% for m in p.team %}
-            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
-            {% endfor %}
-          </span>
-          <span></span>
-          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">PostProduction</span>
-        </div>
-        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
-      </div>
-
     </div>
   </div>
 
-  <!-- ── OVERVIEW VIEW ── -->
+  <!-- OVERVIEW VIEW -->
   <div id="overviewView" style="display:none" class="animate-[fadeSlide_0.4s_ease]">
     <div class="bg-white p-[26px] rounded-[18px] mt-[-30px]">
       <div class="bg-[#fafafa] p-5 mt-[-30px] w-full">
@@ -522,148 +394,87 @@
           <span>Project ID</span><span>Project Name</span><span>Event Date</span><span>Assigned To</span><span>Pending Tasks</span>
         </div>
       </div>
-      <div class="overview-table hidden [&.active]:block" id="overview-client">
-        <div class="grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
-          <span>Project ID</span><span>Project Name</span><span>Event Date</span><span>Due Date</span><span>Pending List</span>
-        </div>
-      </div>
     </div>
   </div>
+</div>
 
-</div><!-- /projects-wrapper -->
-
-<!-- ═══════════════════════════════════════════════════
-     ASSIGN INFO POPUP
-════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ ASSIGN INFO POPUP ═══════════════════════════════ -->
 <div class="assign-popup hidden fixed inset-0 justify-center items-center bg-black/45 z-[5000]"
      id="assignPopup" data-count="{{ assigned|length }}">
   <div class="popup-box w-[420px] bg-white rounded-[22px] p-[38px_34px_36px] text-center relative shadow-[0_30px_70px_rgba(0,0,0,0.18)]">
     <button onclick="closePopup()" class="absolute top-[14px] right-[14px] w-[28px] h-[28px] rounded-lg border-none bg-black text-white text-[18px] font-semibold cursor-pointer flex items-center justify-center hover:scale-105 transition-transform">×</button>
     <img src="{% static 'images/reminderimage.png' %}" class="mx-auto">
     <h2 class="mt-[30px] text-[26px] leading-[1.25] font-bold text-black">You Have {{ assigned|length }} Projects To Assign Team</h2>
-    <button class="mt-[26px] px-[38px] py-[14px] rounded-[10px] border-none bg-[#a12b2b] text-white text-[16px] font-semibold cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(161,43,43,0.35)] transition-all"
-            onclick="closePopup()">Assign Now</button>
+    <button class="mt-[26px] inline-block px-[38px] py-[14px] rounded-[10px] border-none bg-[#a12b2b] text-white text-[16px] font-semibold cursor-pointer hover:-translate-y-0.5 hover:shadow-[0_12px_28px_rgba(161,43,43,0.35)] transition-all" onclick="closePopup()">Assign Now</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════
-     TEAM ASSIGN POPUP
-════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════ TEAM ASSIGN POPUP ═══════════════════════════════ -->
 <div class="assign-popup-team hidden fixed inset-0 bg-black/55 justify-center items-center z-[9999]" id="teamAssignPopup">
-  <div class="w-[620px] max-h-[90vh] border border-black rounded-[18px] p-[30px] relative font-['Inter'] flex flex-col bg-[#f2f2f2]">
-
-    <button class="absolute top-[16px] right-[16px] bg-black text-white w-[28px] h-[28px] rounded-lg border-none font-semibold cursor-pointer hover:scale-105 transition-transform"
-            onclick="closeTeamPopup()">×</button>
-
-    <div class="overflow-y-auto mt-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)] p-[50px] bg-white rounded-xl">
-
-      <h3 class="text-[14px] font-semibold m-[14px_0_8px]">Projects Details</h3>
-      <div class="bg-[#f5f5f5] rounded-[14px] p-3.5 mb-4">
-        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📌 <span id="popupClient"></span></div>
-        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📍 <span id="popupLocation"></span></div>
-        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">⏰ <span id="popupTime"></span> <span class="text-gray-400">•</span> ⏳ <span id="popupDuration"></span></div>
-        <div class="bg-white border border-[#ddd] rounded-lg p-[8px_12px] text-[13px] mb-1.5 flex gap-1.5">📅 <span id="popupDates"></span></div>
-      </div>
-
-      <h3 class="text-[14px] font-semibold m-[14px_0_8px]">Team Members</h3>
-      <div class="bg-[#f5f5f5] rounded-[14px] p-3.5">
-
-        <div class="figma-tabs flex justify-center gap-2 mb-[15px]
-                    [&>span]:p-[10px_14px] [&>span]:rounded-full [&>span]:bg-[#f1f1f1] [&>span]:text-[13px] [&>span]:cursor-pointer
-                    [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3261e] [&>span.active]:font-semibold">
-          <span class="active" data-tab="available">Available Members</span>
-          <span data-tab="booked">Booked Members</span>
+  <div class="w-[500px] max-h-[90vh] rounded-[12px] relative font-['Inter'] flex flex-col bg-[#f4f5f7] border border-gray-200 overflow-hidden shadow-2xl p-6">
+    <button class="absolute top-4 right-4 text-gray-400 hover:text-black text-[24px] cursor-pointer z-10 bg-transparent border-none transition font-bold"
+            onclick="closeTeamPopup()">&times;</button>
+    <h2 class="text-[18px] font-bold text-gray-900 mb-4">Team Members</h2>
+    <div class="overflow-y-auto pr-2 no-scrollbar flex flex-col gap-4">
+      <div class="bg-white border border-gray-300 rounded-[8px] p-3 flex justify-center gap-6 shadow-sm">
+        <div class="flex items-center gap-2 text-[12px] font-semibold text-[#A9323D]">
+          <i class="fas fa-check"></i> Available Team Members
         </div>
-
-        <div class="border border-[#ddd] rounded-xl p-3 bg-white">
-          <div class="team-available">
-            <div class="team-section">
-              <h4 class="text-[13px] font-semibold m-[10px_0_6px]">General</h4>
-              <div class="pill-row flex flex-wrap gap-1.5" data-group="general" id="general-pills"></div>
-            </div>
-            <div class="team-section">
-              <h4 class="text-[13px] font-semibold m-[10px_0_6px]">Pre Production</h4>
-              <div class="pill-row flex flex-wrap gap-1.5" data-group="pre" id="pre-pills"></div>
-            </div>
-            <div class="team-section">
-              <h4 class="text-[13px] font-semibold m-[10px_0_6px]">Post Production</h4>
-              <div class="pill-row flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto" data-group="post" id="post-pills"></div>
-            </div>
-          </div>
-          <div class="team-booked" style="display:none">
-            <div class="booked-row flex flex-wrap gap-1.5"></div>
-          </div>
+        <div class="flex items-center gap-2 text-[12px] font-semibold text-gray-800">
+          <i class="fas fa-check text-gray-400"></i> Booked on Other Sessions
         </div>
       </div>
-
-      <div class="flex justify-between items-center mt-3.5">
-        <input type="date" class="figma-date p-[8px_12px] rounded-lg border border-[#ccc]">
-        <button class="bg-[#9f2727] text-white border-none p-[10px_22px] rounded-[10px] text-[13px] font-semibold cursor-pointer hover:bg-[#851e1e]"
-                onclick="validateAndProceed()">➜ Send Notifications</button>
+      <div class="bg-white border border-gray-300 rounded-[8px] p-5 flex flex-col gap-6 shadow-sm">
+        <div>
+          <p class="text-[14px] font-semibold text-gray-900 mb-3">General</p>
+          <div class="flex flex-wrap gap-2" id="general-pills"><span class="text-[12px] text-gray-400 italic">Loading…</span></div>
+        </div>
+        <div class="border-t border-gray-100 pt-5">
+          <div class="flex justify-between items-end mb-3">
+            <p class="text-[14px] font-semibold text-gray-900 m-0">Pre Production</p>
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right">Due Date</label>
+              <input type="date" id="preDate" class="border border-gray-200 rounded-md px-2 py-1 text-[12px] font-medium text-gray-600 outline-none focus:border-[#A9323D] transition cursor-pointer">
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2" id="pre-pills"><span class="text-[12px] text-gray-400 italic">Loading…</span></div>
+        </div>
+        <div class="border-t border-gray-100 pt-5">
+          <div class="flex justify-between items-end mb-3">
+            <p class="text-[14px] font-semibold text-gray-900 m-0">Post Production</p>
+            <div class="flex flex-col gap-1">
+              <label class="text-[10px] font-bold text-[#A9323D] uppercase tracking-widest text-right">Due Date *</label>
+              <input type="date" id="teamDueDate" class="border border-gray-200 rounded-md px-2 py-1 text-[12px] font-medium text-gray-800 outline-none focus:border-[#A9323D] transition bg-[#fff5f5] cursor-pointer">
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2 max-h-[120px] overflow-y-auto no-scrollbar" id="post-pills"><span class="text-[12px] text-gray-400 italic">Loading…</span></div>
+        </div>
       </div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════════════════════════════════════════════
-     TASK MODAL — matches screenshot exactly
-════════════════════════════════════════════════════ -->
-<div class="task-overlay hidden fixed inset-0 bg-black/55 justify-center items-center z-[10000]" id="taskPopup">
-  <div style="
-    width:96%;
-    max-width:1120px;
-    height:88vh;
-    background:#fff;
-    border-radius:18px;
-    padding:28px 30px 18px;
-    position:relative;
-    display:flex;
-    flex-direction:column;
-    font-family:'Inter',sans-serif;
-    box-shadow:0 24px 60px rgba(0,0,0,.22);
-  ">
-    <!-- Close -->
-    <button onclick="closeTaskPopup()" style="
-      position:absolute; top:14px; right:14px;
-      width:32px; height:32px; background:#111; color:#fff;
-      border:none; border-radius:10px; font-size:18px; font-weight:700;
-      cursor:pointer; display:flex; align-items:center; justify-content:center;
-      transition:background .15s, transform .15s; z-index:10;
-    " onmouseover="this.style.background='#333'" onmouseout="this.style.background='#111'">×</button>
-
-    <!-- Title -->
-    <div style="font-size:22px;font-weight:800;color:#111;padding-bottom:14px;border-bottom:2.5px solid #111;flex-shrink:0;margin-bottom:4px;">
-      Tasks
-    </div>
-
-    <!-- Scrollable content -->
-    <div id="taskContainer" style="flex:1;overflow-y:auto;overflow-x:auto;padding-right:2px;margin-top:8px;"></div>
-
-    <!-- Footer -->
-    <div style="flex-shrink:0;margin-top:auto;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;">
-      <button onclick="finishAssignment()" style="
-        background:#9f2727; color:#fff; border:none;
-        padding:11px 28px; border-radius:10px; font-weight:700;
-        font-size:14px; cursor:pointer; font-family:inherit;
-        transition:background .15s, transform .1s;
-      " onmouseover="this.style.background='#851e1e'" onmouseout="this.style.background='#9f2727'">
-        Save &amp; Assign
+      <button class="bg-[#A9323D] text-white border-none py-3.5 rounded-[8px] text-[15px] font-bold cursor-pointer hover:bg-[#851e1e] transition w-full flex justify-center items-center gap-2 shadow-sm mt-1"
+              onclick="validateAndProceed()">
+        Next ➜
       </button>
     </div>
   </div>
 </div>
 
-
-<div id="saveToast"
-     style="position:fixed;bottom:30px;right:30px;background:#16a34a;color:#fff;
-            padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;
-            opacity:0;transform:translateY(10px);transition:all .3s;z-index:9999;">
-  ✔ Saved
+<!-- ═══════════════════════════════ TASK POPUP ═══════════════════════════════ -->
+<div class="task-overlay hidden fixed inset-0 bg-black/60 justify-center items-center z-[10000] backdrop-blur-sm" id="taskPopup">
+  <div style="width:96%;max-width:1120px;height:88vh;background:#fff;border-radius:18px;padding:28px 30px 18px;position:relative;display:flex;flex-direction:column;font-family:'Inter',sans-serif;box-shadow:0 24px 60px rgba(0,0,0,.22);">
+    <button onclick="closeTaskPopup()" style="position:absolute;top:14px;right:14px;width:32px;height:32px;background:#111;color:#fff;border:none;border-radius:10px;font-size:18px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,transform .15s;z-index:10;"
+      onmouseover="this.style.background='#333'" onmouseout="this.style.background='#111'">×</button>
+    <div style="font-size:22px;font-weight:800;color:#111;padding-bottom:14px;border-bottom:2.5px solid #111;flex-shrink:0;margin-bottom:4px;">Tasks</div>
+    <div id="taskContainer" style="flex:1;overflow-y:auto;overflow-x:auto;padding-right:2px;margin-top:8px;"></div>
+    <div style="flex-shrink:0;margin-top:auto;padding-top:14px;border-top:1px solid #eee;display:flex;justify-content:flex-end;">
+      <button onclick="finishAssignment()" style="background:#A9323D;color:#fff;border:none;padding:11px 28px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit;transition:background .15s,transform .1s;"
+        onmouseover="this.style.background='#851e1e'" onmouseout="this.style.background='#A9323D'">Save &amp; Assign</button>
+    </div>
+  </div>
 </div>
 
+<div id="saveToast" style="position:fixed;bottom:30px;right:30px;background:#16a34a;color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;opacity:0;transform:translateY(10px);transition:all .3s;z-index:9999;">✔ Saved</div>
 
 <script>
-
 let draggedCard        = null;
 let pendingColumn      = null;
 let currentProjectId   = null;
@@ -672,16 +483,13 @@ let phaseDefault       = {};
 let masterTemplates    = [];
 let pendingTaskUpdates = {};
 
-/* ─── Startup: show assign-info popup ─────────────────────────────── */
 window.addEventListener("load", () => {
   const popup = document.getElementById("assignPopup");
   if (popup && Number(popup.dataset.count) > 0) popup.style.display = "flex";
 });
 function closePopup() { document.getElementById("assignPopup").style.display = "none"; }
 
-/* ═══════════════════════════════════════════════════════════════════
-   DRAG & DROP
-══════════════════════════════════════════════════════════════════ */
+/* ── DRAG & DROP ── */
 document.querySelectorAll('.project-column[data-status="ASSIGNED"] .project-card').forEach(card => {
   card.addEventListener("dragstart", () => {
     draggedCard = card;
@@ -691,136 +499,193 @@ document.querySelectorAll('.project-column[data-status="ASSIGNED"] .project-card
 });
 
 document.querySelectorAll(".project-column").forEach(col => {
-  col.addEventListener("dragover",  e => { e.preventDefault(); col.classList.add("hover"); });
-  col.addEventListener("dragleave", ()  => col.classList.remove("hover"));
+  col.addEventListener("dragover", e => {
+    if (draggedCard && col.dataset.status === "PRE") {
+      e.preventDefault();
+      col.classList.add("hover");
+    }
+  });
+  
+  col.addEventListener("dragleave", () => col.classList.remove("hover"));
   col.addEventListener("drop", () => {
     col.classList.remove("hover");
     if (!draggedCard) return;
     const target = col.dataset.status;
-    if (target === "ASSIGNED") return;
-    if (target === "PRE") { pendingColumn = col; openTeamPopup(); return; }
-    moveCard(target);
-    col.appendChild(draggedCard);
-    draggedCard.setAttribute("draggable","false");
-    draggedCard = null;
+    if (target !== "PRE") return;
+    pendingColumn = col;
+    openTeamPopup(draggedCard.dataset.id);
   });
 });
 
-/* ═══════════════════════════════════════════════════════════════════
-   TEAM POPUP
-══════════════════════════════════════════════════════════════════ */
-function openTeamPopup() {
-  if (!draggedCard) return;
-  const projectId = draggedCard.dataset.id;
+/* ── TEAM POPUP ── */
+function openTeamPopup(projectId) {
   if (!projectId) return;
-
+  currentProjectId = projectId;
+  if (!draggedCard) pendingColumn = null;
+  ['general','pre','post'].forEach(g => {
+    const el = document.getElementById(`${g}-pills`);
+    if (el) el.innerHTML = '<span class="text-[12px] text-gray-300 italic">Loading…</span>';
+  });
   fetch(`/projects/details/${projectId}/`)
     .then(r => r.json())
-    .then(data => {
-      document.getElementById("popupClient").innerText   = data.client_name || "";
-      document.getElementById("popupLocation").innerText = data.location    || "";
-      document.getElementById("popupTime").innerText     = data.start_session || "";
-      document.getElementById("popupDuration").innerText = data.event_type  || "";
-      document.getElementById("popupDates").innerText    = `${data.start_date} — ${data.end_date}`;
-
-      renderPopupTeam(data);
-      document.getElementById("teamAssignPopup").style.display = "flex";
-    })
+    .then(data => { renderPopupTeam(data); document.getElementById("teamAssignPopup").style.display = "flex"; })
     .catch(err => console.error("Project fetch failed", err));
 }
 
 function renderPopupTeam(data) {
-  const groups = { general: data.general_team||[], pre: data.pre_team||[], post: data.post_team||[] };
-  ["general","pre","post"].forEach(g => {
-    const container = document.getElementById(`${g}-pills`);
+  const groups = {
+    general: data.general_team || [],
+    pre:     data.pre_team     || [],
+    post:    data.post_team    || [],
+  };
+
+  
+  const postDateInput = document.getElementById("teamDueDate");
+  if (postDateInput && data.deadline_date) {
+    postDateInput.value = data.deadline_date;
+  }
+
+  const preDateInput = document.getElementById("preDate");
+  if (preDateInput) {
+    preDateInput.value = data.pre_deadline_date || ""; 
+  }
+
+  const assignedIds = new Set((data.assigned_ids || []).map(String));
+
+  Object.entries(groups).forEach(([key, members]) => {
+    const container = document.getElementById(`${key}-pills`);
     if (!container) return;
     container.innerHTML = "";
-    groups[g].forEach(m => {
+
+    if (!members.length) {
+      container.innerHTML = '<span class="text-[12px] text-gray-400 italic">No members found</span>';
+      return;
+    }
+
+    members.forEach(m => {
       const pill = document.createElement("span");
-      pill.className = "member-pill selectable";
+      pill.className  = "member-pill selectable";
       pill.dataset.id   = m.id;
-      pill.dataset.name = m.name || m.initials;
+      pill.dataset.name = m.name;
+      pill.title        = m.name;
+
+      const isSelected = assignedIds.has(String(m.id));
+
       pill.style.cssText = `
-        display:inline-flex;align-items:center;justify-content:center;
-        width:34px;height:34px;border-radius:8px;background:#111;color:#fff;
-        font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;
-        border:2px solid transparent;
+        display:inline-flex; align-items:center; justify-content:center;
+        width:36px; height:36px; border-radius:8px;
+        background:${isSelected ? '#A9323D' : '#111'}; color:#fff;
+        font-size:12px; font-weight:700;
+        cursor:pointer; transition:all .15s; user-select:none;
+        border:2px solid ${isSelected ? '#A9323D' : 'transparent'};
       `;
       pill.innerText = m.initials;
+      if (isSelected) pill.classList.add("selected");
+
       pill.addEventListener("click", () => {
-        const sel = pill.classList.toggle("selected");
-        pill.style.background     = sel ? "#b3261e" : "#111";
-        pill.style.borderColor    = sel ? "#b3261e" : "transparent";
-        pill.style.transform      = sel ? "scale(1.1)" : "scale(1)";
+        const on = pill.classList.toggle("selected");
+        pill.style.background  = on ? "#A9323D" : "#111";
+        pill.style.borderColor = on ? "#A9323D" : "transparent";
+        pill.style.transform   = on ? "scale(1.05)" : "scale(1)";
       });
+
       container.appendChild(pill);
     });
   });
 }
 
-function closeTeamPopup() { document.getElementById("teamAssignPopup").style.display = "none"; }
-
-/* ─── Figma tabs ──────────────────────────────────────────────────── */
-document.querySelectorAll(".figma-tabs span").forEach(tab => {
-  tab.addEventListener("click", () => {
-    document.querySelectorAll(".figma-tabs span").forEach(t => t.classList.remove("active"));
-    tab.classList.add("active");
-    const avail  = document.querySelector(".team-available");
-    const booked = document.querySelector(".team-booked");
-    if (tab.dataset.tab === "available") { avail.style.display="block"; booked.style.display="none"; }
-    else                                 { avail.style.display="none";  booked.style.display="block"; }
-  });
-});
+function closeTeamPopup() {
+  document.getElementById("teamAssignPopup").style.display = "none";
+  if (draggedCard && pendingColumn) { draggedCard.classList.remove("dragging"); draggedCard = null; pendingColumn = null; }
+}
 
 function validateAndProceed() {
-  const selected = document.querySelectorAll(".member-pill.selected");
-  const date     = document.querySelector(".figma-date")?.value;
-  if (!selected.length) { showWarningToast("Please select team members"); return; }
-  if (!date)            { showWarningToast("Date is required");           return; }
+  const selected = document.querySelectorAll("#teamAssignPopup .member-pill.selected");
+  const date     = document.getElementById("teamDueDate")?.value;
+  if (!selected.length) { showWarningToast("Please select at least one team member"); return; }
+  if (!date)            { showWarningToast("Post Production Due Date is required"); return; }
   proceedToTasks();
 }
 
 function proceedToTasks() {
-  const ids = Array.from(document.querySelectorAll(".member-pill.selected")).map(p => p.dataset.id);
-  fetch("/projects/assign-team/", {
-    method: "POST",
-    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ project_id: draggedCard.dataset.id, members: ids.join(",") }),
-  })
-  .then(r => r.json())
-  .then(() => {
-    closeTeamPopup();
-    currentProjectId = draggedCard.dataset.id;
-    document.getElementById("taskPopup").style.display = "flex";
-    loadTasks(currentProjectId);
-  });
+    const selectedPills = Array.from(document.querySelectorAll("#teamAssignPopup .member-pill.selected"));
+    const ids = selectedPills.map(p => p.dataset.id);
+    
+    // Capture both date inputs from the Team Assign Popup
+    const postDate = document.getElementById("teamDueDate")?.value || "";
+    const preDate = document.getElementById("preDate")?.value || "";
+    
+    fetch("/projects/assign-team-basic/", {
+        method: "POST",
+        headers: { 
+            "X-CSRFToken": csrfToken(), 
+            "Content-Type": "application/x-www-form-urlencoded" 
+        },
+        body: new URLSearchParams({ 
+            project_id: currentProjectId, 
+            employee_ids: JSON.stringify(ids), 
+            deadline_date: postDate,
+            pre_deadline: preDate  
+        }),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            document.getElementById("teamAssignPopup").style.display = "none";
+            document.getElementById("taskPopup").style.display = "flex";
+            // Refresh tasks so the new dates appear in the table immediately
+            loadTasks(currentProjectId); 
+        } else {
+            showWarningToast("Error saving team assignment.");
+        }
+    })
+    .catch(err => console.error("Assignment failed:", err));
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   TASK MODAL OPEN / CLOSE
-══════════════════════════════════════════════════════════════════ */
+/* ── TASK MODAL ── */
 function closeTaskPopup() { document.getElementById("taskPopup").style.display = "none"; }
 
 function finishAssignment() {
-  closeTaskPopup();
-  if (!pendingColumn || !draggedCard) return;
-  pendingColumn.appendChild(draggedCard);
-  draggedCard.setAttribute("draggable","false");
-  moveCard("PRE");
-  draggedCard = null; pendingColumn = null;
-  setTimeout(() => window.location.reload(), 100);
+  const pendingIds = Object.keys(pendingTaskUpdates);
+  
+  // 1. Save any pending task changes
+  const saves = pendingIds.map(taskId =>
+    fetch("/projects/tasks/update/", {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ task_id: taskId, ...pendingTaskUpdates[taskId] }),
+    })
+  );
+
+  Promise.all(saves).then(() => {
+    pendingTaskUpdates = {};
+    closeTaskPopup();
+    fetch("/projects/update-status/", {
+      method: "POST",
+      headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ project_id: currentProjectId, status: "PRE" }),
+    }).then(() => {
+      const toast = document.getElementById("saveToast");
+      if (toast) {
+        toast.innerText = "Project Moved to Pre-Production";
+        toast.style.opacity = "1";
+        toast.style.transform = "translateY(0)";
+      }
+      
+      setTimeout(() => window.location.reload(), 500);
+    });
+  });
 }
 
-/* click pre-card → open task modal */
 document.addEventListener("click", e => {
   const card = e.target.closest(".pre-card, .selection-card");
   if (!card) return;
+  if (e.target.closest(".edit-crew-btn")) return;
   currentProjectId = card.dataset.id;
   document.getElementById("taskPopup").style.display = "flex";
   loadTasks(currentProjectId);
 });
 
-/* click list row → open task modal */
 document.addEventListener("click", e => {
   const row = e.target.closest(".list-row");
   if (!row) return;
@@ -831,9 +696,7 @@ document.addEventListener("click", e => {
   loadTasks(currentProjectId);
 });
 
-/* ═══════════════════════════════════════════════════════════════════
-   TASK LOAD + RENDER
-══════════════════════════════════════════════════════════════════ */
+/* ── TASK LOAD + RENDER ── */
 function loadTasks(projectId) {
   fetch(`/projects/${projectId}/tasks/`)
     .then(r => r.json())
@@ -845,7 +708,6 @@ function loadTasks(projectId) {
     });
 }
 
-/* ─── Helpers ────────────────────────────────────────────────────── */
 function phaseKey(display) {
   const up = String(display).toUpperCase();
   if (up.includes("POST")) return "POST";
@@ -854,11 +716,7 @@ function phaseKey(display) {
 }
 
 function pillHTML(status) {
-  const map = {
-    OPEN:      ["#22c55e","#fff","Open"],
-    ON_HOLD:   ["#facc15","#333","On Hold"],
-    COMPLETED: ["#e5e7eb","#555","Completed"],
-  };
+  const map = { OPEN:["#22c55e","#fff","Open"], ON_HOLD:["#facc15","#333","On Hold"], COMPLETED:["#e5e7eb","#555","Completed"] };
   const [bg,fg,label] = map[status] || map.ON_HOLD;
   return `<span class="t-pill" style="background:${bg};color:${fg};">${label}</span>`;
 }
@@ -866,11 +724,7 @@ function pillHTML(status) {
 function progressHTML(pct) {
   pct = Math.max(0, Math.min(100, pct));
   const color = pct===100 ? "#16a34a" : pct>=50 ? "#22c55e" : "#ef4444";
-  return `
-    <div class="t-progress-track">
-      <div class="t-progress-fill"  style="width:${pct}%;background:${color};"></div>
-      <div class="t-progress-dot"   style="left:${pct}%;background:${color};"></div>
-    </div>`;
+  return `<div class="t-progress-track"><div class="t-progress-fill" style="width:${pct}%;background:${color};"></div><div class="t-progress-dot" style="left:${pct}%;background:${color};"></div></div>`;
 }
 
 function avatarHTML(empId) {
@@ -882,163 +736,67 @@ function avatarHTML(empId) {
 
 function catIcon(cat) {
   const c = (cat||"").toLowerCase();
-  if (c.includes("hard disk"))                     return "🖥";
+  if (c.includes("hard disk")) return "🖥";
   if (c.includes("pre wedding")||c.includes("shoot")) return "🎬";
   if (c.includes("coverage")||c.includes("main")) return "🎞";
   if (c.includes("planning")||c.includes("coord")) return "📋";
-  if (c.includes("package"))                       return "📦";
-  if (c.includes("post"))                          return "🖥";
-  if (c.includes("deliverable"))                   return "📦";
+  if (c.includes("package")) return "📦";
+  if (c.includes("post")) return "🖥";
+  if (c.includes("deliverable")) return "📦";
   return "📌";
 }
 
-/* ─── renderTasks ────────────────────────────────────────────────── */
 function renderTasks(taskGroups) {
   const container = document.getElementById("taskContainer");
-
-  let html = `
-    <div class="tt-wrap">
-    <table class="tt-table">
-      <thead>
-        <tr class="tt-head">
-          <th style="width:82px">Task ID</th>
-          <th>Task Name</th>
-          <th style="width:195px">Assigned To</th>
-          <th style="width:120px">Status</th>
-          <th style="width:112px">Start Date</th>
-          <th style="width:112px">Due Date</th>
-          <th style="width:130px">Task Progress</th>
-          <th style="width:68px"></th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
+  let html = `<div class="tt-wrap"><table class="tt-table"><thead><tr class="tt-head">
+    <th style="width:82px">Task ID</th><th>Task Name</th><th style="width:195px">Assigned To</th>
+    <th style="width:120px">Status</th><th style="width:112px">Start Date</th>
+    <th style="width:112px">Due Date</th><th style="width:130px">Task Progress</th><th style="width:68px"></th>
+  </tr></thead><tbody>`;
 
   Object.keys(taskGroups).forEach(phase => {
-    const tasks   = taskGroups[phase];
-    const pk      = phaseKey(phase);
-
+    const tasks = taskGroups[phase];
+    const pk    = phaseKey(phase);
     let phaseBg = "#f4f4f4", phaseText = "#333", phaseLabel = pk;
-    if (pk === "PRE") {
-        phaseBg = "#F5F8FF";   
-        phaseText = "#3B82F6";  
-        phaseLabel = "PRE PRODUCTION";
-    } else if (pk === "SELECTION") {
-        phaseBg = "#FEFCE8";     
-        phaseText = "#EAB308";   
-        phaseLabel = "SELECTION";
-    } else if (pk === "POST") {
-        phaseBg = "#FFF0F0";    
-        phaseText = "#EF4444";  
-        phaseLabel = "POST PRODUCTION";
-    }
+    if (pk==="PRE")       { phaseBg="#F5F8FF"; phaseText="#3B82F6"; phaseLabel="PRE PRODUCTION"; }
+    else if (pk==="SELECTION") { phaseBg="#FEFCE8"; phaseText="#EAB308"; phaseLabel="SELECTION"; }
+    else if (pk==="POST") { phaseBg="#FFF0F0"; phaseText="#EF4444"; phaseLabel="POST PRODUCTION"; }
 
-    html += `
-      <tr>
-        <td colspan="8" style="background:${phaseBg}; color:${phaseText}; padding:12px 14px; font-weight:800; font-size:13px; text-transform:uppercase; border-top:1px solid #eee; border-bottom:1px solid #eee;">
-          <span style="margin-right:6px; font-size:14px;">●</span> ${phaseLabel}
-        </td>
-      </tr>
-    `;
+    html += `<tr><td colspan="8" style="background:${phaseBg};color:${phaseText};padding:12px 14px;font-weight:800;font-size:13px;text-transform:uppercase;border-top:1px solid #eee;border-bottom:1px solid #eee;"><span style="margin-right:6px;font-size:14px;">●</span> ${phaseLabel}</td></tr>`;
 
-    /* group by category */
     const byCat = {};
-    tasks.forEach(t => {
-      const c = t.category || "General";
-      if (!byCat[c]) byCat[c] = [];
-      byCat[c].push(t);
-    });
+    tasks.forEach(t => { const c = t.category||"General"; if(!byCat[c]) byCat[c]=[]; byCat[c].push(t); });
 
     if (tasks.length === 0) {
-      /* Empty phase */
       const cleanId = phase.replace(/\s+/g,"");
-      const ptpls   = masterTemplates.filter(t => t.phase === pk);
-      html += emptyPhaseRows(phase, pk, cleanId, ptpls);
+      html += emptyPhaseRows(phase, pk, cleanId, masterTemplates.filter(t => t.phase===pk));
     } else {
       Object.keys(byCat).forEach(cat => {
         const catTasks = byCat[cat];
         const cleanId  = (phase+cat).replace(/\s+/g,"");
-        const icon     = catIcon(cat);
-
-        /* ── Category header ── */
-        html += `
-          <tr class="tt-cat-row">
-            <td colspan="8">${icon}&nbsp;&nbsp;<strong>${cat}</strong>
-              <span style="font-weight:400;color:#888;margin-left:4px;">(${catTasks.length})</span>
-            </td>
-          </tr>
-        `;
-
-        /* ── Task rows ── */
+        html += `<tr class="tt-cat-row"><td colspan="8">${catIcon(cat)}&nbsp;&nbsp;<strong>${cat}</strong><span style="font-weight:400;color:#888;margin-left:4px;">(${catTasks.length})</span></td></tr>`;
         catTasks.forEach(task => {
           const pct = task.progress || 0;
-
-          /* assignee dropdown */
-          const dropItems = [
-            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:''}); refreshAssignee(${task.id},null)">
-               <span style="color:#aaa;font-size:13px;">— Unassigned</span>
-             </div>`
-          ].concat(projectTeam.map(m =>
-            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:${m.id}}); refreshAssignee(${task.id},${m.id})">
-               <span class="t-avatar">${m.initials}</span><span>${m.name}</span>
-             </div>`
-          )).join("");
-
-          /* status dropdown */
-          const statusItems = ["OPEN","ON_HOLD","COMPLETED"].map(s =>
-            `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{status:'${s}'}); refreshStatus(${task.id},'${s}')">
-               ${pillHTML(s)}
-             </div>`
-          ).join("");
-
+          const dropItems = [`<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:''}); refreshAssignee(${task.id},null)"><span style="color:#aaa;font-size:13px;">— Unassigned</span></div>`]
+            .concat(projectTeam.map(m => `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{assigned_to:${m.id}}); refreshAssignee(${task.id},${m.id})"><span class="t-avatar">${m.initials}</span><span>${m.name}</span></div>`)).join("");
+          const statusItems = ["OPEN","ON_HOLD","COMPLETED"].map(s => `<div class="tt-dd-item" onclick="queueUpdate(${task.id},{status:'${s}'}); refreshStatus(${task.id},'${s}')">${pillHTML(s)}</div>`).join("");
           html += `
             <tr class="tt-row" data-task-id="${task.id}">
-
               <td><span class="tt-id">AK-${task.id}</span></td>
-
-              <td>
-                <span class="tt-name" contenteditable spellcheck="false"
-                      oninput="queueUpdate(${task.id},{title:this.innerText})">${task.title}</span>
-              </td>
-
-              <td>
-                <div class="tt-dd-wrap">
-                  <div class="tt-dd-trigger" id="assign-${task.id}">
-                    <div style="display:flex;align-items:center;gap:8px;">${avatarHTML(task.assigned_to_id)}</div>
-                  </div>
-                  <div class="tt-dd-menu">${dropItems}</div>
-                </div>
-              </td>
-
-              <td>
-                <div class="tt-dd-wrap">
-                  <div class="tt-dd-trigger" id="status-${task.id}">${pillHTML(task.status)}</div>
-                  <div class="tt-dd-menu">${statusItems}</div>
-                </div>
-              </td>
-
-              <td><input type="date" class="tt-date" value="${task.start_date||""}"
-                         onchange="queueUpdate(${task.id},{start_date:this.value})"></td>
-
-              <td><input type="date" class="tt-date" value="${task.due_date||""}"
-                         onchange="queueUpdate(${task.id},{due_date:this.value})"></td>
-
+              <td><span class="tt-name" contenteditable spellcheck="false" oninput="queueUpdate(${task.id},{title:this.innerText})">${task.title}</span></td>
+              <td><div class="tt-dd-wrap"><div class="tt-dd-trigger" id="assign-${task.id}"><div style="display:flex;align-items:center;gap:8px;">${avatarHTML(task.assigned_to_id)}</div></div><div class="tt-dd-menu">${dropItems}</div></div></td>
+              <td><div class="tt-dd-wrap"><div class="tt-dd-trigger" id="status-${task.id}">${pillHTML(task.status)}</div><div class="tt-dd-menu">${statusItems}</div></div></td>
+              <td><input type="date" class="tt-date" value="${task.start_date||""}" onchange="queueUpdate(${task.id},{start_date:this.value})"></td>
+              <td><input type="date" class="tt-date" value="${task.due_date||""}" onchange="queueUpdate(${task.id},{due_date:this.value})"></td>
               <td id="progress-${task.id}">${progressHTML(pct)}</td>
-
               <td>
-                <button class="tt-btn tt-btn-save"  title="Save"   onclick="saveTask(${task.id})">✔</button>
-                <button class="tt-btn tt-btn-del"   title="Delete" onclick="deleteTask(${task.id})">🗑</button>
+                <button class="tt-btn tt-btn-save" title="Save" onclick="saveTask(${task.id})">✔</button>
+                <button class="tt-btn tt-btn-del"  title="Delete" onclick="deleteTask(${task.id})">🗑</button>
               </td>
-            </tr>
-          `;
+            </tr>`;
         });
+        if (pk !== "POST") html += addTaskRow(phase, pk, cleanId, masterTemplates.filter(t => t.phase===pk));
       });
-
-      if (pk !== "POST") {
-        const cleanId = phase.replace(/\s+/g,"");
-        const ptpls = masterTemplates.filter(t => t.phase === pk);
-        html += addTaskRow(phase, pk, cleanId, ptpls);
-      }
     }
   });
 
@@ -1052,37 +810,25 @@ function buildTemplateOpts(templates) {
   let opts = `<option value="">— Select template —</option>`;
   cats.forEach(c => {
     opts += `<optgroup label="${c}">`;
-    templates.filter(t => t.category===c).forEach(t => {
-      opts += `<option value="${t.id}">${t.task_name}</option>`;
-    });
+    templates.filter(t => t.category===c).forEach(t => { opts += `<option value="${t.id}">${t.task_name}</option>`; });
     opts += `</optgroup>`;
   });
   return opts;
 }
 
 function addTaskRow(phase, pk, cleanId, templates) {
-  return `
-    <tr class="tt-add-row">
-      <td colspan="8">
-        <div class="tt-add-inner">
-          <select id="tpl-${cleanId}" class="tt-tpl-select">${buildTemplateOpts(templates)}</select>
-          <button class="tt-add-btn" onclick="addTaskFromTemplate('${phase}','${cleanId}')">+ Add Task</button>
-          <button class="tt-custom-btn" onclick="addTask('${phase}')">Or add custom task</button>
-        </div>
-      </td>
-    </tr>`;
+  return `<tr class="tt-add-row"><td colspan="8"><div class="tt-add-inner">
+    <select id="tpl-${cleanId}" class="tt-tpl-select">${buildTemplateOpts(templates)}</select>
+    <button class="tt-add-btn" onclick="addTaskFromTemplate('${phase}','${cleanId}')">+ Add Task</button>
+    <button class="tt-custom-btn" onclick="addTask('${phase}')">Or add custom task</button>
+  </div></td></tr>`;
 }
 
 function emptyPhaseRows(phase, pk, cleanId, templates) {
   const addRowHTML = (pk !== "POST") ? addTaskRow(phase, pk, cleanId, templates) : "";
-  return `
-    <tr class="tt-cat-row">
-      <td colspan="8" style="color:#bbb;font-weight:400;font-style:italic;">No tasks yet</td>
-    </tr>
-    ${addRowHTML}`;
+  return `<tr class="tt-cat-row"><td colspan="8" style="color:#bbb;font-weight:400;font-style:italic;">No tasks yet</td></tr>${addRowHTML}`;
 }
 
-/* ─── Live DOM updaters ─────────────────────────────────────────── */
 function refreshAssignee(taskId, empId) {
   const el = document.getElementById(`assign-${taskId}`);
   if (el) el.querySelector("div").innerHTML = avatarHTML(empId);
@@ -1096,7 +842,6 @@ function refreshStatus(taskId, status) {
   if (pe) pe.innerHTML = progressHTML(pctMap[status]||10);
 }
 
-/* ─── Queue & save ──────────────────────────────────────────────── */
 function queueUpdate(taskId, data) {
   if (!pendingTaskUpdates[taskId]) pendingTaskUpdates[taskId] = {};
   Object.assign(pendingTaskUpdates[taskId], data);
@@ -1113,18 +858,14 @@ function saveTask(taskId) {
   .then(() => {
     delete pendingTaskUpdates[taskId];
     const toast = document.getElementById("saveToast");
-    if (toast) {
-      toast.style.opacity = "1"; toast.style.transform = "translateY(0)";
-      setTimeout(() => { toast.style.opacity="0"; toast.style.transform="translateY(10px)"; }, 1500);
-    }
+    if (toast) { toast.style.opacity="1"; toast.style.transform="translateY(0)"; setTimeout(()=>{ toast.style.opacity="0"; toast.style.transform="translateY(10px)"; },1500); }
     loadTasks(currentProjectId);
   });
 }
 
-/* ─── Add / delete ──────────────────────────────────────────────── */
 function addTaskFromTemplate(phase, cleanId) {
   const sel = document.getElementById(`tpl-${cleanId}`);
-  if (!sel || !sel.value) { showWarningToast("Please select a template first."); return; }
+  if (!sel||!sel.value) return;
   fetch("/projects/tasks/add/", {
     method: "POST",
     headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
@@ -1149,26 +890,21 @@ function deleteTask(id) {
   }).then(() => loadTasks(currentProjectId));
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   BACKEND STATUS UPDATE
-══════════════════════════════════════════════════════════════════ */
-function moveCard(status) {
+function moveCard(status, projectId) {
   fetch("/projects/update-status/", {
     method: "POST",
     headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ project_id: draggedCard.dataset.id, status }),
+    body: new URLSearchParams({ project_id: projectId, status }),
   });
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   BOARD ↔ LIST ↔ OVERVIEW VIEW TOGGLE
-══════════════════════════════════════════════════════════════════ */
+/* ── VIEW TOGGLE ── */
 document.addEventListener("DOMContentLoaded", () => {
-  const spans    = document.querySelectorAll(".project-toolbar span");
-  const boardBtn = spans[0], listBtn = spans[1], overviewBtn = spans[2];
-  const boardV   = document.getElementById("boardView");
-  const listV    = document.getElementById("listView");
-  const overviewV= document.getElementById("overviewView");
+  const spans = document.querySelectorAll(".project-toolbar span");
+  const [boardBtn, listBtn, overviewBtn] = spans;
+  const boardV    = document.getElementById("boardView");
+  const listV     = document.getElementById("listView");
+  const overviewV = document.getElementById("overviewView");
 
   function showView(active) {
     boardV.style.display    = active==="board"    ? "block" : "none";
@@ -1179,16 +915,12 @@ document.addEventListener("DOMContentLoaded", () => {
     if (active==="list")     listBtn.classList.add("active");
     if (active==="overview") overviewBtn.classList.add("active");
   }
-
   showView("board");
   boardBtn.addEventListener("click",    () => showView("board"));
   listBtn.addEventListener("click",     () => showView("list"));
   overviewBtn.addEventListener("click", () => showView("overview"));
 });
 
-/* ═══════════════════════════════════════════════════════════════════
-   OVERVIEW TAB SWITCH
-══════════════════════════════════════════════════════════════════ */
 document.addEventListener("click", e => {
   if (!e.target.closest(".overview-tabs span")) return;
   document.querySelectorAll(".overview-tabs span").forEach(t => t.classList.remove("active"));
@@ -1198,9 +930,7 @@ document.addEventListener("click", e => {
   document.getElementById(id)?.classList.add("active");
 });
 
-/* ═══════════════════════════════════════════════════════════════════
-   FILTER PANEL
-══════════════════════════════════════════════════════════════════ */
+/* ── FILTER ── */
 const months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 let currentDate  = new Date();
 let currentMonth = currentDate.getMonth();
@@ -1217,57 +947,46 @@ function updateMonthYearUI() {
   if (ml) ml.innerText = months[currentMonth];
   if (yl) yl.innerText = currentYear;
 }
-function prevMonth() { currentMonth--; if (currentMonth<0){currentMonth=11;currentYear--;} updateMonthYearUI(); }
-function nextMonth() { currentMonth++; if (currentMonth>11){currentMonth=0;currentYear++;} updateMonthYearUI(); }
+function prevMonth() { currentMonth--; if(currentMonth<0){currentMonth=11;currentYear--;} updateMonthYearUI(); }
+function nextMonth() { currentMonth++; if(currentMonth>11){currentMonth=0;currentYear++;} updateMonthYearUI(); }
 function prevYear()  { currentYear--; updateMonthYearUI(); }
 function nextYear()  { currentYear++; updateMonthYearUI(); }
-
 function openFilter()  { document.getElementById("filterOverlay").style.display="flex"; }
 function closeFilter() { document.getElementById("filterOverlay").style.display="none"; }
 
 function applyFilter() {
-  const from   = document.getElementById("fromDate")?.value || "";
-  const to     = document.getElementById("toDate")?.value   || "";
+  const from = document.getElementById("fromDate")?.value||"";
+  const to   = document.getElementById("toDate")?.value||"";
   const statuses = [...document.querySelectorAll('.filter-section input[type="checkbox"]:checked')].map(c=>c.value);
-  const comp   = document.querySelector('input[name="completion"]:checked')?.value || "ALL";
-  const p      = new URLSearchParams();
-  p.append("month", currentMonth+1);
-  p.append("year",  currentYear);
-  if (from && to) { p.append("from_date",from); p.append("to_date",to); }
-  statuses.forEach(s => p.append("status",s));
-  if (comp!=="ALL") p.append("completion",comp);
-  window.location.href = `/projects/?${p.toString()}`;
+  const comp = document.querySelector('input[name="completion"]:checked')?.value||"ALL";
+  const p = new URLSearchParams();
+  p.append("month", currentMonth+1); p.append("year", currentYear);
+  if(from&&to){p.append("from_date",from);p.append("to_date",to);}
+  statuses.forEach(s=>p.append("status",s));
+  if(comp!=="ALL") p.append("completion",comp);
+  window.location.href=`/projects/?${p.toString()}`;
 }
 
 function resetFilter() {
   currentDate=new Date(); currentMonth=currentDate.getMonth(); currentYear=currentDate.getFullYear();
   updateMonthYearUI();
-  const f=document.getElementById("fromDate"), t=document.getElementById("toDate");
-  if(f) f.value=""; if(t) t.value="";
+  const f=document.getElementById("fromDate"),t=document.getElementById("toDate");
+  if(f)f.value="";if(t)t.value="";
   document.querySelectorAll('.filter-section input[type="checkbox"]').forEach(c=>c.checked=false);
-  const a=document.querySelector('input[name="completion"][value="ALL"]'); if(a) a.checked=true;
+  const a=document.querySelector('input[name="completion"][value="ALL"]'); if(a)a.checked=true;
   window.location.href="/projects/";
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   UTILITIES
-══════════════════════════════════════════════════════════════════ */
 function csrfToken() { return document.getElementById("csrf_token")?.value||""; }
-
 function showWarningToast(msg) {
   let t = document.getElementById("warnToast");
   if (!t) {
-    t = document.createElement("div");
-    t.id="warnToast";
+    t = document.createElement("div"); t.id="warnToast";
     t.style.cssText="position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#b3261e;color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:10000;opacity:0;transition:opacity .3s;font-family:Inter,sans-serif;";
     document.body.appendChild(t);
   }
   t.innerText=msg; t.style.opacity="1";
   setTimeout(()=>t.style.opacity="0",2000);
 }
-
-function setText(el,html){ if(el) el.innerHTML=html; }
-function updateStatusUI(id,s){ refreshStatus(id,s); }
 </script>
-
 {% endblock %}

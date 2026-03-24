@@ -57,8 +57,11 @@ class Employee(models.Model):
         verbose_name_plural = "Employees"
 
     def __str__(self):
-        return f"{self.name} ({self.team.name if self.team else 'No Team'})"
-    
+        # FIX: self.name is a User FK — use get_full_name()/username, not str(self.name)
+        display = self.name.get_full_name() or self.name.username if self.name else "Unknown"
+        team = self.team.name if self.team else "No Team"
+        return f"{display} ({team})"
+
 
 class Service(models.Model):
     service_name = models.CharField(max_length=200)
@@ -67,8 +70,8 @@ class Service(models.Model):
 
     def __str__(self):
         return self.service_name
-    
-    
+
+
 class Deliverable(models.Model):
     title = models.CharField(max_length=255)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
@@ -87,13 +90,14 @@ class SubService(models.Model):
 
 class Package(models.Model):
     package_name = models.CharField(max_length=200)
+
     @property
     def total_cost(self):
         total = 0.0
         for service in self.services.all():
             total += float(service.cost) * service.qty
         return total
-    
+
     def __str__(self):
         return self.package_name
 
@@ -188,6 +192,7 @@ class TaskList(models.Model):
         category_display = self.category.name if self.category else "General"
         return f"[{self.get_phase_display()}] {category_display} - {self.task_name}"
 
+
 class Task(models.Model):
     PHASE_CHOICES = [
         ('PRE', 'PRE PRODUCTION'),
@@ -207,7 +212,7 @@ class Task(models.Model):
     assigned_to = models.ForeignKey('Employee', on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tasks')
     due_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='ON_HOLD')
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -217,9 +222,13 @@ class Task(models.Model):
         verbose_name_plural = "Tasks"
 
     def __str__(self):
-        emp_name = self.assigned_to.name if self.assigned_to else "Unassigned"
+        # FIX: assigned_to.name is a User FK — use get_full_name()/username
+        if self.assigned_to and self.assigned_to.name:
+            emp_name = self.assigned_to.name.get_full_name() or self.assigned_to.name.username
+        else:
+            emp_name = "Unassigned"
         return f"{self.task_name} ({emp_name}) - {self.project.project_name}"
-    
+
 
 class Invoice(models.Model):
     class PaymentStatus(models.TextChoices):
@@ -236,7 +245,7 @@ class Invoice(models.Model):
 
     notes = models.TextField(blank=True, default="Thank you for your business.")
     status = models.CharField(max_length=20, choices=PaymentStatus.choices, default=PaymentStatus.PENDING)
-    
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -254,8 +263,18 @@ class Invoice(models.Model):
 
     @property
     def grand_total(self):
+        # NOTE: grand_total does NOT subtract pre_paid_amount.
+        # pre_paid is shown separately in the balance calculation.
+        # FIX: removed pre_paid deduction from here — it was being double-subtracted
+        # in the invoice list view (balance = grand_total - paid - pre_paid).
         post_discount = self.subtotal - float(self.discount_amount)
-        return post_discount + self.tax_amount - float(self.pre_paid_amount)
+        return post_discount + self.tax_amount
+
+    @property
+    def balance_due(self):
+        """Single source of truth for outstanding balance."""
+        paid = sum(float(p.amount) for p in self.payments.all())
+        return max(0, self.grand_total - float(self.pre_paid_amount) - paid)
 
     def __str__(self):
         return f"Invoice {self.invoice_number} - {self.lead.name}"
@@ -266,9 +285,9 @@ class InvoiceService(models.Model):
     service_name = models.CharField(max_length=255)
     qty = models.IntegerField(default=1)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
-    
+
     deliverables = models.ManyToManyField(Deliverable, blank=True)
-    sub_services = models.ManyToManyField(SubService, blank=True) 
+    sub_services = models.ManyToManyField(SubService, blank=True)
 
     @property
     def total_amount(self):
@@ -284,7 +303,7 @@ class PaymentRecord(models.Model):
 
     def __str__(self):
         return f"Payment ₹{self.amount} for Invoice {self.invoice.invoice_number}"
-    
+
 
 class AdditionalService(models.Model):
     name = models.CharField(max_length=255)
@@ -292,7 +311,8 @@ class AdditionalService(models.Model):
 
     def __str__(self):
         return f"{self.name} (₹{self.price})"
-    
+
+
 class LeadAdditionalService(models.Model):
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='additional_services')
     name = models.CharField(max_length=255)
@@ -301,7 +321,6 @@ class LeadAdditionalService(models.Model):
 
     def __str__(self):
         return f"{self.qty}x {self.name} for {self.lead.name}"
-    
 
 
 class QuotationShowcase(models.Model):
@@ -311,7 +330,7 @@ class QuotationShowcase(models.Model):
         ('SIGNATURE', 'Signature Works (Gallery - Needs 4 images)'),
         ('FOOTER', 'Footer Strip (Needs 5 images)'),
     )
-    
+
     section = models.CharField(max_length=20, choices=SECTION_CHOICES)
     image = models.ImageField(upload_to='quotation_showcase/images/', null=True, blank=True)
     video = models.FileField(upload_to='quotation_showcase/videos/', null=True, blank=True, help_text="Optional: Replaces image with a video if provided.")
@@ -324,21 +343,121 @@ class QuotationShowcase(models.Model):
 
     def __str__(self):
         return f"{self.get_section_display()} - Media {self.id}"
-    
+
+
+class CrewAssignment(models.Model):
+    SOURCE_CHOICES = [
+        ('PROJECT', 'Project Board'),
+        ('SESSION', 'Session Crew'),
+    ]
+
+    project      = models.ForeignKey(ProjectDetail, on_delete=models.CASCADE, related_name='crew_assignments')
+    employee     = models.ForeignKey(Employee,      on_delete=models.CASCADE, related_name='crew_assignments')
+    subservice   = models.ForeignKey(SubService,    on_delete=models.CASCADE, related_name='crew_assignments')
+    service_name = models.CharField(max_length=255, null=True, blank=True)
+    date         = models.DateField(null=True, blank=True)
+    start_time   = models.TimeField(null=True, blank=True)
+    end_time     = models.TimeField(null=True, blank=True)
+    is_accepted  = models.BooleanField(default=False)
+    source       = models.CharField(max_length=10, choices=SOURCE_CHOICES, default='SESSION')
+    created_at   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Crew Assignment"
+        verbose_name_plural = "Crew Assignments"
+
+    def __str__(self):
+        return f"{self.employee} → {self.subservice.name} ({self.service_name}) @ {self.project.project_name}"
+
 
 class QuotationSettings(models.Model):
-    name = models.CharField(max_length=50, default="Default Settings", help_text="Just a name for the admin panel")
-    logo = models.ImageField(upload_to='quotation_assets/logos/', null=True, blank=True)
-    banner_image = models.ImageField(upload_to='quotation_assets/banners/', null=True, blank=True, help_text="The large image shown at the top of the quotation")
-    
+    name = models.CharField(max_length=50, default="Default Settings")
+    logo = models.ImageField(
+        upload_to='quotation_assets/logos/', null=True, blank=True,
+        help_text="Studio logo — shown in topbar, hero brand, and footer."
+    )
     terms_and_conditions = models.TextField(
-        default="40% Advance, 60% 1 week before the event day.\nYou have to submit min. 2TB Hard Disk after the first payment.",
-        help_text="Enter terms separated by new lines."
+        default=(
+            "40% Advance, 60% 1 week before the event day.\n"
+            "You have to submit min. 2TB Hard Disk after the first payment.\n"
+            "For Customers who don't collect deliverables within 60 days, we will not hold responsibility for the project or data loss.\n"
+            "All deliverables are given at once (Teaser, Album, Full Length Video).\n"
+            "Any Cancellation Advance will not be refunded.\n"
+            "You shall arrange for travel and accommodation of our shoot crew for all events away from our office.\n"
+            "Any change of plan or postponement will be accommodated based on our availability on new dates.\n"
+            "Soft copies will be given only after 90% of the total payment."
+        ),
+        help_text="Enter each term on a new line. Each line becomes a numbered point on the quotation."
     )
 
     class Meta:
-        verbose_name = "Quotation PDF Setting"
-        verbose_name_plural = "Quotation PDF Settings"
+        verbose_name = "Quotation Settings"
+        verbose_name_plural = "Quotation Settings"
 
     def __str__(self):
         return self.name
+
+
+class QuotationSettingsMedia(models.Model):
+    SECTION_CHOICES = (
+        ('HERO',      'Hero Background (video recommended)'),
+        ('STORY',     'Our Story & Editorial (2 images)'),
+        ('SIGNATURE', 'Signature Works Gallery (5 portrait images)'),
+        ('FOOTER',    'Footer Strip Thumbnails (4 square images)'),
+        ('FILMS',     'Our Films Section (up to 3 videos)'),
+    )
+
+    settings = models.ForeignKey(
+        QuotationSettings,
+        on_delete=models.CASCADE,
+        related_name='media_items',
+    )
+    section  = models.CharField(
+        max_length=20, choices=SECTION_CHOICES,
+        help_text="Which part of the quotation page this media appears in."
+    )
+    image    = models.ImageField(
+        upload_to='quotation_settings/images/', null=True, blank=True,
+        help_text="Upload an image (JPG/PNG/WebP)."
+    )
+    video    = models.FileField(
+        upload_to='quotation_settings/videos/', null=True, blank=True,
+        help_text="Upload a video (MP4). If both image and video provided, video is used."
+    )
+    caption  = models.CharField(
+        max_length=120, blank=True,
+        help_text="Optional caption shown under gallery items (e.g. couple names, film title)."
+    )
+    order    = models.PositiveIntegerField(
+        default=0,
+        help_text="Sort order within the section. Lower = shown first."
+    )
+
+    class Meta:
+        ordering = ['section', 'order', 'id']
+        verbose_name = "Settings Media Item"
+        verbose_name_plural = "Settings Media Items"
+
+    def __str__(self):
+        label = self.caption or f"Item {self.id}"
+        return f"[{self.get_section_display()}] {label}"
+
+
+class EmployeeNotification(models.Model):
+    employee   = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='notifications')
+    project    = models.ForeignKey(ProjectDetail, on_delete=models.CASCADE, related_name='notifications', null=True, blank=True)
+    subservice = models.ForeignKey(SubService, on_delete=models.SET_NULL, null=True, blank=True)
+    title      = models.CharField(max_length=255)
+    message    = models.TextField()
+    date       = models.DateField(null=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    is_read    = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = "Employee Notification"
+        verbose_name_plural = "Employee Notifications"
+
+    def __str__(self):
+        return f"[{'Read' if self.is_read else 'Unread'}] {self.employee} — {self.title}"

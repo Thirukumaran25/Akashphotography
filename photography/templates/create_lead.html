@@ -67,8 +67,9 @@
             </div>
             <div class="grid grid-cols-4 gap-4" id="packageContainer">
                 {% for pkg in packages %}
-                <div class="bg-gray-50 border p-4 rounded-xl relative hover:border-red-500 cursor-pointer transition"
-                     onclick="selectPackage('{{pkg.id}}', this)">
+                <div class="bg-gray-50 border p-4 rounded-xl relative ..."
+                        id="pkg-card-{{pkg.id}}"
+                        onclick="selectPackage('{{pkg.id}}', this)">
                     <p class="text-sm text-[#903043] font-medium">{{pkg.package_name}}</p>
                     <p class="text-xs font-bold mt-1 text-gray-700">Total: ₹ {{ pkg.total_cost }}</p>
                     <div class="flex gap-2 mt-2">
@@ -326,7 +327,7 @@ let allSubServices     = [];
 let selectedDeliverables = new Map(); 
 let selectedAddServices = new Map();
 
-// Global variables for the success modal
+
 let globalPDFPayload = null;
 let globalPDFFileName = "Quotation.pdf";
 let currentSecureUrl = "";
@@ -663,6 +664,35 @@ function editPackage(id) {
     });
 }
 
+
+function deletePackage(id, btn) {
+    if (!confirm("Delete this package? This cannot be undone.")) return;
+ 
+    fetch(`/delete-package/${id}/`, {
+        method:  'POST',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.status === 'success') {
+            // Remove card from DOM
+            const card = btn.closest('[id^="pkg-card-"], .bg-gray-50');
+            if (card) card.remove();
+ 
+            // Deselect if it was selected
+            const idx = selectedPackageIds.indexOf(String(id));
+            if (idx > -1) {
+                selectedPackageIds.splice(idx, 1);
+                document.getElementById('packageInput').value = selectedPackageIds.join(',');
+                loadPackageDeliverables();
+            }
+        } else {
+            alert("Failed to delete package.");
+        }
+    })
+    .catch(() => alert("Network error. Could not delete package."));
+}
+
 function selectPackage(packageId, cardElement) {
     const id = packageId.toString(); const index = selectedPackageIds.indexOf(id);
     if (index > -1) {
@@ -848,12 +878,11 @@ function handleFormSubmit(event) {
         globalPDFPayload = payload;
         globalPDFFileName = `Quotation_${clientName.replace(/\s+/g,'_')}.pdf`;
 
-        // 🌟 AJAX Submission asking for JSON
         fetch(window.location.href, {
             method: 'POST',
             body: new FormData(form),
             headers: { 
-                'X-Requested-With': 'XMLHttpRequest', // Force JSON response from backend
+                'X-Requested-With': 'XMLHttpRequest', 
                 'X-CSRFToken': getCookie('csrftoken') 
             }
         })
@@ -917,5 +946,6 @@ function downloadSuccessPDF() {
         setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 2000);
     });
 }
+
 </script>
 {% endblock %}

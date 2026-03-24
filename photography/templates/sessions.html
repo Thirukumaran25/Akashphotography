@@ -23,145 +23,147 @@
   /* Session card */
   .session-card {
     background:#fff5f5; border-radius:18px; padding:26px 30px;
-    display:grid;
-    grid-template-columns: 76px 1px 220px 1fr auto;
+    display:grid; grid-template-columns: 76px 1px 220px 1fr auto;
     align-items:center; gap:0 26px;
-    transition:box-shadow .2s, transform .15s;
-    border:1.5px solid transparent;
+    transition:box-shadow .2s, transform .15s; border:1.5px solid transparent;
   }
-  .session-card:hover {
-    box-shadow:0 4px 24px rgba(169,50,61,.10);
-    border-color:#fecaca; transform:translateY(-1px);
-  }
+  .session-card:hover { box-shadow:0 4px 24px rgba(169,50,61,.10); border-color:#fecaca; transform:translateY(-1px); }
   .v-div { width:1px; height:56px; background:#e5e7eb; }
-
   .status-badge { padding:10px 24px; border-radius:999px; font-size:13px; font-weight:700; white-space:nowrap; }
   .s-pending  { background:#A9323D; color:#fff; }
   .s-assigned { background:#16a34a; color:#fff; }
-
   .assign-btn {
-    display:inline-flex; align-items:center; gap:6px;
-    padding:8px 18px; border-radius:999px;
-    border:1.5px solid #e5e7eb; background:#fff;
+    display:inline-flex; align-items:center; gap:6px; padding:8px 18px;
+    border-radius:999px; border:1.5px solid #e5e7eb; background:#fff;
     font-size:13px; font-weight:600; color:#374151;
     cursor:pointer; transition:all .18s; font-family:"Inter",sans-serif; white-space:nowrap;
   }
   .assign-btn:hover { border-color:#A9323D; color:#A9323D; background:#fff5f5; }
-
   .crew-av-wrap { display:flex; }
   .crew-av {
-    width:28px; height:28px; border-radius:50%;
-    background:#374151; color:#fff; font-size:10px; font-weight:800;
-    display:flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:50%; background:#374151; color:#fff;
+    font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center;
     border:2px solid #fff5f5; margin-left:-6px;
   }
   .crew-av:first-child { margin-left:0; }
-
-  @keyframes fadeUp {
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
   .session-card { animation:fadeUp .3s ease both; }
 
-
-  /* ═══════════════════ CENTER MODAL ═══════════════════ */
+  /* ─── CENTER MODAL ─── */
   #panelOverlay {
     display:none; position:fixed; inset:0;
-    background:rgba(17, 24, 39, 0.65); z-index:9998; backdrop-filter:blur(6px);
-    align-items: center; justify-content: center;
-    padding: 20px;
+    background:rgba(17,24,39,0.65); z-index:9998;
+    backdrop-filter:blur(6px);
+    align-items:center; justify-content:center; padding:20px;
   }
   #panelOverlay.show { display:flex; }
-  
   #crewPanel {
-    width: 100%; 
-    max-width: 900px; 
-    max-height: 88vh;
-    background: #ffffff; z-index: 9999;
-    border-radius: 24px; 
-    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
-    display: none; 
-    flex-direction: column; overflow: hidden;
-    transform: scale(0.96) translateY(10px); opacity: 0;
-    transition: all .3s cubic-bezier(0.16, 1, 0.3, 1);
+    width:100%; max-width:920px; max-height:88vh;
+    background:#fff; z-index:9999; border-radius:24px;
+    box-shadow:0 25px 50px -12px rgba(0,0,0,0.25), 0 0 0 1px rgba(0,0,0,0.05);
+    display:none; flex-direction:column; overflow:hidden;
+    transform:scale(0.96) translateY(10px); opacity:0;
+    transition:all .3s cubic-bezier(0.16,1,0.3,1);
   }
-  
-  #panelOverlay.show #crewPanel {
-    display: flex;
-    transform: scale(1) translateY(0); opacity: 1;
-  }
+  #panelOverlay.show #crewPanel { display:flex; transform:scale(1) translateY(0); opacity:1; }
 
-  /* Segmented Control Tabs */
+  /* Tabs */
   .p-tab {
     flex:1; padding:10px 8px; font-size:13px; font-weight:700; color:#6b7280;
-    border:none; background:transparent; cursor:pointer;
-    border-radius:10px; font-family:"Inter",sans-serif; transition:all .2s;
+    border:none; background:transparent; cursor:pointer; border-radius:10px;
+    font-family:"Inter",sans-serif; transition:all .2s;
     display:flex; align-items:center; justify-content:center; gap:8px;
   }
-  .p-tab.active { 
-    color:#A9323D; background:#ffffff; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.06); 
-  }
+  .p-tab.active { color:#A9323D; background:#fff; box-shadow:0 2px 6px rgba(0,0,0,0.06); }
 
-  /* ── Service block as Cards ── */
+  /* Service card block */
   .svc-block {
-    background: #ffffff;
-    border: 1px solid #f3f4f6;
-    border-radius: 16px;
-    margin: 16px 32px 24px 32px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-    overflow: hidden;
-  }
-  .svc-block-head {
-    background: #f9fafb;
-    padding: 16px 20px;
-    display: flex; align-items: center; gap: 10px;
-    border-bottom: 1px solid #f3f4f6;
-  }
-  .svc-block-head .svc-name {
-    font-size:15px; font-weight:800; color:#111; flex:1;
-  }
-  .svc-block-head .svc-count {
-    font-size:12px; font-weight:600; color:#9ca3af;
+    background:#fff; border:1px solid #f3f4f6; border-radius:16px;
+    margin:16px 24px 24px 24px; box-shadow:0 4px 12px rgba(0,0,0,0.02); overflow:hidden;
   }
 
-  /* ── Subservice label ── */
-  .ss-label {
-    padding:16px 20px 8px 20px;
-    font-size:11px; font-weight:800; letter-spacing:.05em;
-    text-transform:uppercase; color:#A9323D;
-    display:flex; align-items:center; gap:8px;
+  /* ── Date/time schedule inline on service block head ── */
+  .svc-block-head {
+    background:#f9fafb; padding:14px 20px;
+    display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+    border-bottom:1px solid #f3f4f6;
   }
-  .ss-label .dot { width:6px; height:6px; border-radius:50%; background:#A9323D; flex-shrink:0; }
-  
+  .svc-block-head .svc-name { font-size:15px; font-weight:800; color:#111; }
+  .svc-block-head .svc-count { font-size:12px; font-weight:600; color:#9ca3af; margin-left:auto; }
+  .svc-schedule {
+    display:flex; align-items:flex-end; gap:8px; margin-left:8px;
+  }
+  .svc-schedule-field { display:flex; flex-direction:column; gap:3px; }
+  .svc-schedule-field label {
+    font-size:10px; font-weight:700; color:#9ca3af;
+    text-transform:uppercase; letter-spacing:.06em;
+  }
+  .svc-schedule-field input[type=date] {
+    width:138px; border:1.5px solid #e5e7eb; border-radius:8px;
+    padding:5px 9px; font-size:12px; font-weight:600;
+    font-family:"Inter",sans-serif; color:#374151; background:#fff;
+    outline:none; cursor:pointer; transition:border-color .15s;
+  }
+  .svc-schedule-field input[type=time] {
+    width:96px; border:1.5px solid #e5e7eb; border-radius:8px;
+    padding:5px 9px; font-size:12px; font-weight:600;
+    font-family:"Inter",sans-serif; color:#374151; background:#fff;
+    outline:none; cursor:pointer; transition:border-color .15s;
+  }
+  .svc-schedule-field input:focus { border-color:#A9323D; }
+
+  /* Subservice section inside block */
+  .ss-section { border-top:1px solid #f3f4f6; }
+  .ss-section:first-of-type { border-top:none; }
+
+  /* Subservice label */
+  .ss-header {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 20px 6px 20px;
+  }
+  .ss-dot { width:7px; height:7px; border-radius:50%; background:#A9323D; flex-shrink:0; }
+  .ss-name { font-size:11px; font-weight:800; letter-spacing:.05em; text-transform:uppercase; color:#A9323D; }
+
+  /* Member pills */
+  .members-row { display:flex; flex-wrap:wrap; gap:10px; padding:6px 20px 16px 36px; }
+  .member-pill {
+    display:flex; align-items:center; gap:8px; padding:6px 14px 6px 6px;
+    border:1.5px solid #e5e7eb; border-radius:999px; background:#fff;
+    cursor:pointer; transition:all .2s; user-select:none;
+  }
+  .member-pill:hover:not(.booked) { border-color:#A9323D; background:#fff5f5; }
+  .member-pill.selected { border-color:#A9323D; background:#fff5f5; box-shadow:0 2px 6px rgba(169,50,61,0.12); }
+  .member-pill.booked { opacity:.45; cursor:not-allowed; }
+  .pill-av {
+    width:28px; height:28px; border-radius:50%;
+    background:linear-gradient(135deg,#6b7280,#374151); color:#fff;
+    font-size:10px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+    transition:background .15s;
+  }
+  .member-pill.selected .pill-av { background:linear-gradient(135deg,#A9323D,#7a222c); }
+  .pill-name { font-size:13px; font-weight:700; color:#111; max-width:110px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pill-check { display:none; color:#A9323D; font-size:12px; }
+  .member-pill.selected .pill-check { display:inline; }
+
   /* Assigned tab rows */
   .asgn-row {
-    display:flex; align-items:center;
-    padding:14px 20px; gap:14px;
-    margin:0 32px 10px 32px; border-radius:12px;
-    background:#ffffff; border:1px solid #f3f4f6;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.01); transition: transform 0.2s;
+    display:flex; align-items:center; padding:14px 20px; gap:12px;
+    margin:0 24px 10px 24px; border-radius:12px;
+    background:#fff; border:1px solid #f3f4f6;
+    box-shadow:0 2px 4px rgba(0,0,0,0.01); transition:transform .2s;
   }
-  .asgn-row:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+  .asgn-row:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,0.04); }
   .asgn-av {
     width:38px; height:38px; border-radius:10px;
-    background:linear-gradient(135deg, #A9323D, #7a222c); color:#fff; font-size:13px; font-weight:800;
-    display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    box-shadow: 0 2px 6px rgba(169,50,61,0.2);
+    background:linear-gradient(135deg,#A9323D,#7a222c); color:#fff;
+    font-size:13px; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
-  .svc-tag {
-    font-size:11px; font-weight:700; padding:4px 10px;
-    border-radius:8px; border:1px solid #e5e7eb; color:#4b5563; background:#f9fafb; white-space:nowrap;
-  }
-  .ss-tag {
-    font-size:11px; font-weight:700; padding:4px 10px;
-    border-radius:8px; background:#fee2e2; color:#A9323D; white-space:nowrap;
-  }
+  .svc-tag { font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; border:1px solid #e5e7eb; color:#4b5563; background:#f9fafb; white-space:nowrap; }
+  .ss-tag  { font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; background:#fee2e2; color:#A9323D; white-space:nowrap; }
+  .date-tag { font-size:11px; font-weight:700; padding:4px 10px; border-radius:8px; background:#f0fdf4; color:#16a34a; border:1px solid #bbf7d0; white-space:nowrap; }
+  .date-tag.tbd { background:#fffbeb; color:#d97706; border-color:#fde68a; }
 
-  .panel-empty {
-    display:flex; flex-direction:column; align-items:center;
-    justify-content:center; padding:60px 24px; text-align:center; gap:12px;
-  }
+  .panel-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; padding:60px 24px; text-align:center; gap:12px; }
   .panel-empty i { font-size:48px; color:#e5e7eb; }
   .panel-empty p { font-size:15px; font-weight:700; color:#9ca3af; }
   .panel-empty small { font-size:13px; color:#d1d5db; }
@@ -169,6 +171,21 @@
   .scroll-area { overflow-y:auto; }
   .scroll-area::-webkit-scrollbar { width:6px; }
   .scroll-area::-webkit-scrollbar-thumb { background:#d1d5db; border-radius:6px; }
+
+  /* ─── TOAST ─── */
+  .toast {
+    position:fixed; bottom:28px; right:28px; z-index:10000;
+    background:#111; color:#fff; border-radius:14px;
+    padding:14px 20px; display:flex; align-items:center; gap:12px;
+    font-size:14px; font-weight:600; box-shadow:0 8px 32px rgba(0,0,0,0.2);
+    transform:translateY(80px); opacity:0; transition:all .35s cubic-bezier(0.16,1,0.3,1);
+    min-width:280px;
+  }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.success { background:#15803d; }
+  .toast.error   { background:#b91c1c; }
+  .toast-icon { font-size:18px; flex-shrink:0; }
+  .toast-msg  { flex:1; line-height:1.4; }
 </style>
 
 <div class="max-w-[900px] mx-auto px-4 sm:px-6 py-8 min-h-screen">
@@ -184,10 +201,10 @@
       <h2 class="text-[26px] font-black text-gray-900 mb-4">{{ month }}</h2>
       <div class="space-y-4">
         {% for proj in projects %}
-        {% with lead=proj.lead_set.first crew_count=proj.assigned_employees.count %}
+        {% with lead=proj.lead_set.first crew_count=proj.session_crew_count %}
         <div class="session-card"
              data-id="{{ proj.id }}"
-             data-status="{% if proj.fully_assigned %}past{% elif not proj.start_date %}tbd{% else %}upcoming{% endif %}"
+             data-status="{% if proj.fully_assigned %}past{% elif not proj.start_date %}tbd{% elif crew_count > 0 %}partial{% else %}upcoming{% endif %}"
              style="animation-delay:{{ forloop.counter0 }}00ms;">
 
           <div class="text-center">
@@ -261,44 +278,25 @@
     <div class="text-center py-24 text-gray-400">
       <i class="fas fa-camera-retro text-5xl opacity-20 block mb-4"></i>
       <p class="font-bold">No accepted sessions yet.</p>
-      <p class="text-sm mt-1">Mark a lead as Accepted to see it here.</p>
     </div>
     {% endfor %}
   </div>
 </div>
 
-
 <div id="panelOverlay" onclick="closePanel(event)">
   <div id="crewPanel" onclick="event.stopPropagation()">
 
-    <div class="flex-1 overflow-y-auto scroll-area flex flex-col relative" id="mainModalScroll">
+    <div class="flex-1 overflow-y-auto scroll-area flex flex-col" id="mainModalScroll">
 
-      <div class="flex items-start justify-between px-8 py-6 border-b border-gray-100 flex-shrink-0" style="background: linear-gradient(to right, #ffffff, #fffafb);">
+      <div class="flex items-start justify-between px-8 py-6 border-b border-gray-100 flex-shrink-0" style="background:linear-gradient(to right,#fff,#fffafb);">
         <div>
           <p class="text-[11px] font-bold text-[#A9323D] uppercase tracking-widest mb-1"><i class="fas fa-clipboard-list mr-1"></i> Assign Crew</p>
           <h2 class="text-[22px] font-black text-gray-900" id="panelTitle">—</h2>
           <p class="text-[13px] text-gray-500 mt-1 font-medium" id="panelDateLine">—</p>
         </div>
-        <button onclick="closePanel()" class="w-10 h-10 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-100 transition mt-1 flex-shrink-0">
-          <i class="fas fa-times text-gray-500 text-lg pointer-events-none"></i>
+        <button onclick="forceClosePanel()" class="w-10 h-10 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-center hover:bg-gray-100 transition mt-1 flex-shrink-0">
+          <i class="fas fa-times text-gray-500 text-lg"></i>
         </button>
-      </div>
-
-      <div class="px-8 py-5 bg-white border-b border-gray-100 flex-shrink-0">
-        <div class="grid grid-cols-3 gap-6">
-          <div class="flex flex-col gap-1.5">
-            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Event Date</label>
-            <input type="date" id="eventDate" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 outline-none focus:border-[#A9323D] focus:bg-white transition w-full shadow-inner">
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Start Time</label>
-            <input type="time" id="startTime" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 outline-none focus:border-[#A9323D] focus:bg-white transition w-full shadow-inner">
-          </div>
-          <div class="flex flex-col gap-1.5">
-            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">End Time</label>
-            <input type="time" id="endTime" class="bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-semibold text-gray-700 outline-none focus:border-[#A9323D] focus:bg-white transition w-full shadow-inner">
-          </div>
-        </div>
       </div>
 
       <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-md px-8 py-4 border-b border-gray-100 shadow-sm flex-shrink-0">
@@ -308,6 +306,7 @@
           </button>
           <button class="p-tab" id="tabAsgBtn" onclick="switchTab('assigned')">
             <i class="fas fa-users text-[13px]"></i> Assigned
+            <span id="assignedCount" class="bg-[#fee2e2] text-[#A9323D] text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
           </button>
         </div>
       </div>
@@ -325,8 +324,10 @@
         <div id="assignedBody" class="pt-4"></div>
       </div>
 
-    </div> <div class="px-8 py-5 border-t border-gray-100 bg-white flex-shrink-0 flex gap-4 z-40">
-      <button onclick="closePanel()" class="px-8 py-3.5 border border-gray-200 bg-gray-50 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-100 transition">
+    </div>
+
+    <div class="px-8 py-5 border-t border-gray-100 bg-white flex-shrink-0 flex gap-4">
+      <button onclick="forceClosePanel()" class="px-8 py-3.5 border border-gray-200 bg-gray-50 rounded-xl font-bold text-sm text-gray-600 hover:bg-gray-100 transition">
         Cancel
       </button>
       <button onclick="saveCrew()" id="btnSave"
@@ -339,33 +340,31 @@
   </div>
 </div>
 
-<script>
-const S = { projectId: null, services: [] };
+<div class="toast" id="toast">
+  <span class="toast-icon"></span>
+  <span class="toast-msg"></span>
+</div>
 
-// ── Open panel ────────────────────────────────────────────────────────────────
+<script>
+const S = { projectId: null, projectDate: '', services: [] };
+
 function openPanel(pid, pname, startDate, startTime, endTime) {
-  S.projectId = pid;
-  S.services  = [];
+  S.projectId   = pid;
+  S.projectDate = startDate || '';
+  S.services    = [];
 
   document.getElementById('panelTitle').textContent    = pname;
-  document.getElementById('panelDateLine').textContent =
-    startDate
-      ? new Date(startDate + 'T00:00').toLocaleDateString('en-IN',
-          { weekday:'short', day:'numeric', month:'long', year:'numeric' })
-        + (startTime ? ' · ' + startTime + (endTime ? '–'+endTime : '') : '')
-      : 'Date TBD';
+  document.getElementById('panelDateLine').textContent = startDate
+    ? new Date(startDate + 'T00:00').toLocaleDateString('en-IN',
+        { weekday:'short', day:'numeric', month:'long', year:'numeric' })
+      + (startTime ? ' · ' + startTime + (endTime ? '–'+endTime : '') : '')
+    : 'Date TBD';
 
-  document.getElementById('eventDate').value = startDate || '';
-  document.getElementById('startTime').value = startTime || '';
-  document.getElementById('endTime').value   = endTime   || '';
-
-  // Reset UI
   switchTab('select');
   document.getElementById('svcContainer').innerHTML = '';
   document.getElementById('noServices').classList.add('hidden');
-  
-  // Reset scroll position
   document.getElementById('mainModalScroll').scrollTop = 0;
+  updateAssignedCount();
 
   document.getElementById('panelOverlay').classList.add('show');
   document.body.style.overflow = 'hidden';
@@ -373,239 +372,291 @@ function openPanel(pid, pname, startDate, startTime, endTime) {
   fetch(`/sessions/project/${pid}/`)
     .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(buildPanel)
-    .catch(() => {
-      document.getElementById('noServices').classList.remove('hidden');
-    });
+    .catch(() => document.getElementById('noServices').classList.remove('hidden'));
 }
 
 function closePanel(e) {
-  if (!e || e.target.id === 'panelOverlay') {
-      document.getElementById('panelOverlay').classList.remove('show');
-      document.body.style.overflow = '';
-  }
+  if (!e || e.target.id === 'panelOverlay') forceClosePanel();
+}
+function forceClosePanel() {
+  document.getElementById('panelOverlay').classList.remove('show');
+  document.body.style.overflow = '';
 }
 
-// ── Build panel from API ──────────────────────────────────────────────────────
 function buildPanel(apiData) {
   const availability = apiData.availability || {};
+  const assignments  = apiData.assignments || []; 
+  const fallbackIds  = apiData.assigned_ids ? [...apiData.assigned_ids] : [];
   
-  // Consume assigned IDs to prevent multi-selection on load
-  const unconsumedAssignedIds = new Set((apiData.assigned_ids || []).map(Number));
+  const hasAssignmentsData = assignments.length > 0;
+
   const container = document.getElementById('svcContainer');
-  
   container.innerHTML = '';
   S.services = [];
 
   const entries = Object.entries(availability);
+  if (!entries.length) { document.getElementById('noServices').classList.remove('hidden'); return; }
 
-  if (!entries.length) {
-    document.getElementById('noServices').classList.remove('hidden');
-    return;
-  }
-
-  // ── For every service ──
   entries.forEach(([svcName, svcObj]) => {
     const rawSubs = svcObj.subservices || [];
 
+    let svcDate = '';
+    let svcStart = '';
+    let svcEnd = '';
+
     const svcState = {
-      name: svcName,
+      name:      svcName,
+      date:      '',
+      startTime: '',
+      endTime:   '',
       subservices: rawSubs.map(ss => {
         const selected = new Set();
         ss.members.forEach(m => {
-          if (unconsumedAssignedIds.has(m.id)) {
-            selected.add(m.id);
-            unconsumedAssignedIds.delete(m.id); // Protect from duplicate selection
+          if (hasAssignmentsData) {
+              const idx = assignments.findIndex(a => a.employee_id === m.id && a.subservice_id === ss.id && a.service_name === svcName);
+              if (idx > -1) {
+                  selected.add(m.id);
+                  if (assignments[idx].date) svcDate = assignments[idx].date;
+                  if (assignments[idx].start_time) svcStart = assignments[idx].start_time;
+                  if (assignments[idx].end_time) svcEnd = assignments[idx].end_time;
+                  assignments.splice(idx, 1); 
+              }
+          } else {
+              const idx = fallbackIds.indexOf(m.id);
+              if (idx > -1) {
+                  selected.add(m.id);
+                  fallbackIds.splice(idx, 1); 
+              }
           }
         });
-
         return {
-          id:       ss.id,
-          name:     ss.name,
-          members:  ss.members,
-          selected: selected,
-        };
+          id: ss.id,
+          name: ss.name,
+           members: ss.members.map(m => ({
+             id:           m.id,
+            name:         m.name,
+            initials:     m.initials,
+             booked_dates: m.booked_dates || {},
+          })),
+          selected,
+         };
       })
     };
+
+    svcState.date = svcDate;
+    svcState.startTime = svcStart;
+    svcState.endTime = svcEnd;
+    
     S.services.push(svcState);
     const svcIdx = S.services.length - 1;
 
-    // ── Service block wrapper ─────────────────────────────────────────────────
     const block = document.createElement('div');
     block.className = 'svc-block';
-
     const totalMembers = rawSubs.reduce((n, ss) => n + ss.members.length, 0);
 
     const head = document.createElement('div');
     head.className = 'svc-block-head';
     head.innerHTML = `
       <span class="svc-name">${svcName}</span>
-      <span class="svc-count">${rawSubs.length} subservice${rawSubs.length !== 1 ? 's' : ''}</span>`;
+      <div class="svc-schedule">
+        <div class="svc-schedule-field">
+          <label>Date</label>
+          <input type="date"
+            id="svc-date-${svcIdx}"
+            value="${svcState.date}"
+            oninput="updateSvcSchedule(${svcIdx},'date',this.value)">
+        </div>
+        <div class="svc-schedule-field">
+          <label>Start</label>
+          <input type="time"
+            id="svc-start-${svcIdx}"
+            value="${svcState.startTime}"
+            oninput="updateSvcSchedule(${svcIdx},'startTime',this.value)">
+        </div>
+        <div class="svc-schedule-field">
+          <label>End</label>
+          <input type="time"
+            id="svc-end-${svcIdx}"
+            value="${svcState.endTime}"
+            oninput="updateSvcSchedule(${svcIdx},'endTime',this.value)">
+        </div>
+      </div>
+      <span class="svc-count">${totalMembers} member${totalMembers !== 1 ? 's' : ''}</span>`;
     block.appendChild(head);
 
-    // ── For every subservice ───────────────────────────────
     rawSubs.forEach((ss, ssIdx) => {
       const ssState = svcState.subservices[ssIdx];
 
-      const ssLbl = document.createElement('div');
-      ssLbl.className = 'ss-label';
-      ssLbl.innerHTML = `
-        <span class="dot"></span>
-        ${ss.name}
-        <span class="ss-count">${ss.members.length} Crew Available</span>`;
-      block.appendChild(ssLbl);
+      const ssSection = document.createElement('div');
+      ssSection.className = 'ss-section';
+      ssSection.innerHTML = `<div class="ss-header"><span class="ss-dot"></span><span class="ss-name">${ss.name}</span><span style="margin-left:auto;font-size:10px;color:#d1d5db;font-weight:600;">${ss.members.length} available</span></div>`;
 
-      // No members
       if (!ss.members.length) {
         const note = document.createElement('div');
-        note.className = 'text-[12px] text-gray-400 italic px-8 py-2 pb-4';
+        note.className = 'text-[12px] text-gray-400 italic px-8 py-3';
         note.textContent = 'No employees assigned to this role.';
-        block.appendChild(note);
-        return;
+        ssSection.appendChild(note);
+      } else {
+        const membersRow = document.createElement('div');
+        membersRow.className = 'members-row';
+
+        ss.members.forEach(m => {
+          const isSel = ssState.selected.has(m.id);
+          
+          // 🌟 LIVE DATE CHECK LOGIC 🌟
+          let isBooked = false;
+          let bookingText = '';
+          if (svcState.date && m.booked_dates && m.booked_dates[svcState.date]) {
+              isBooked = true;
+              bookingText = m.booked_dates[svcState.date].join(', ');
+          }
+          if (isSel) isBooked = false;
+
+          const pill = document.createElement('div');
+          pill.className = `member-pill${isSel ? ' selected' : ''}${isBooked ? ' booked' : ''}`;
+          pill.dataset.svcIdx = svcIdx;
+          pill.dataset.ssIdx  = ssIdx;
+          pill.dataset.mid    = m.id;
+          if (isBooked) pill.title = 'Booked: ' + bookingText;
+
+          pill.addEventListener('click', () => toggleMember(svcIdx, ssIdx, m.id, pill));
+
+          pill.innerHTML = `
+            <div class="pill-av">${m.initials}</div>
+            <div class="flex-1 min-w-0">
+              <div class="m-name">${m.name}</div>
+            </div>
+            ${isBooked ? `<span class="booked-pill" title="${bookingText}"><i class="fas fa-lock text-[8px] mr-1"></i>Booked</span>` : ''}
+            <div class="m-check">${isSel ? '<i class="fas fa-check text-[11px]"></i>' : ''}</div>`;
+          membersRow.appendChild(pill);
+        });
+        ssSection.appendChild(membersRow);
       }
-
-      // 🌟 NEW HORIZONTAL PILL LAYOUT FOR MEMBERS 🌟
-      const membersContainer = document.createElement('div');
-      membersContainer.className = 'flex flex-wrap gap-3 px-8 pb-5 pl-[42px]';
-
-      ss.members.forEach(m => {
-        const isSel    = ssState.selected.has(m.id);
-        const isBooked = m.is_booked && !isSel;
-
-        const row = document.createElement('div');
-        
-        let classes = 'flex items-center gap-2 p-1.5 pr-3.5 border rounded-full cursor-pointer transition-all duration-200 member-card select-none ';
-        
-        if (isSel) {
-            classes += 'border-[#A9323D] bg-[#fff5f5] shadow-sm';
-        } else if (isBooked) {
-            classes += 'border-gray-200 bg-gray-50 opacity-50 cursor-not-allowed booked';
-        } else {
-            classes += 'border-gray-200 bg-white hover:border-[#A9323D] hover:bg-[#fff5f5]';
-        }
-        
-        row.className = classes;
-        row.dataset.svcIdx = svcIdx;
-        row.dataset.ssIdx  = ssIdx;
-        row.dataset.mid    = m.id;
-
-        // 🌟 THE HOVER TOOLTIP (Native Title Attribute) 🌟
-        if (isBooked) {
-            row.title = "Booked: " + (m.booking_text || "Another Event");
-        }
-
-        if (!isBooked) {
-          row.addEventListener('click', () => toggleMember(svcIdx, ssIdx, m.id, row));
-        }
-
-        const avGradient = isSel ? 'from-[#A9323D] to-[#7a222c]' : 'from-gray-600 to-gray-900';
-
-        row.innerHTML = `
-          <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-[11px] font-bold flex-shrink-0 transition-all bg-gradient-to-br ${avGradient} shadow-sm">
-            ${m.initials}
-          </div>
-          <div class="text-[13px] font-bold text-gray-900 truncate max-w-[120px]">
-            ${m.name}
-          </div>
-          ${isBooked ? `<i class="fas fa-lock text-[#d97706] text-[10px]"></i>` : ''}
-          ${isSel ? `<i class="fas fa-check-circle text-[#A9323D] text-[13px] ml-1"></i>` : ''}
-        `;
-        
-        membersContainer.appendChild(row);
-      });
-      
-      block.appendChild(membersContainer);
+      block.appendChild(ssSection);
     });
-
     container.appendChild(block);
   });
 
+  updateAssignedCount();
   buildAssignedTab();
 }
 
-// ── Toggle ────────────────────────────────────────────────────────────────────
-function toggleMember(svcIdx, ssIdx, memberId, row) {
-  const ss = S.services[svcIdx].subservices[ssIdx];
-  
-  if (ss.selected.has(memberId)) {
-    // Deselect Logic
-    ss.selected.delete(memberId);
-    
-    row.classList.remove('border-[#A9323D]', 'bg-[#fff5f5]', 'shadow-sm');
-    row.classList.add('border-gray-200', 'bg-white', 'hover:border-[#A9323D]', 'hover:bg-[#fff5f5]');
-    
-    const av = row.querySelector('.w-8');
-    av.classList.remove('from-[#A9323D]', 'to-[#7a222c]');
-    av.classList.add('from-gray-600', 'to-gray-900');
-    
-    const icon = row.querySelector('.fa-check-circle');
-    if(icon) icon.remove();
+// 🌟 LIVE UPDATE: instantly refresh the lock icons when the date is changed
+function refreshBookedUI(svcIdx) {
+  const svc = S.services[svcIdx];
+  const checkDate = svc.date; 
 
-  } else {
-    // 🌟 SINGLE ASSIGNMENT RULE 🌟
-    S.services.forEach((otherSvc, oSvcIdx) => {
-      otherSvc.subservices.forEach((otherSs, oSsIdx) => {
-        if (otherSs.selected.has(memberId)) {
-          otherSs.selected.delete(memberId);
-          
-          // Visually unselect the old row if visible
-          const oldRow = document.querySelector(`.member-card[data-svc-idx="${oSvcIdx}"][data-ss-idx="${oSsIdx}"][data-mid="${memberId}"]`);
-          if (oldRow) {
-            oldRow.classList.remove('border-[#A9323D]', 'bg-[#fff5f5]', 'shadow-sm');
-            oldRow.classList.add('border-gray-200', 'bg-white', 'hover:border-[#A9323D]', 'hover:bg-[#fff5f5]');
-            
-            const oldAv = oldRow.querySelector('.w-8');
-            if(oldAv) {
-                oldAv.classList.remove('from-[#A9323D]', 'to-[#7a222c]');
-                oldAv.classList.add('from-gray-600', 'to-gray-900');
-            }
-            const oldIcon = oldRow.querySelector('.fa-check-circle');
-            if(oldIcon) oldIcon.remove();
-          }
+  svc.subservices.forEach((ss, ssIdx) => {
+    ss.members.forEach(m => {
+      const isSel = ss.selected.has(m.id);
+      let isBooked = false;
+      let bookingText = '';
+
+      if (checkDate && m.booked_dates && m.booked_dates[checkDate]) {
+        isBooked = true;
+        bookingText = m.booked_dates[checkDate].join(', ');
+      }
+      if (isSel) isBooked = false; 
+      
+      const pill = document.querySelector(`.member-pill[data-svc-idx="${svcIdx}"][data-ss-idx="${ssIdx}"][data-mid="${m.id}"]`);
+      if (!pill) return;
+      
+      if (isBooked) {
+        pill.classList.add('booked');
+        pill.title = 'Booked: ' + bookingText;
+        if (!pill.querySelector('.booked-pill')) {
+          const nameDiv = pill.querySelector('.flex-1');
+          if (nameDiv) nameDiv.insertAdjacentHTML('afterend', `<span class="booked-pill" title="${bookingText}"><i class="fas fa-lock text-[8px] mr-1"></i>Booked</span>`);
         }
-      });
+      } else {
+        pill.classList.remove('booked');
+        pill.title = '';
+        const lockIcon = pill.querySelector('.booked-pill');
+        if (lockIcon) lockIcon.remove();
+      }
+    });
+  });
+}
+
+function updateSvcSchedule(svcIdx, field, value) {
+  S.services[svcIdx][field] = value;
+  if (field === 'date') {
+      refreshBookedUI(svcIdx); // Trigger the live UI update!
+  }
+  buildAssignedTab();
+}
+
+function toggleMember(svcIdx, ssIdx, memberId, pill) {
+  if (pill.classList.contains('booked')) {
+      alert("This member is already booked for another project on this date:\n\n" + pill.title);
+      return; 
+  }
+
+  // Get the specific service block (e.g., Reception OR Wedding)
+  const svc = S.services[svcIdx];
+  const ss = svc.subservices[ssIdx];
+
+  if (ss.selected.has(memberId)) {
+    // Deselect
+    ss.selected.delete(memberId);
+    pill.classList.remove('selected');
+    pill.querySelector('.m-check').innerHTML = '';
+  } else {
+    // 🌟 THE FIX: Only remove the member from other roles inside THIS specific event block!
+    // This allows Jack to be assigned to both Reception and Wedding simultaneously.
+    svc.subservices.forEach((otherSs, oi) => {
+      if (otherSs.selected.has(memberId)) {
+        otherSs.selected.delete(memberId);
+        // Find the old pill inside this specific svcIdx and uncheck it
+        const oldPill = document.querySelector(`.member-pill[data-svc-idx="${svcIdx}"][data-ss-idx="${oi}"][data-mid="${memberId}"]`);
+        if (oldPill) {
+          oldPill.classList.remove('selected');
+          const oldCheck = oldPill.querySelector('.m-check');
+          if (oldCheck) oldCheck.innerHTML = '';
+        }
+      }
     });
 
-    // Select in current row
     ss.selected.add(memberId);
-    
-    row.classList.remove('border-gray-200', 'bg-white', 'hover:border-[#A9323D]', 'hover:bg-[#fff5f5]');
-    row.classList.add('border-[#A9323D]', 'bg-[#fff5f5]', 'shadow-sm');
-    
-    const av = row.querySelector('.w-8');
-    av.classList.remove('from-gray-600', 'to-gray-900');
-    av.classList.add('from-[#A9323D]', 'to-[#7a222c]');
-    
-    if (!row.querySelector('.fa-check-circle')) {
-        row.insertAdjacentHTML('beforeend', `<i class="fas fa-check-circle text-[#A9323D] text-[13px] ml-1"></i>`);
-    }
+    pill.classList.add('selected');
+    pill.querySelector('.m-check').innerHTML = '<i class="fas fa-check text-[11px]"></i>';
   }
-  
+
+  updateAssignedCount();
   buildAssignedTab();
 }
 
-// ── Assigned tab ──────────────────────────────────────────────────────────────
 function buildAssignedTab() {
   const body = document.getElementById('assignedBody');
   body.innerHTML = '';
   let hasAny = false;
 
-  S.services.forEach(svc => {
-    svc.subservices.forEach(ss => {
+  S.services.forEach((svc, svcIdx) => {
+    svc.subservices.forEach((ss, ssIdx) => {
       ss.selected.forEach(mid => {
         const m = ss.members.find(x => x.id === mid);
         if (!m) return;
         hasAny = true;
+
+        const dateStr = svc.date
+          ? new Date(svc.date + 'T00:00').toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'})
+          : null;
+        const timeStr = svc.startTime ? svc.startTime + (svc.endTime ? '–'+svc.endTime : '') : null;
+
         const row = document.createElement('div');
         row.className = 'asgn-row';
         row.innerHTML = `
           <div class="asgn-av">${m.initials}</div>
           <div class="flex-1 min-w-0">
             <div class="text-[14px] font-bold text-gray-900">${m.name}</div>
+            <div class="text-[11px] text-gray-400 mt-0.5">${svc.name}</div>
           </div>
-          <span class="svc-tag">${svc.name}</span>
           <span class="ss-tag">${ss.name}</span>
-          <button onclick="removeAssigned(${S.services.indexOf(svc)},${ss.id},${mid})"
-            class="ml-2 w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition flex items-center justify-center flex-shrink-0">
+          <span class="date-tag ${dateStr ? '' : 'tbd'}">
+            ${dateStr ? dateStr + (timeStr ? ' · '+timeStr : '') : 'Date TBD'}
+          </span>
+          <button onclick="removeAssigned(${svcIdx},${ss.id},${mid})"
+            class="ml-1 w-8 h-8 rounded-xl bg-red-50 hover:bg-red-100 text-red-500 hover:text-red-700 transition flex items-center justify-center flex-shrink-0">
             <i class="fas fa-times text-[12px]"></i>
           </button>`;
         body.appendChild(row);
@@ -629,85 +680,113 @@ function removeAssigned(svcIdx, ssId, memberId) {
   if (!ss) return;
   ss.selected.delete(memberId);
 
-  // Deselect row in select tab
-  const row = document.querySelector(
-    `.member-card[data-svc-idx="${svcIdx}"][data-ss-idx="${svc.subservices.indexOf(ss)}"][data-mid="${memberId}"]`
-  );
-  if (row) {
-    row.classList.remove('border-[#A9323D]', 'bg-[#fff5f5]', 'shadow-sm');
-    row.classList.add('border-gray-200', 'bg-white', 'hover:border-[#A9323D]', 'hover:bg-[#fff5f5]');
-    const av = row.querySelector('.w-8');
-    if(av) {
-        av.classList.remove('from-[#A9323D]', 'to-[#7a222c]');
-        av.classList.add('from-gray-600', 'to-gray-900');
-    }
-    const icon = row.querySelector('.fa-check-circle');
-    if(icon) icon.remove();
+  const ssIdx = svc.subservices.indexOf(ss);
+  const pill  = document.querySelector(`.member-pill[data-svc-idx="${svcIdx}"][data-ss-idx="${ssIdx}"][data-mid="${memberId}"]`);
+  if (pill) {
+    pill.classList.remove('selected');
+    const ch = pill.querySelector('.m-check');
+    if (ch) ch.innerHTML = '';
   }
+
+  updateAssignedCount();
   buildAssignedTab();
+  
+  // Also refresh the UI in case we need to re-apply the locked logic to the person we just removed
+  refreshBookedUI(svcIdx); 
 }
 
-// ── Tabs ──────────────────────────────────────────────────────────────────────
+function updateAssignedCount() {
+  let total = 0;
+  S.services.forEach(svc => svc.subservices.forEach(ss => total += ss.selected.size));
+  const badge = document.getElementById('assignedCount');
+  badge.textContent = total;
+  badge.classList.toggle('hidden', total === 0);
+}
+
 function switchTab(tab) {
   const isSel = tab === 'select';
   document.getElementById('bodySelect').classList.toggle('hidden', !isSel);
-  document.getElementById('bodyAssigned').classList.toggle('hidden',  isSel);
+  document.getElementById('bodyAssigned').classList.toggle('hidden', isSel);
   document.getElementById('tabSelBtn').classList.toggle('active',  isSel);
   document.getElementById('tabAsgBtn').classList.toggle('active', !isSel);
-  
   if (!isSel) buildAssignedTab();
-  
-  // Reset scroll to top of the list when switching tabs
   document.getElementById('mainModalScroll').scrollTop = 0;
 }
 
-// ── Save ──────────────────────────────────────────────────────────────────────
 function saveCrew() {
   const btn = document.getElementById('btnSave');
   const txt = document.getElementById('btnSaveText');
   btn.disabled = true; txt.textContent = 'Saving…';
 
   const allIds = [];
-  S.services.forEach(svc =>
-    svc.subservices.forEach(ss =>
-      ss.selected.forEach(id => { if (!allIds.includes(id)) allIds.push(id); })
-    )
-  );
+  const assignments = [];
+
+  S.services.forEach(svc => {
+    svc.subservices.forEach(ss => {
+      ss.selected.forEach(empId => {
+        if (!allIds.includes(empId)) allIds.push(empId);
+        assignments.push({
+          employee_id:   empId,
+          subservice_id: ss.id,
+          service_name:  svc.name, 
+          date:          svc.date      || '', 
+          start_time:    svc.startTime || '', 
+          end_time:      svc.endTime   || '', 
+        });
+      });
+    });
+  });
+
+  let projectDeadlineDate = S.projectDate || '';
+  if (!projectDeadlineDate) {
+    for (const svc of S.services) {
+      if (svc.date) { projectDeadlineDate = svc.date; break; }
+    }
+  }
 
   fetch('/sessions/assign-crew/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'X-CSRFToken': getCookie('csrftoken'),
-    },
-    body: new URLSearchParams({
+    method:  'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken') },
+    body: newSearchParams({
       project_id:    S.projectId,
       employee_ids:  JSON.stringify(allIds),
-      deadline_date: document.getElementById('eventDate').value || '',
-      start_time:    document.getElementById('startTime').value  || '',
-      end_time:      document.getElementById('endTime').value    || '',
+      deadline_date: projectDeadlineDate,
+      assignments:   JSON.stringify(assignments),
     }),
   })
   .then(r => r.json())
   .then(d => {
-    if (d.status === 'success') { closePanel(); setTimeout(() => location.reload(), 150); }
-    else alert('Error saving. Please try again.');
+    if (d.status === 'success') {
+      forceClosePanel();
+      const n = d.notified_count || 0;
+      showToast('success', '✓', n > 0 ? `Crew saved! Notified ${n} employee${n !== 1 ? 's' : ''}.` : 'Crew assignment saved.');
+      setTimeout(() => location.reload(), 1800);
+    } else {
+      showToast('error', '✗', 'Error saving. Please try again.');
+    }
   })
-  .catch(() => alert('Network error.'))
+  .catch(() => showToast('error', '✗', 'Network error. Please try again.'))
   .finally(() => { btn.disabled = false; txt.textContent = 'Save Assignment'; });
 }
 
-// ── Filter pills ──────────────────────────────────────────────────────────────
+// Utility to fix missing newSearchParams
+function newSearchParams(obj) {
+  let params = new URLSearchParams();
+  for (let key in obj) { params.append(key, obj[key]); }
+  return params;
+}
+
 function filterCards(type, btn) {
   document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
+
   document.querySelectorAll('.session-card').forEach(c => {
-    if (type === 'upcoming') {
-      c.style.display = c.dataset.status === 'upcoming' ? '' : 'none';
-    } else {
-      c.style.display = c.dataset.status === type ? '' : 'none';
-    }
+    let show = false;
+    if (type === 'upcoming') { show = (c.dataset.status === 'upcoming' || c.dataset.status === 'partial'); } 
+    else { show = (c.dataset.status === type); }
+    c.style.display = show ? '' : 'none';
   });
+
   document.querySelectorAll('.month-group').forEach(g => {
     const vis = [...g.querySelectorAll('.session-card')].some(c => c.style.display !== 'none');
     g.style.display = vis ? '' : 'none';
@@ -715,11 +794,10 @@ function filterCards(type, btn) {
 }
 
 function getCookie(n) { const v = document.cookie.match('(^|;)\\s*'+n+'\\s*=\\s*([^;]+)'); return v?v.pop():''; }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
-
+document.addEventListener('keydown', e => { if (e.key === 'Escape') forceClosePanel(); });
 document.addEventListener('DOMContentLoaded', () => {
-  const upcomingBtn = document.querySelector('.filter-pill');
-  if (upcomingBtn) filterCards('upcoming', upcomingBtn);
+  const btn = document.querySelector('.filter-pill');
+  if (btn) filterCards('upcoming', btn);
 });
 </script>
 {% endblock %}

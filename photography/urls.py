@@ -19,6 +19,7 @@ urlpatterns = [
 
     path('projects/tasks/update/', update_project_task, name='update_project_task'),
     path('projects/tasks/delete/', delete_project_task, name='delete_project_task'),
+    path('projects/assign-team-basic/', assign_team_from_projects, name='assign_team_from_projects'),
 
     path('invoice/list/', invoice, name='invoice_list'),
     path('invoice/edit/<int:lead_id>/', create_invoice, name='create_invoice'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('get-image-base64/', get_image_base64, name='get_image_base64'),
 
     path('leads/', create_lead, name='create_lead'),
+    path('edit-lead/<int:lead_id>/', edit_lead, name='edit_lead'),
     path('leads/update-status/', update_lead_status, name='update_lead_status'),
     path('add-deliverable-quick/', add_deliverable_quick, name='add_deliverable_quick'),
     path('add-sub-service/', add_sub_service, name='add_sub_service'),
@@ -55,4 +57,10 @@ urlpatterns = [
     path('employee-projects/<int:project_id>/tasks/', employee_project_tasks, name='employee_project_tasks'),
     path('api/task/<int:task_id>/complete/', mark_task_complete, name='mark_task_complete'),
     path('employee-dashboard/accept/', employee_accept_project, name='employee_accept_project'),
+    path('api/shoot/<int:assignment_id>/complete/', mark_shoot_complete, name='mark_shoot_complete'),
+
+
+    path('notifications/', get_employee_notifications,  name='get_notifications'),
+    path('notifications/<int:notif_id>/read/', mark_notification_read,  name='mark_notification_read'),
+    path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
 ]

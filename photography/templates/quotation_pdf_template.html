@@ -1,228 +1,987 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <style>
-        @page { size: A4 portrait; margin: 0; }
-        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #333; background-color: #FCFAF7; margin: 0; padding: 0; }
-        
-        .serif { font-family: "Times New Roman", Times, serif; }
-        .text-maroon { color: #903043; }
-        .bg-maroon { background-color: #903043; color: white; }
-        
-        .content-wrapper { padding: 40px 50px; }
-        .page-break-avoid { page-break-inside: avoid; }
-        
-        /* 🌟 Perfect WeasyPrint Grid System 🌟 */
-        .service-grid {
-            width: 100%;
-            font-size: 0; /* Fixes inline-block whitespace bugs */
-        }
-        .service-grid > * {
-            font-size: 14px; /* Restores font size */
-        }
-        
-        /* 3-Column Inner Cards (Reception, Wedding) */
-        .multi-service-card {
-            display: inline-block;
-            width: 32%;
-            margin-right: 2%;
-            margin-bottom: 15px;
-            border: 1px solid #EAEAEA;
-            border-radius: 8px;
-            padding: 15px;
-            background: white;
-            box-sizing: border-box;
-            vertical-align: top;
-            page-break-inside: avoid;
-        }
-        .multi-service-card:nth-child(3n) { margin-right: 0; }
-        
-        /* 4-Column Single Event Cards (Engagement, Haldi) */
-        .single-pkg-card {
-            display: inline-block;
-            width: 23.5%;
-            margin-right: 2%;
-            margin-bottom: 20px;
-            border: 1px solid #EAEAEA;
-            border-radius: 8px;
-            padding: 15px;
-            background: white;
-            box-sizing: border-box;
-            vertical-align: top;
-            page-break-inside: avoid;
-        }
-        .single-pkg-card:nth-child(4n) { margin-right: 0; }
-        
-        /* 3-Column Deliverables */
-        .deliv-card {
-            display: inline-block;
-            width: 32%;
-            margin-right: 2%;
-            margin-bottom: 15px;
-            border: 1px solid #EAEAEA;
-            border-radius: 8px;
-            padding: 15px 20px;
-            background: white;
-            box-sizing: border-box;
-            vertical-align: top;
-            page-break-inside: avoid;
-        }
-        .deliv-card:nth-child(3n) { margin-right: 0; }
+<meta charset="UTF-8">
+<style>
+/* ================================================================
+   AR AKASH PHOTOGRAPHY — LUXURY PDF QUOTATION
+   WeasyPrint compatible: no flexbox/grid, uses table + inline-block
+================================================================ */
 
-        .layout-table { display: table; width: 100%; box-sizing: border-box; }
-        .layout-cell { display: table-cell; vertical-align: middle; }
-        
-        .radio-circle {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid #EAEAEA;
-            border-radius: 50%;
-            vertical-align: middle;
-        }
-    </style>
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@font-face {
+  /* WeasyPrint will fall back to system serif for Cormorant */
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  color: #2c1a22;
+  background-color: #fdf7f4;
+  margin: 0; padding: 0;
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* ── Typography helpers ── */
+.serif { font-family: "Georgia", "Times New Roman", Times, serif; }
+.text-mauve  { color: #a32e37; }
+.text-mauvedk{ color: #a32e37; }
+.bg-mauve    { background-color: #a32e37; color: white; }
+.bg-mauvedk  { background-color: #a32e37; color: white; }
+.text-muted  { color: #a32e37; }
+
+/* ── Layout helpers ── */
+.tbl  { display: table; width: 100%; box-sizing: border-box; }
+.cell { display: table-cell; vertical-align: middle; }
+.page-avoid { page-break-inside: avoid; }
+
+/* ── Dot bullet ── */
+.dot-bullet {
+  display: inline-block;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #a32e37;
+  vertical-align: middle;
+  margin-right: 10px;
+}
+
+/* ── Radio circle ── */
+.radio-circle {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(125,63,90,0.3);
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+/* ================================================================
+   HEADER STRIP
+================================================================ */
+.header-strip {
+  background-color: #a32e37;
+  padding: 28px 50px;
+  display: table;
+  width: 100%;
+  box-sizing: border-box;
+}
+.header-logo-cell {
+  display: table-cell;
+  vertical-align: middle;
+  width: 50%;
+}
+.header-logo-box {
+  background: white;
+  padding: 7px;
+  border-radius: 8px;
+  width: 56px; height: 56px;
+  display: inline-block;
+  text-align: center;
+  vertical-align: middle;
+}
+.header-logo-box img {
+  max-height: 100%; max-width: 100%;
+  object-fit: contain;
+}
+.header-title-cell {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: right;
+  width: 50%;
+}
+.header-title-cell h1 {
+  font-family: Georgia, serif;
+  font-size: 30px;
+  font-weight: normal;
+  letter-spacing: 5px;
+  color: white;
+  text-transform: uppercase;
+  margin: 0;
+}
+.header-subtitle {
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ================================================================
+   DECORATIVE TOP ACCENT LINE
+================================================================ */
+.accent-line {
+  height: 4px;
+  background-color: #c9a46e; /* gold */
+  width: 100%;
+}
+
+/* ================================================================
+   CONTENT WRAPPER
+================================================================ */
+.content { padding: 40px 50px 60px; }
+
+/* ================================================================
+   BANNER IMAGE
+================================================================ */
+.banner-wrap {
+  margin-bottom: 36px;
+  text-align: center;
+}
+.banner-wrap img {
+  max-width: 100%;
+  border-radius: 8px;
+}
+
+/* ================================================================
+   BILL TO
+================================================================ */
+.bill-to-section {
+  margin-bottom: 36px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid rgba(125,63,90,0.15);
+}
+.bill-to-label {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #a32e37;
+  margin-bottom: 12px;
+}
+.bill-to-avatar {
+  display: inline-block;
+  background: #a32e37;
+  color: white;
+  width: 44px; height: 44px;
+  border-radius: 22px;
+  line-height: 44px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+  vertical-align: middle;
+  margin-right: 14px;
+}
+.bill-to-name {
+  display: inline-block;
+  vertical-align: middle;
+}
+.bill-to-name .name {
+  font-size: 18px;
+  font-weight: bold;
+  color: #2c1a22;
+}
+.bill-to-name .email {
+  font-size: 12px;
+  color: #a32e37;
+  margin-top: 3px;
+}
+
+/* ================================================================
+   PRICE BANNER
+================================================================ */
+.price-banner {
+  background-color: #a32e37;
+  text-align: center;
+  padding: 40px 20px;
+  border-radius: 6px;
+  margin-bottom: 48px;
+}
+.price-banner-label {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: normal;
+  color: white;
+  margin-bottom: 6px;
+  letter-spacing: 1px;
+}
+.price-banner-subtitle {
+  font-size: 12px;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 2px;
+  margin-bottom: 22px;
+}
+.price-box {
+  display: inline-block;
+  background: white;
+  color: #a32e37;
+  padding: 12px 44px;
+  border-radius: 6px;
+  font-family: Georgia, serif;
+  font-size: 34px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+/* ================================================================
+   SECTION HEADING (Events, Deliverables, etc.)
+================================================================ */
+.section-heading {
+  text-align: center;
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  position: relative;
+}
+.section-heading h2 {
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: normal;
+  color: #a32e37;
+  letter-spacing: 1px;
+  display: inline-block;
+}
+.section-heading-line {
+  display: block;
+  width: 48px;
+  height: 2px;
+  background: #c9a46e;
+  margin: 8px auto 0;
+}
+
+/* ================================================================
+   MULTI-SERVICE PACKAGE (e.g. Wedding — 3 col cards)
+================================================================ */
+.multi-pkg-block {
+  border: 1px solid rgba(125,63,90,0.15);
+  border-radius: 10px;
+  padding: 22px;
+  margin-bottom: 22px;
+  background: white;
+}
+.multi-pkg-name {
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #f3e6ec;
+}
+.multi-pkg-name .radio-circle { margin-right: 10px; }
+.multi-pkg-name span {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  color: #a32e37;
+  font-weight: bold;
+  vertical-align: middle;
+}
+.service-grid { width: 100%; font-size: 0; }
+.service-grid > * { font-size: 13px; }
+.multi-svc-card {
+  display: inline-block;
+  width: 32%; margin-right: 2%;
+  margin-bottom: 12px;
+  border: 1px solid #f3e6ec;
+  border-radius: 7px;
+  padding: 14px;
+  background: #fdf7f4;
+  box-sizing: border-box;
+  vertical-align: top;
+  page-break-inside: avoid;
+}
+.multi-svc-card:nth-child(3n) { margin-right: 0; }
+.multi-svc-card h4 {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: #a32e37;
+  font-weight: bold;
+  margin: 0 0 10px 0;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(125,63,90,0.12);
+}
+.multi-svc-card li {
+  font-size: 11.5px;
+  color: #a32e37;
+  padding: 3px 0;
+  display: block;
+  list-style: none;
+}
+.multi-svc-card li::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #c9a46e;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+
+/* ================================================================
+   SINGLE PACKAGE (e.g. Engagement — 4 col cards)
+================================================================ */
+.single-grid { width: 100%; font-size: 0; }
+.single-grid > * { font-size: 13px; }
+.single-pkg-card {
+  display: inline-block;
+  width: 23.5%; margin-right: 2%;
+  margin-bottom: 16px;
+  border: 1px solid rgba(125,63,90,0.15);
+  border-radius: 8px;
+  padding: 16px 14px;
+  background: white;
+  box-sizing: border-box;
+  vertical-align: top;
+  page-break-inside: avoid;
+}
+.single-pkg-card:nth-child(4n) { margin-right: 0; }
+.single-pkg-card .pkg-name {
+  font-family: Georgia, serif;
+  font-size: 14px;
+  color: #a32e37;
+  font-weight: bold;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #f3e6ec;
+  display: block;
+}
+.single-pkg-card li {
+  font-size: 11.5px;
+  color: #a32e37;
+  padding: 3px 0;
+  display: block;
+  list-style: none;
+}
+.single-pkg-card li::before {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: #c9a46e;
+  vertical-align: middle;
+  margin-right: 8px;
+  margin-bottom: 2px;
+}
+
+/* ================================================================
+   DELIVERABLES HEADING BAND
+================================================================ */
+.deliverables-band {
+  background-color: #a32e37;
+  color: white;
+  text-align: center;
+  padding: 14px 20px;
+  margin: 32px 0 22px;
+  border-radius: 4px;
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: normal;
+  letter-spacing: 2px;
+}
+
+/* ================================================================
+   DELIVERABLE CARDS (3 col)
+================================================================ */
+.deliv-grid { width: 100%; font-size: 0; }
+.deliv-grid > * { font-size: 13px; }
+.deliv-card {
+  display: inline-block;
+  width: 32%; margin-right: 2%;
+  margin-bottom: 12px;
+  border: 1px solid rgba(125,63,90,0.15);
+  border-radius: 6px;
+  padding: 14px 18px;
+  background: white;
+  box-sizing: border-box;
+  vertical-align: top;
+  page-break-inside: avoid;
+}
+.deliv-card:nth-child(3n) { margin-right: 0; }
+.deliv-card .dot-bullet { background: #a32e37; }
+.deliv-card span {
+  font-family: Georgia, serif;
+  font-size: 13.5px;
+  color: #2c1a22;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+/* ================================================================
+   ADDITIONAL SERVICES
+================================================================ */
+.addl-row {
+  display: table;
+  width: 100%;
+  background: white;
+  border: 1px solid rgba(125,63,90,0.15);
+  border-radius: 7px;
+  padding: 18px 22px;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+}
+.addl-left  { display: table-cell; vertical-align: middle; width: 60%; }
+.addl-right { display: table-cell; vertical-align: middle; width: 40%; text-align: right; }
+.addl-name {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  color: #a32e37;
+  font-weight: bold;
+  display: inline-block;
+  vertical-align: middle;
+}
+.addl-qty-badge {
+  display: inline-block;
+  background: #a32e37;
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  vertical-align: middle;
+  margin-left: 12px;
+}
+.addl-price {
+  display: inline-block;
+  border: 1px solid rgba(125,63,90,0.25);
+  border-radius: 20px;
+  padding: 6px 22px;
+  color: #a32e37;
+  font-weight: bold;
+  font-size: 14px;
+  margin-right: 12px;
+  vertical-align: middle;
+}
+.addl-added {
+  display: inline-block;
+  background: #a32e37;
+  color: white;
+  padding: 6px 16px;
+  border-radius: 5px;
+  font-size: 12px;
+  font-weight: bold;
+  vertical-align: middle;
+}
+
+/* ================================================================
+   TERMS & CONDITIONS
+================================================================ */
+.terms-box {
+  background: white;
+  border: 1px solid rgba(125,63,90,0.15);
+  border-radius: 10px;
+  padding: 30px 32px;
+  margin-top: 44px;
+  margin-bottom: 44px;
+  page-break-inside: avoid;
+}
+.terms-box h2 {
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: normal;
+  color: #a32e37;
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(125,63,90,0.15);
+  letter-spacing: 1px;
+}
+.terms-list { counter-reset: terms; }
+.terms-list li {
+  counter-increment: terms;
+  list-style: none;
+  font-size: 12.5px;
+  color: #a32e37;
+  line-height: 1.8;
+  padding: 8px 0 8px 36px;
+  border-bottom: 1px solid rgba(125,63,90,0.08);
+  position: relative;
+}
+.terms-list li:last-child { border-bottom: none; }
+.terms-list li::before {
+  content: counter(terms) ".";
+  position: absolute;
+  left: 0;
+  color: #a32e37;
+  font-family: Georgia, serif;
+  font-size: 15px;
+  font-weight: bold;
+  top: 7px;
+}
+
+/* ================================================================
+   FOOTER STRIP
+================================================================ */
+.footer-strip {
+  background-color: #a32e37;
+  height: 32px;
+  width: 100%;
+}
+.footer-gold-line {
+  background-color: #c9a46e;
+  height: 4px;
+  width: 100%;
+}
+
+/* ================================================================
+   OUR STORY  (2-col: image left, mauve text right)
+================================================================ */
+.story-section {
+  margin: 0 0 0 0;
+  page-break-inside: avoid;
+}
+.story-table {
+  display: table;
+  width: 100%;
+  box-sizing: border-box;
+}
+.story-img-cell {
+  display: table-cell;
+  width: 44%;
+  vertical-align: top;
+  padding-right: 0;
+}
+.story-img-cell img {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+}
+.story-img-placeholder {
+  width: 100%;
+  height: 260px;
+  background: #f3e6ec;
+}
+.story-text-cell {
+  display: table-cell;
+  width: 56%;
+  vertical-align: top;
+  background-color: #a32e37;
+  padding: 28px 30px;
+}
+.story-text-cell h2 {
+  font-family: Georgia, serif;
+  font-size: 22px;
+  font-weight: normal;
+  color: white;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+}
+.story-text-cell p {
+  font-size: 11px;
+  color: rgba(255,255,255,0.82);
+  line-height: 1.8;
+  margin-bottom: 10px;
+}
+.story-text-cell p:last-child { margin-bottom: 0; }
+.story-owner {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  letter-spacing: 1px;
+  margin-top: 14px;
+}
+
+/* ================================================================
+   SIGNATURE WORKS  (5 images inline-block, staggered heights)
+   WeasyPrint doesn't support CSS transforms, so we fake stagger
+   with vertical-align and different heights instead.
+================================================================ */
+.signature-section {
+  background-color: #f8ede8;
+  padding: 36px 50px 44px;
+  page-break-before: always;
+}
+.signature-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.signature-heading h2 {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: normal;
+  color: #a32e37;
+  letter-spacing: 2px;
+}
+.signature-heading-line {
+  display: block;
+  width: 40px;
+  height: 2px;
+  background: #c9a46e;
+  margin: 8px auto 0;
+}
+.sig-grid { width: 100%; font-size: 0; text-align: center; }
+.sig-grid > * { font-size: 12px; }
+.sig-item {
+  display: inline-block;
+  width: 17%;
+  margin-right: 3%;
+  box-sizing: border-box;
+  vertical-align: bottom;
+  text-align: center;
+}
+.sig-item:last-child { margin-right: 0; }
+/* Centre item (3rd) is taller — handled via inline style in HTML */
+.sig-item img {
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+.sig-item .sig-caption {
+  font-family: Georgia, serif;
+  font-size: 10px;
+  color: #a32e37;
+  margin-top: 6px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+.sig-item .sig-sub {
+  font-size: 9px;
+  color: #a32e37;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.sig-placeholder {
+  width: 100%;
+  background: #f3e6ec;
+  display: block;
+}
+
+/* ================================================================
+   PDF FOOTER WITH THUMBNAILS
+================================================================ */
+.pdf-footer {
+  background-color: #a32e37;
+  padding: 20px 50px;
+  display: table;
+  width: 100%;
+  box-sizing: border-box;
+}
+.pdf-footer-logo-cell {
+  display: table-cell;
+  vertical-align: middle;
+  width: 120px;
+}
+.pdf-footer-logo-box {
+  background: rgba(255,255,255,0.15);
+  border-radius: 50%;
+  width: 48px; height: 48px;
+  text-align: center;
+  display: inline-block;
+  padding: 6px;
+}
+.pdf-footer-logo-box img {
+  max-width: 100%; max-height: 100%; object-fit: contain;
+}
+.pdf-footer-brand {
+  font-family: Georgia, serif;
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.65);
+  text-transform: uppercase;
+  margin-top: 5px;
+  display: block;
+}
+.pdf-footer-thumbs-cell {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+}
+.pdf-footer-thumbs { font-size: 0; }
+.pdf-footer-thumb {
+  display: inline-block;
+  width: 52px; height: 52px;
+  margin: 0 3px;
+  vertical-align: middle;
+}
+.pdf-footer-thumb img {
+  width: 52px; height: 52px;
+  object-fit: cover;
+  opacity: 0.85;
+}
+.pdf-footer-thumb-placeholder {
+  width: 52px; height: 52px;
+  background: rgba(255,255,255,0.12);
+  display: inline-block;
+}
+.pdf-footer-text-cell {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: right;
+  width: 160px;
+}
+.pdf-footer-tagline {
+  font-family: Georgia, serif;
+  font-size: 11px;
+  font-style: italic;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 1px;
+}
+.pdf-footer-contact {
+  font-size: 10px;
+  color: rgba(255,255,255,0.5);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+}
+
+</style>
 </head>
 <body>
-    
-    <div class="bg-maroon layout-table" style="padding: 40px 50px; height: 60px;">
-        <div class="layout-cell" style="width: 50%;">
-            {% if settings.logo %}
-            <div style="background: white; padding: 8px; border-radius: 8px; width: 60px; height: 60px; text-align: center;">
-                <img src="{{ settings.logo.url }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-            </div>
+
+<!-- ═══ GOLD ACCENT LINE ═══ -->
+<div class="accent-line"></div>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header-strip">
+  <div class="header-logo-cell">
+    {% if settings.logo %}
+    <div class="header-logo-box">
+      <img src="{{ settings.logo.url }}" alt="Logo">
+    </div>
+    {% else %}
+    <span style="font-family:Georgia,serif;font-size:22px;color:white;letter-spacing:3px;opacity:0.85;">AR AKASH</span>
+    {% endif %}
+  </div>
+  <div class="header-title-cell">
+    <h1>PROPOSAL</h1>
+    <div class="header-subtitle">Photography &amp; Videography</div>
+  </div>
+</div>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+  <!-- Banner image — from HERO media section -->
+  {% if banner_media %}
+  <div class="banner-wrap">
+    <img src="{{ banner_media.image.url }}" alt="Banner">
+  </div>
+  {% elif settings.banner_image %}
+  <div class="banner-wrap">
+    <img src="{{ settings.banner_image.url }}" alt="Banner">
+  </div>
+  {% endif %}
+
+   <!-- Bill To -->
+  {% if show_bill_to %}
+  <div class="bill-to-section">
+    <div class="bill-to-label">Prepared For</div>
+    <div class="tbl">
+      <div class="cell" style="width:58px;">
+        <div class="bill-to-avatar">{{ initials }}</div>
+      </div>
+      <div class="cell">
+        <div class="bill-to-name">
+          <div class="name">{{ display_name }}</div>
+          {% if email %}<div class="email">{{ email }}</div>{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+  
+  <!-- ═══ OUR STORY ═══ -->
+  {% if story_media or True %}
+  <div class="story-section">
+    <div class="story-table">
+      <div class="story-img-cell">
+        {% if story_media %}
+          {% with story_media|first as sm %}
+            {% if sm and sm.image and sm.image.name %}
+              <img src="{{ sm.image.url }}" alt="Our Story">
+            {% else %}
+              <div class="story-img-placeholder"></div>
             {% endif %}
-        </div>
-        <div class="layout-cell" style="width: 50%; text-align: right;">
-            <h1 class="serif" style="margin: 0; font-size: 32px; letter-spacing: 2px;">PROPOSAL</h1>
-        </div>
+          {% endwith %}
+        {% else %}
+          <div class="story-img-placeholder"></div>
+        {% endif %}
+      </div>
+      <div class="story-text-cell">
+        <h2>Our Story</h2>
+        <p>At AR Akash Photography, we have been capturing love stories since 2015, turning wedding moments into timeless memories. With over a decade of experience, our dedicated team blends creativity, passion, and precision to document every emotion.</p>
+        <p>We specialize in pre-wedding, wedding, and post-wedding shoots, ensuring every frame reflects elegance, authenticity, and joy.</p>
+        <p>With over 10 years of experience and 1,000+ projects completed, we're known for creative storytelling and client-centric service.</p>
+        <div class="story-owner">Owned by Akash Ramchandran</div>
+      </div>
     </div>
+  </div>
+  {% endif %}
 
-    <div class="content-wrapper">
-        
-        {% if settings.banner_image %}
-        <div style="text-align: center; margin-bottom: 40px;">
-            <img src="{{ settings.banner_image.url }}" style="max-width: 100%; border-radius: 12px;">
-        </div>
-        {% endif %}
 
-        {% if show_bill_to %}
-        <h2 class="serif" style="font-size: 24px; color: #111; margin: 0 0 15px 0;">Bill To</h2>
-        <div class="layout-table" style="margin-bottom: 40px;">
-            <div class="layout-cell" style="width: 65px;">
-                <div style="background: #111; color: white; width: 50px; height: 50px; border-radius: 25px; line-height: 50px; text-align: center; font-weight: bold; font-size: 16px;">
-                    {{ initials }}
-                </div>
-            </div>
-            <div class="layout-cell">
-                <div style="font-weight: bold; font-size: 18px; color: #111;">{{ display_name }}</div>
-                <div style="font-size: 13px; color: #666; margin-top: 4px;">{{ email }}</div>
-            </div>
-        </div>
-        {% endif %}
+  <!-- Price Banner -->
+  <div class="price-banner page-avoid">
+    <div class="price-banner-label">Payment Price</div>
+    <div class="price-banner-subtitle">Your Total Package Cost</div>
+    <div class="price-box">₹ {{ grand_total }}</div>
+  </div>
 
-        <div class="bg-maroon text-center page-break-avoid" style="padding: 40px 20px; margin-bottom: 50px; border-radius: 4px;">
-            <h2 class="serif" style="margin: 0 0 10px 0; font-size: 32px; font-weight: normal; color: white;">Payment Price</h2>
-            <p style="margin: 0 0 25px 0; font-size: 16px; opacity: 0.9; color: white;">Your Total Package Cost</p>
-            <div style="display: inline-block; background: white; color: #903043; padding: 12px 40px; border-radius: 8px; font-size: 32px; font-weight: bold;">
-                ₹ {{ grand_total }}
-            </div>
-        </div>
+  <!-- ═══ EVENTS ═══ -->
+  {% if packages or single_packages %}
+  <div class="section-heading page-avoid">
+    <h2>Events</h2>
+    <span class="section-heading-line"></span>
+  </div>
+  {% endif %}
 
-        {% if packages or single_packages %}
-        <h2 class="text-maroon serif" style="text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 30px;">Events</h2>
-        {% endif %}
-
-        {% if packages %}
-        <div style="width: 100%;">
-            {% for pkg in packages %}
-                <div class="page-break-avoid" style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 25px; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
-                    
-                    <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #F5F5F5;">
-                        <div class="radio-circle"></div>
-                        <span class="text-maroon serif" style="font-size: 22px; font-weight: bold; vertical-align: middle; margin-left: 10px;">{{ pkg.name }}</span>
-                    </div>
-                    
-                    <div class="service-grid">
-                        {% for svc in pkg.services %}
-                        <div class="multi-service-card">
-                            <h4 class="text-maroon serif" style="margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">{{ svc.name }}</h4>
-                            <div style="font-size: 12px; color: #444; line-height: 1.8;">
-                                {% for item in svc.items %}<div>{{ item }}</div>{% endfor %}
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if single_packages %}
-        <div class="service-grid">
-            {% for pkg in single_packages %}
-                <div class="single-pkg-card">
-                    <div style="border-bottom: 1px solid #F5F5F5; padding-bottom: 12px; margin-bottom: 12px;">
-                        <div class="radio-circle"></div>
-                        <span class="text-maroon serif" style="font-size: 16px; font-weight: bold; vertical-align: middle; margin-left: 8px;">{{ pkg.name }}</span>
-                    </div>
-                    <div style="font-size: 12px; color: #444; line-height: 1.8;">
-                        {% for svc in pkg.services %}{% for item in svc.items %}<div>{{ item }}</div>{% endfor %}{% endfor %}
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if deliverables %}
-        <div class="bg-maroon serif page-break-avoid" style="text-align: center; padding: 15px; font-size: 26px; font-weight: bold; color: white; margin: 30px 0 25px 0;">
-            Deliverables
-        </div>
-        <div class="service-grid">
-            {% for d in deliverables %}
-            <div class="deliv-card">
-                <div class="radio-circle"></div>
-                <span class="serif" style="font-size: 15px; font-weight: bold; color: #111; vertical-align: middle; margin-left: 10px;">{{ d }}</span>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        {% if additional_services %}
-        <h2 class="text-maroon serif page-break-avoid" style="text-align: center; font-size: 28px; font-weight: bold; margin: 40px 0 25px 0;">Additional Services</h2>
-        
-        <div style="width: 100%;">
-            {% for svc in additional_services %}
-            <div class="layout-table page-break-avoid" style="background: white; border: 1px solid #EAEAEA; border-radius: 8px; padding: 20px 25px; margin-bottom: 15px;">
-                <div class="layout-cell" style="width: 50%;">
-                    <h4 class="text-maroon serif" style="margin: 0; font-size: 18px; font-weight: bold; display: inline-block; vertical-align: middle;">{{ svc.name }}</h4>
-                    <span style="font-size: 16px; color: #903043; font-weight: bold; display: inline-block; vertical-align: middle; margin-left: 20px;">
-                        - &nbsp;<span style="background: #903043; color: white; padding: 4px 10px; border-radius: 4px; font-size: 14px;">{{ svc.qty }}</span>&nbsp; +
-                    </span>
-                </div>
-                <div class="layout-cell" style="width: 50%; text-align: right;">
-                    <span class="text-maroon" style="border: 1px solid #EAEAEA; border-radius: 20px; padding: 8px 25px; font-weight: bold; font-size: 16px; margin-right: 15px;">
-                        ₹ {{ svc.total_price }}
-                    </span>
-                    <span class="bg-maroon" style="padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: bold; color: white;">
-                        ☑ Added
-                    </span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
-        <div class="page-break-avoid" style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 35px; margin-top: 50px; margin-bottom: 50px;">
-            <h2 class="text-maroon serif" style="margin: 0 0 20px 0; font-size: 22px; text-align: center;">Terms & Conditions</h2>
-            <div style="font-size: 13px; color: #444; line-height: 1.8;">
-                {{ settings.terms_and_conditions|linebreaks }}
-            </div>
-        </div>
-
+  <!-- Multi-service packages (Wedding, Reception etc.) -->
+  {% if packages %}
+  {% for pkg in packages %}
+  <div class="multi-pkg-block page-avoid">
+    <div class="multi-pkg-name">
+      <span class="radio-circle"></span>
+      <span>{{ pkg.name }}</span>
     </div>
+    <div class="service-grid">
+      {% for svc in pkg.services %}
+      <div class="multi-svc-card">
+        <h4>{{ svc.name }}</h4>
+        <ul style="padding:0;margin:0;">
+          {% for item in svc.items %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
 
-    <div class="bg-maroon" style="width: 100%; height: 30px; position: absolute; bottom: 0;"></div>
+  <!-- Single packages (Engagement, Haldi etc.) -->
+  {% if single_packages %}
+  <div class="single-grid">
+    {% for pkg in single_packages %}
+    <div class="single-pkg-card">
+      <span class="radio-circle" style="margin-right:8px;"></span>
+      <span class="pkg-name">{{ pkg.name }}</span>
+      <ul style="padding:0;margin:0;">
+        {% for svc in pkg.services %}
+          {% for item in svc.items %}
+          <li>{{ item }}</li>
+          {% endfor %}
+        {% endfor %}
+      </ul>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ DELIVERABLES ═══ -->
+  {% if deliverables %}
+  <div class="deliverables-band page-avoid">Deliverables</div>
+  <div class="deliv-grid">
+    {% for d in deliverables %}
+    <div class="deliv-card">
+      <span class="dot-bullet"></span>
+      <span>{{ d }}</span>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <!-- ═══ ADDITIONAL SERVICES ═══ -->
+  {% if additional_services %}
+  <div class="section-heading page-avoid" style="margin-top:36px;">
+    <h2>Additional Services</h2>
+    <span class="section-heading-line"></span>
+  </div>
+  {% for svc in additional_services %}
+  <div class="addl-row">
+    <div class="addl-left">
+      <span class="addl-name">{{ svc.name }}</span>
+      <span class="addl-qty-badge">{{ svc.qty }}</span>
+    </div>
+    <div class="addl-right">
+      <span class="addl-price">₹ {{ svc.total_price }}</span>
+      <span class="addl-added">☑ Added</span>
+    </div>
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- ═══ SIGNATURE WORKS ═══ -->
+{% if signature_media %}
+<div class="signature-section">
+  <div class="signature-heading">
+    <h2>Signature Works</h2>
+    <span class="signature-heading-line"></span>
+  </div>
+  <div class="sig-grid">
+    {% for media in signature_media|slice:":5" %}
+    <div class="sig-item">
+      {% if media.image and media.image.name %}
+        <img src="{{ media.image.url }}" alt="{{ media.caption|default:'Signature Work' }}"
+          style="height:{% if forloop.counter == 3 %}180px{% elif forloop.counter == 2 or forloop.counter == 4 %}140px{% else %}110px{% endif %};">
+      {% elif media.video and media.video.name %}
+        {# WeasyPrint can't render video — show placeholder with label #}
+        <div class="sig-placeholder"
+          style="height:{% if forloop.counter == 3 %}180px{% elif forloop.counter == 2 or forloop.counter == 4 %}140px{% else %}110px{% endif %};display:table-cell;vertical-align:middle;text-align:center;background:#e8d5dc;">
+          <span style="font-size:9px;color:#a32e37;letter-spacing:1px;">VIDEO</span>
+        </div>
+      {% else %}
+        <div class="sig-placeholder"
+          style="height:{% if forloop.counter == 3 %}180px{% elif forloop.counter == 2 or forloop.counter == 4 %}140px{% else %}110px{% endif %};"></div>
+      {% endif %}
+      <div class="sig-caption">{{ media.caption|default:"Signature Work" }}</div>
+      <div class="sig-sub">View Gallery</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+  <!-- ═══ TERMS ═══ -->
+  <div class="terms-box">
+    <h2>Terms &amp; Conditions</h2>
+    {% if settings and settings.terms_and_conditions %}
+    <ol class="terms-list">
+      {% for line in settings.terms_and_conditions.splitlines %}
+        {% if line.strip %}
+        <li>{{ line }}</li>
+        {% endif %}
+      {% endfor %}
+    </ol>
+    {% endif %}
+  </div>
+
+</div><!-- /content -->
+
+<!-- ═══ FOOTER ═══ -->
+<div class="footer-gold-line"></div>
+<div class="pdf-footer">
+  <div class="pdf-footer-logo-cell">
+    {% if settings.logo %}
+    <div class="pdf-footer-logo-box">
+      <img src="{{ settings.logo.url }}" alt="Logo">
+    </div>
+    {% else %}
+    <div class="pdf-footer-logo-box" style="line-height:36px;">
+      <span style="font-family:Georgia,serif;font-size:14px;color:white;font-weight:bold;">AR</span>
+    </div>
+    {% endif %}
+    <span class="pdf-footer-brand">AKASH</span>
+  </div>
+
+  <div class="pdf-footer-thumbs-cell">
+    <div class="pdf-footer-thumbs">
+      {% for media in footer_media|slice:":4" %}
+        {% if media.image and media.image.name %}
+        <span class="pdf-footer-thumb">
+          <img src="{{ media.image.url }}" alt="Gallery">
+        </span>
+        {% else %}
+        <span class="pdf-footer-thumb">
+          <span class="pdf-footer-thumb-placeholder"></span>
+        </span>
+        {% endif %}
+      {% empty %}
+        <span class="pdf-footer-thumb"><span class="pdf-footer-thumb-placeholder"></span></span>
+        <span class="pdf-footer-thumb"><span class="pdf-footer-thumb-placeholder"></span></span>
+        <span class="pdf-footer-thumb"><span class="pdf-footer-thumb-placeholder"></span></span>
+        <span class="pdf-footer-thumb"><span class="pdf-footer-thumb-placeholder"></span></span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="pdf-footer-text-cell">
+    <div class="pdf-footer-tagline">Where Love Meets Legacy</div>
+    <div class="pdf-footer-contact">AR Akash Photography</div>
+  </div>
+</div>
+<div class="footer-strip"></div>
 
 </body>
 </html>

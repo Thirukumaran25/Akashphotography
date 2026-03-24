@@ -16,7 +16,6 @@
     <style>
         body { font-family: "Inter", sans-serif; }
         
-        /* Custom styling for the radio buttons to match your red theme */
         input[type="radio"] {
             appearance: none;
             width: 16px;
@@ -28,7 +27,8 @@
             position: relative;
             display: flex;
             align-items: center;
-            justify-center;
+            /* FIX: was "justify-center" (invalid) — corrected to justify-content: center */
+            justify-content: center;
         }
         input[type="radio"]:checked {
             border-color: #A9323D;

@@ -11,8 +11,22 @@
 <input type="hidden" id="csrf_token" value="{{ csrf_token }}">
 
 <style>
-    body { overflow-x: hidden; overflow-y: auto; }
-    .no-scrollbar::-webkit-scrollbar { display: none; }
+
+   .custom-scrollbar::-webkit-scrollbar {
+        width: 5px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e5e7eb;
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #d1d5db;
+    }
+
+    /* Keep your existing animations */
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     @keyframes slideIn { from { right: -420px; opacity: .7; } to { right: 0; opacity: 1; } }
     @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
@@ -21,26 +35,25 @@
     .card.dragging { opacity: 0.5; transform: scale(0.98); }
 </style>
 
-<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8">
-    
-    <div class="bg-white p-4 sm:p-6 lg:p-8 rounded-2xl flex flex-col lg:flex-row justify-between items-center gap-6 mb-8 border border-gray-100 shadow-sm">
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-6">
+    <div class="bg-white p-4 rounded-2xl flex flex-col lg:flex-row justify-between items-center gap-6 mb-2 border border-gray-100 shadow-sm">
         <div class="overview-left flex-1 lg:flex-[1.4] text-center lg:text-left w-full">
             <div class="stats flex flex-wrap justify-center lg:justify-start gap-4 sm:gap-6 lg:gap-12">
                 <div class="text-center lg:text-left">
                     <span class="text-[12px] font-semibold text-gray-600 font-['Inter']">Total Leads</span>
-                    <strong class="block text-2xl lg:text-[28px] mt-1">{{ total_leads|default:"0" }}</strong>
+                    <strong class="block text-lg lg:text-[18px] mt-1">{{ total_leads|default:"0" }}</strong>
                 </div>
                 <div class="text-center lg:text-left">
                     <span class="text-[12px] font-semibold text-gray-600 font-['Inter']">Total Amount</span>
-                    <strong class="block text-2xl lg:text-[28px] mt-1">₹ {{ total_amount|default:"0" }}</strong>
+                    <strong class="block text-lg lg:text-[18px] mt-1">₹ {{ total_amount|default:"0" }}</strong>
                 </div>
                 <div class="text-center lg:text-left">
                     <span class="text-[12px] font-semibold text-gray-600 font-['Inter']">Accepted Amount</span>
-                    <strong class="block text-2xl lg:text-[28px] mt-1">₹ {{ accepted_amount|default:"0" }}</strong>
+                    <strong class="block text-lg lg:text-[18px] mt-1">₹ {{ accepted_amount|default:"0" }}</strong>
                 </div>
                 <div class="text-center lg:text-left">
                     <span class="text-[12px] font-semibold text-gray-600 font-['Inter']">Lost Amount</span>
-                    <strong class="block text-2xl lg:text-[28px] mt-1">₹ {{ lost_quoted_amount|default:"0" }}</strong>
+                    <strong class="block text-lg lg:text-[18px] mt-1">₹ {{ lost_quoted_amount|default:"0" }}</strong>
                 </div>
             </div>
         </div>
@@ -56,7 +69,6 @@
     </div>
 
     <div class="kanban flex flex-col sm:grid sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 min-w-0">
-
         <div class="column flex-1 bg-[#fbfbfb] rounded-2xl p-4 min-w-0" data-status="NEW">
             <div class="column-head flex items-center gap-3 mb-4 font-['Inter']">
                 <span class="bg-[#fff0f7] text-[#c92398] px-4 py-1.5 rounded-full text-xs font-bold tracking-wide flex items-center gap-2">
@@ -65,9 +77,9 @@
                 <span class="count text-lg font-semibold text-gray-400">{{ new_leads|length }}</span>
             </div>
             
-            <div class="space-y-3 min-h-[50px] cards-container">
+            <div class="space-y-3 min-h-[50px] cards-container max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
                 {% for lead in new_leads %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-status="NEW" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
@@ -104,10 +116,15 @@
                     </div>
                     
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
-                            <i class="fa-regular fa-eye"></i> View
-                        </button>
-                        <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-2 py-1.5 rounded transition">
+                                <i class="fa-regular fa-eye"></i> View
+                            </button>
+                            <a href="/edit-lead/{{ lead.id }}/" class="text-gray-500 text-xs font-bold hover:bg-gray-100 px-2 py-1.5 rounded transition">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </a>
+                        </div>
+                        <select onchange="updateLeadStatus({{ lead.id }}, this.value, this)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
                             <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>NEW</option>
                             <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>FOLLOW UP</option>
                             <option value="ACCEPTED" {% if lead.status == 'ACCEPTED' %}selected{% endif %}>ACCEPTED</option>
@@ -129,9 +146,9 @@
                 <span class="count text-lg font-semibold text-gray-400">{{ follow_up|length }}</span>
             </div>
             
-            <div class="space-y-3 min-h-[50px] cards-container">
+            <div class="space-y-3 min-h-[50px] cards-container max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
                 {% for lead in follow_up %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-status="FOLLOW_UP" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
@@ -154,24 +171,14 @@
                                 {% endif %}
                             </span>
                         </div>
-                        {% if lead.follow_up_date %}
-                        <div class="flex items-center gap-2.5 text-[#d11a1a]">
-                            <i class="fa-regular fa-clock w-4 text-center"></i>
-                            <span class="text-[13px] font-bold">{{ lead.follow_up_date|date:"d M, Y" }}</span>
-                            <span class="bg-[#ffe8e8] text-[#d11a1a] text-[9px] px-1.5 py-0.5 rounded ml-1 font-bold">Due</span>
-                        </div>
-                        {% endif %}
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
-                        </div>
                     </div>
-                    
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
-                            <i class="fa-regular fa-eye"></i> View
-                        </button>
-                        <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-2 py-1.5 rounded transition">
+                                <i class="fa-regular fa-eye"></i> View
+                            </button>
+                        </div>
+                        <select onchange="updateLeadStatus({{ lead.id }}, this.value, this)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
                             <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>NEW</option>
                             <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>FOLLOW UP</option>
                             <option value="ACCEPTED" {% if lead.status == 'ACCEPTED' %}selected{% endif %}>ACCEPTED</option>
@@ -193,9 +200,9 @@
                 <span class="count text-lg font-semibold text-gray-400">{{ accepted|length }}</span>
             </div>
             
-            <div class="space-y-3 min-h-[50px] cards-container">
+            <div class="space-y-3 min-h-[50px] cards-container max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
                 {% for lead in accepted %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-status="ACCEPTED" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
                         <div class="flex items-center gap-2.5">
@@ -218,17 +225,14 @@
                                 {% endif %}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
-                        </div>
                     </div>
-                    
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
-                            <i class="fa-regular fa-eye"></i> View
-                        </button>
-                        <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-2 py-1.5 rounded transition">
+                                <i class="fa-regular fa-eye"></i> View
+                            </button>
+                        </div>
+                        <select onchange="updateLeadStatus({{ lead.id }}, this.value, this)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
                             <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>NEW</option>
                             <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>FOLLOW UP</option>
                             <option value="ACCEPTED" {% if lead.status == 'ACCEPTED' %}selected{% endif %}>ACCEPTED</option>
@@ -250,21 +254,11 @@
                 <span class="count text-lg font-semibold text-gray-400">{{ lost|length }}</span>
             </div>
             
-            <div class="space-y-3 min-h-[50px] cards-container">
+            <div class="space-y-3 min-h-[50px] cards-container max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar">
                 {% for lead in lost %}
-                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
+                <div class="card bg-white p-4.5 rounded-2xl border border-gray-100 shadow-sm cursor-grab hover:shadow-md transition-shadow mb-3" draggable="true" data-id="{{ lead.id }}" data-status="LOST" data-packages="{% for pkg in lead.packages.all %}{{ pkg.id }}{% if not forloop.last %},{% endif %}{% endfor %}">
                     <h4 class="font-bold text-lg text-black mb-3">{{ lead.name }}</h4>
                     <div class="space-y-2.5 text-gray-600 font-medium">
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-regular fa-calendar-check text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700 truncate block">
-                                {% if lead.packages.all %}
-                                    {% for pkg in lead.packages.all %}{{ pkg.package_name }}{% if not forloop.last %} + {% endif %}{% endfor %}
-                                {% else %}
-                                    No Package
-                                {% endif %}
-                            </span>
-                        </div>
                         <div class="flex items-center gap-2.5">
                             <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
                             <span class="text-[13px] text-gray-700">
@@ -275,17 +269,14 @@
                                 {% endif %}
                             </span>
                         </div>
-                        <div class="flex items-center gap-2.5">
-                            <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
-                        </div>
                     </div>
-                    
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
-                        <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-3 py-1.5 rounded transition">
-                            <i class="fa-regular fa-eye"></i> View
-                        </button>
-                        <select onchange="updateLeadStatus({{ lead.id }}, this.value)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
+                        <div class="flex items-center gap-1">
+                            <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-2 py-1.5 rounded transition">
+                                <i class="fa-regular fa-eye"></i> View
+                            </button>
+                        </div>
+                        <select onchange="updateLeadStatus({{ lead.id }}, this.value, this)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
                             <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>NEW</option>
                             <option value="FOLLOW_UP" {% if lead.status == 'FOLLOW_UP' %}selected{% endif %}>FOLLOW UP</option>
                             <option value="ACCEPTED" {% if lead.status == 'ACCEPTED' %}selected{% endif %}>ACCEPTED</option>
@@ -357,7 +348,7 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-} 
+}
 
 function openLeadDetails(leadId, name, mobile, email, address, packageIds, projectName) {
     document.getElementById('modalLeadName').innerText = name;
@@ -378,18 +369,15 @@ function closeLeadDetails() {
     document.getElementById('leadDetailsModal').classList.add('hidden');
 }
 
-// 🌟 FIXED: Fetches Packages via their IDs to preserve the Wedding Package Wrapper perfectly!
 function downloadQuotationPDF() {
     const btn = document.getElementById("downloadQuoteBtn");
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
     btn.disabled = true;
 
-    // 1. Fetch Lead Details (For Deliverables & Additional Services)
     let leadFetchUrl = `/get-package/?lead_id=${currentDownloadLeadId}`;
     let leadPromise = fetch(leadFetchUrl).then(r => r.json());
 
-    // 2. Fetch Packages identically to create_lead.html to preserve nested wrapping
     let packageIds = currentDownloadPackageIds ? currentDownloadPackageIds.split(',').filter(id => id.trim() !== '') : [];
     let pkgPromises = packageIds.map(id => fetch(`/get-package/?ids=${id}`).then(r => r.json()));
 
@@ -418,7 +406,6 @@ function downloadQuotationPDF() {
             additional_services: []
         };
 
-        // 🌟 Process Nested Packages exactly like create_lead.html does
         pkgResults.forEach(data => {
             let pkgsArray = Array.isArray(data) ? data : (data.packages || [data]);
             
@@ -430,13 +417,12 @@ function downloadQuotationPDF() {
                 let pkgObj = { name: pkg.name || pkg.package_name || "Package", services: [] };
 
                 servicesArr.forEach(service => {
-                    const qty = parseFloat(service.qty) || 1; 
-                    const cost = parseFloat(service.cost) || parseFloat(service.price) || 0; 
+                    const qty = parseFloat(service.qty) || 1;
+                    const cost = parseFloat(service.cost) || parseFloat(service.price) || 0;
                     subtotal += (qty * cost);
                     
                     pkgObj.services.push({
                         name: service.service_name || service.name,
-                        // Force the "1 " prefix
                         items: (service.sub_services || service.items || []).map(p => {
                             let itemName = p.name || p.title || p;
                             return String(itemName).startsWith("1 ") ? itemName : `1 ${itemName}`;
@@ -449,11 +435,10 @@ function downloadQuotationPDF() {
             });
         });
 
-        // 🌟 Fallback: If lead has services but NO packages, map them directly to single_packages
         if (pkgResults.length === 0 && standaloneServices.length > 0) {
             standaloneServices.forEach(service => {
-                const qty = parseFloat(service.qty) || 1; 
-                const cost = parseFloat(service.cost) || parseFloat(service.price) || 0; 
+                const qty = parseFloat(service.qty) || 1;
+                const cost = parseFloat(service.cost) || parseFloat(service.price) || 0;
                 subtotal += (qty * cost);
 
                 let pkgObj = {
@@ -470,22 +455,20 @@ function downloadQuotationPDF() {
             });
         }
 
-        // 🌟 Process Deliverables
-        deliverables.forEach((d) => { 
+        deliverables.forEach((d) => {
             let dPrice = parseFloat(d.price) || 0;
-            subtotal += dPrice; 
-            payload.deliverables.push(d.title || d.name || d); 
+            subtotal += dPrice;
+            payload.deliverables.push(d.title || d.name || d);
         });
 
-        // 🌟 Process Additional Services
         additionalServices.forEach((a) => {
             let aPrice = parseFloat(a.price) || 0;
             let aQty = parseFloat(a.qty) || 1;
             const sTotal = aPrice * aQty;
             subtotal += sTotal;
             payload.additional_services.push({
-                name: a.title || a.name, 
-                qty: aQty, 
+                name: a.title || a.name,
+                qty: aQty,
                 total_price: sTotal.toLocaleString('en-IN')
             });
         });
@@ -493,7 +476,6 @@ function downloadQuotationPDF() {
         payload.grand_total = subtotal.toLocaleString('en-IN');
         const filename = `Quotation_${(currentDownloadClientName || "Client").replace(/\s+/g, '_')}.pdf`;
 
-        // 🌟 Request the generated PDF
         fetch('/generate-pdf/', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
@@ -524,38 +506,53 @@ function downloadQuotationPDF() {
 }
 
 function sendStatusUpdate(leadId, newStatus) {
-    const csrfToken = document.getElementById("csrf_token").value; 
-    document.body.style.cursor = 'wait'; 
+    const csrfToken = document.getElementById("csrf_token").value;
+    document.body.style.cursor = 'wait';
 
-    fetch("/leads/update-status/", { 
-        method: "POST", 
-        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken }, 
-        body: new URLSearchParams({ lead_id: leadId, status: newStatus }) 
+    fetch("/leads/update-status/", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": csrfToken },
+        body: new URLSearchParams({ lead_id: leadId, status: newStatus })
     })
     .then(res => res.json())
     .then(data => {
-        if(data.success) {
-            if (newStatus === 'ACCEPTED' && data.invoice_url) window.location.href = data.invoice_url; 
-            else window.location.reload(); 
+        if (data.success) {
+            if (newStatus === 'ACCEPTED' && data.invoice_url) window.location.href = data.invoice_url;
+            else window.location.reload();
         } else {
             alert("Error updating lead status."); document.body.style.cursor = 'default';
         }
     }).catch(err => { console.error(err); document.body.style.cursor = 'default'; });
 }
 
-function updateLeadStatus(leadId, newStatus) {
-    if(!confirm(`Are you sure you want to change this lead's status to ${newStatus.replace('_', ' ')}?`)) {
-        window.location.reload(); return;
+// FIX: selectEl passed in so we can reset it on cancel without a page reload.
+function updateLeadStatus(leadId, newStatus, selectEl) {
+    const originalValue = selectEl.dataset.original || selectEl.querySelector('option[selected]')?.value || newStatus;
+
+    if (!confirm(`Are you sure you want to change this lead's status to ${newStatus.replace('_', ' ')}?`)) {
+        // FIX: reset select to its previous value instead of reloading the page
+        selectEl.value = originalValue;
+        return;
     }
+    // Store the confirmed value as the new "original" for future cancels
+    selectEl.dataset.original = newStatus;
     sendStatusUpdate(leadId, newStatus);
 }
 
-let draggedCard = null;
+// Store each select's initial value on load so cancel can restore it
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".card select").forEach(sel => {
+        sel.dataset.original = sel.value;
+    });
+});
+
+let draggedCard  = null;
 let sourceColumn = null;
 
 document.querySelectorAll(".card").forEach(card => {
     card.addEventListener("dragstart", () => {
-        draggedCard = card; sourceColumn = card.closest('.column');
+        draggedCard = card;
+        sourceColumn = card.closest('.column');
         setTimeout(() => card.classList.add("dragging"), 0);
     });
     card.addEventListener("dragend", () => { card.classList.remove("dragging"); draggedCard = null; });
@@ -563,7 +560,10 @@ document.querySelectorAll(".card").forEach(card => {
 
 document.querySelectorAll(".column").forEach(column => {
     column.addEventListener("dragover", e => {
-        if (!draggedCard) return; e.preventDefault();
+        // FIX: guard — only preventDefault when we have a card AND a valid target column status
+        if (!draggedCard || !column.dataset.status) return;
+        e.preventDefault();
+
         const container = column.querySelector('.cards-container') || column;
         const rect = column.getBoundingClientRect();
         if (e.clientY < rect.top + 60) column.scrollTop -= 10;
@@ -573,17 +573,27 @@ document.querySelectorAll(".column").forEach(column => {
         let inserted = false;
         for (const card of cards) {
             if (e.clientY < card.getBoundingClientRect().top + card.offsetHeight / 2) {
-                container.insertBefore(draggedCard, card); inserted = true; break;
+                container.insertBefore(draggedCard, card);
+                inserted = true;
+                break;
             }
         }
-        if(!inserted) container.appendChild(draggedCard);
+        if (!inserted) container.appendChild(draggedCard);
     });
 
-    column.addEventListener("drop", () => {
+    column.addEventListener("drop", e => {
+        // FIX: guard — targetStatus must exist and differ from source
         const targetStatus = column.dataset.status;
-        if (sourceColumn.dataset.status === targetStatus) return;
-        if(!confirm(`Do you want to update this lead to ${targetStatus.replace('_', ' ')}?`)) {
-            sourceColumn.querySelector('.cards-container').appendChild(draggedCard); return;
+        if (!targetStatus || !draggedCard) return;
+        if (sourceColumn && sourceColumn.dataset.status === targetStatus) return;
+
+        if (!confirm(`Do you want to update this lead to ${targetStatus.replace('_', ' ')}?`)) {
+            // Move card back to original column on cancel
+            if (sourceColumn) {
+                const srcContainer = sourceColumn.querySelector('.cards-container') || sourceColumn;
+                srcContainer.appendChild(draggedCard);
+            }
+            return;
         }
         sendStatusUpdate(draggedCard.dataset.id, targetStatus);
     });

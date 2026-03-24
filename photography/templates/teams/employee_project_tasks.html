@@ -14,55 +14,182 @@
         </h1>
     </div>
 
-    {# Progress summary bar #}
-    {% with total=my_tasks.count completed=my_tasks|dictsortreversed:"status" %}
-    <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-8 flex items-center gap-6" id="progress-summary">
-        <div class="shrink-0">
-            <span class="w-10 h-10 bg-black text-white rounded-lg flex items-center justify-center font-bold text-[13px]">{{ initials|default:"ME" }}</span>
-        </div>
-        <div class="flex-1">
-            <p class="text-[13px] font-bold text-gray-700 mb-2">
-                Your task progress:
-                <span id="progress-text">
-                    {{ my_tasks.filter.status__COMPLETED|default:"0" }} /
-                    {% with total_count=my_tasks.count %}{{ total_count }}{% endwith %} tasks complete
-                </span>
+    <!-- ══════════════════════════════════════════════════════
+         SESSION-ASSIGNED EMPLOYEE VIEW
+         Shows: shoot role cards + project info only, no tasks
+    ══════════════════════════════════════════════════════ -->
+    {% if has_session_assignment and not has_project_assignment %}
+
+        <!-- Project Info Card -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-info-circle text-gray-300 mr-1"></i> Project Information
             </p>
-            <div class="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                <div id="progress-bar" class="bg-black h-2 rounded-full transition-all duration-500"
-                     style="width: 0%"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">Project</p>
+                    <p class="text-[15px] font-black text-gray-900">{{ project.project_name }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">Location</p>
+                    <p class="text-[14px] font-bold text-gray-700">{{ project.project_address|default:"TBD" }}</p>
+                </div>
+                <div>
+                    <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">Event Date</p>
+                    <p class="text-[14px] font-bold text-gray-700">
+                        {{ project.start_date|date:"d M, Y"|default:"TBD" }}
+                    </p>
+                </div>
+                <div>
+                    <p class="text-[11px] text-gray-400 font-semibold uppercase tracking-wide mb-1">Status</p>
+                    <span class="inline-block px-3 py-1 rounded-full text-[11px] font-bold
+                        {% if project.status == 'PRE' %}bg-blue-100 text-blue-700
+                        {% elif project.status == 'SELECTION' %}bg-yellow-100 text-yellow-700
+                        {% elif project.status == 'POST' %}bg-red-100 text-red-700
+                        {% elif project.status == 'COMPLETED' %}bg-green-100 text-green-700
+                        {% else %}bg-gray-100 text-gray-600{% endif %}">
+                        {{ project.get_status_display }}
+                    </span>
+                </div>
             </div>
         </div>
-    </div>
-    {% endwith %}
 
-    <div class="mb-10">
-        <div class="bg-[#FFF0F0] border border-[#fecaca] rounded-t-xl px-6 py-4">
-            <h2 class="text-[#A9323D] font-bold text-[16px] flex justify-between items-center">
-                Your Assigned Tasks
-                <i class="fas fa-chevron-up text-sm"></i>
-            </h2>
+        <!-- Your Shoot Assignments -->
+        <div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 mb-6">
+            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+                <i class="fas fa-id-badge text-gray-300 mr-1"></i> Your Shoot Assignments
+            </p>
+            <div class="flex flex-col gap-3">
+                {% for asgn in session_assignments %}
+                <div class="flex items-center gap-4 bg-[#fff0f0] border border-[#fecaca] rounded-xl px-5 py-4">
+                    <div class="w-10 h-10 bg-[#A9323D] rounded-xl flex items-center justify-center text-white flex-shrink-0 shadow-sm">
+                        <i class="fas fa-camera text-[14px]"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="text-[14px] font-black text-[#A9323D] mb-1">{{ asgn.subservice.name }}</div>
+                        <div class="flex flex-wrap gap-3 text-[12px] font-semibold text-gray-600">
+                            {% if asgn.date %}
+                            <span class="flex items-center gap-1">
+                                <i class="far fa-calendar-alt text-gray-400"></i>
+                                {{ asgn.date|date:"d M, Y" }}
+                            </span>
+                            {% endif %}
+                            {% if asgn.start_time %}
+                            <span class="flex items-center gap-1">
+                                <i class="far fa-clock text-gray-400"></i>
+                                {{ asgn.start_time|time:"g:ia" }}
+                                {% if asgn.end_time %} – {{ asgn.end_time|time:"g:ia" }}{% endif %}
+                            </span>
+                            {% endif %}
+                            {% if not asgn.date %}
+                            <span class="text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full font-bold text-[11px]">
+                                Date TBD
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if asgn.service_name %}
+                    <span class="text-[11px] font-bold text-gray-400 bg-gray-100 px-3 py-1 rounded-full">
+                        {{ asgn.service_name }}
+                    </span>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
 
-        <div class="bg-white border border-t-0 border-gray-200 rounded-b-xl overflow-hidden shadow-sm">
-            <table class="w-full text-left border-collapse">
-                <thead>
-                    <tr class="text-[12px] text-gray-500 border-b border-gray-200 bg-[#fafafa]">
-                        <th class="py-3 px-6 font-semibold">Task Name</th>
-                        <th class="py-3 px-6 font-semibold">Due Date</th>
-                        <th class="py-3 px-6 font-semibold">Status</th>
-                        <th class="py-3 px-6 text-right font-semibold">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% if not grouped_my_tasks %}
-                        <tr>
-                            <td colspan="4" class="py-12 text-center text-gray-400 font-medium">You have no tasks assigned in this project.</td>
-                        </tr>
+       <!-- Shoot completion card for session crew -->
+<div class="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+    <p class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-4">
+        <i class="fas fa-clipboard-check text-gray-300 mr-1"></i> Shoot Completion
+    </p>
+
+    {% for asgn in session_assignments %}
+    <div class="flex items-center justify-between gap-4 py-4 border-b border-gray-100 last:border-0" id="shoot-row-{{ asgn.id }}">
+        <div class="flex items-center gap-3">
+            <div class="w-9 h-9 bg-[#A9323D] rounded-lg flex items-center justify-center text-white flex-shrink-0">
+                <i class="fas fa-camera text-[12px]"></i>
+            </div>
+            <div>
+                <div class="text-[13px] font-black text-gray-900">{{ asgn.subservice.name }}</div>
+                <div class="text-[11px] text-gray-500 font-semibold mt-0.5">
+                    {% if asgn.date %}
+                        {{ asgn.date|date:"d M, Y" }}
+                        {% if asgn.start_time %}
+                            · {{ asgn.start_time|time:"g:ia" }}{% if asgn.end_time %} – {{ asgn.end_time|time:"g:ia" }}{% endif %}
+                        {% endif %}
                     {% else %}
-                        
-                        {% for phase, categories in grouped_my_tasks.items %}
-                            
+                        <span class="text-amber-600">Date TBD</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div id="shoot-action-{{ asgn.id }}">
+            {% if asgn.is_accepted %}
+            <span class="text-green-600 font-bold text-[12px] flex items-center gap-1">
+                <i class="fas fa-check-circle"></i> Completed
+            </span>
+            {% else %}
+            <button onclick="markShootComplete('{{ asgn.id }}')"
+                id="shoot-btn-{{ asgn.id }}"
+                class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
+                Mark as Complete
+            </button>
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+    {% else %}
+    <!-- ══════════════════════════════════════════════════════
+         PROJECT-ASSIGNED EMPLOYEE VIEW
+         Shows: assignment card + progress bar + tasks
+    ══════════════════════════════════════════════════════ -->
+        <div class="flex justify-center mb-8">
+            <div class="bg-gray-100 p-1 rounded-full flex items-center shadow-inner">
+                <button onclick="switchTab('task')" id="task-tab-btn" 
+                    class="px-8 py-2 rounded-full text-sm font-bold transition-all duration-200 bg-white text-black shadow-sm">
+                    Task Report
+                </button>
+                <button onclick="switchTab('expense')" id="expense-tab-btn" 
+                    class="px-8 py-2 rounded-full text-sm font-bold transition-all duration-200 text-gray-500 hover:text-black">
+                    Expense Report
+                </button>
+            </div>
+        </div>
+
+        <!-- Task table -->
+        <div id="task-section" class="block">
+            <div class="mb-10">
+                <div class="bg-[#FFF0F0] border border-[#fecaca] rounded-t-xl px-6 py-4">
+                    <h2 class="text-[#A9323D] font-bold text-[16px] flex justify-between items-center">
+                        Your Assigned Tasks
+                        <i class="fas fa-chevron-up text-sm"></i>
+                    </h2>
+                </div>
+
+                <div class="bg-white border border-t-0 border-gray-200 rounded-b-xl overflow-hidden shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="text-[12px] text-gray-500 border-b border-gray-200 bg-[#fafafa]">
+                                <th class="py-3 px-6 font-semibold">Task Name</th>
+                                <th class="py-3 px-6 font-semibold">Due Date</th>
+                                <th class="py-3 px-6 font-semibold">Status</th>
+                                <th class="py-3 px-6 text-right font-semibold">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if not grouped_my_tasks %}
+                            <tr>
+                                <td colspan="4" class="py-12 text-center text-gray-400 font-medium">
+                                    You have no tasks assigned in this project.
+                                </td>
+                            </tr>
+                            {% else %}
+
+                            {% for phase, categories in grouped_my_tasks.items %}
                             <tr>
                                 <td colspan="4" class="py-3 px-6 font-black text-[13px] tracking-wide uppercase border-y border-gray-200
                                     {% if phase == 'PRE PRODUCTION' %}bg-[#F5F8FF] text-[#3B82F6]
@@ -73,155 +200,260 @@
                             </tr>
 
                             {% for category, tasks in categories.items %}
-                                <tr class="bg-[#f8f8f8] border-b border-gray-200">
-                                    <td colspan="4" class="py-2.5 px-6 text-[13px] font-bold text-gray-800 flex items-center gap-2">
-                                        <i class="fas fa-folder text-gray-400"></i> {{ category }} <span class="text-gray-400 font-medium ml-1">({{ tasks|length }})</span>
-                                    </td>
-                                </tr>
+                            <tr class="bg-[#f8f8f8] border-b border-gray-200">
+                                <td colspan="4" class="py-2.5 px-6 text-[13px] font-bold text-gray-800">
+                                    <i class="fas fa-folder text-gray-400 mr-2"></i>{{ category }}
+                                    <span class="text-gray-400 font-medium ml-1">({{ tasks|length }})</span>
+                                </td>
+                            </tr>
 
-                                {% for task in tasks %}
-                                <tr class="border-b border-gray-100 hover:bg-gray-50 transition" id="task-row-{{ task.id }}">
-
-                                    <td class="py-4 px-6 text-[14px] font-bold text-gray-800">
-                                        <div class="flex items-center gap-3">
-                                            <i class="far {% if task.status == 'COMPLETED' %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %}" id="icon-{{ task.id }}"></i>
-                                            {{ task.task_name }}
-                                        </div>
-                                    </td>
-
-                                    <td class="py-4 px-6 text-[13px] font-bold text-gray-600">
-                                        <div class="flex items-center gap-2">
-                                            <div class="w-5 h-5 bg-black rounded-full text-white flex items-center justify-center text-[8px]">{{ initials|default:"ME" }}</div>
-                                            {{ task.due_date|date:"d-m-Y"|default:"TBD" }}
-                                        </div>
-                                    </td>
-
-                                    <td class="py-4 px-6">
-                                        <span id="status-pill-{{ task.id }}"
-                                            class="px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm
-                                            {% if task.status == 'OPEN' %}bg-[#00E640] text-white
-                                            {% elif task.status == 'ON_HOLD' %}bg-[#FFC107] text-gray-900
-                                            {% elif task.status == 'COMPLETED' %}bg-gray-200 text-gray-500
-                                            {% endif %}">
-                                            {{ task.get_status_display }}
-                                        </span>
-                                    </td>
-
-                                    <td class="py-4 px-6 text-right">
-                                        {% if task.status != 'COMPLETED' %}
-                                        <button id="btn-{{ task.id }}"
-                                                onclick="markComplete('{{ task.id }}')"
-                                                class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
-                                            Mark as Complete
-                                        </button>
-                                        {% else %}
-                                        <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
-                                            <i class="fas fa-check-circle"></i> Done
-                                        </span>
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% endfor %}
+                            {% for task in tasks %}
+                            <tr class="border-b border-gray-100 hover:bg-gray-50 transition" id="task-row-{{ task.id }}">
+                                <td class="py-4 px-6 text-[14px] font-bold text-gray-800">
+                                    <div class="flex items-center gap-3">
+                                        <i class="far {% if task.status == 'COMPLETED' %}fa-check-circle text-green-500{% else %}fa-circle text-gray-300{% endif %}" id="icon-{{ task.id }}"></i>
+                                        {{ task.task_name }}
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6 text-[13px] font-bold text-gray-600">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-5 h-5 bg-black rounded-full text-white flex items-center justify-center text-[8px]">{{ initials|default:"ME" }}</div>
+                                        {{ task.due_date|date:"d-m-Y"|default:"TBD" }}
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span id="status-pill-{{ task.id }}"
+                                        class="px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm
+                                        {% if task.status == 'OPEN' %}bg-[#00E640] text-white
+                                        {% elif task.status == 'ON_HOLD' %}bg-[#FFC107] text-gray-900
+                                        {% elif task.status == 'COMPLETED' %}bg-gray-200 text-gray-500
+                                        {% endif %}">
+                                        {{ task.get_status_display }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    {% if task.status != 'COMPLETED' %}
+                                    <button id="btn-{{ task.id }}" onclick="markComplete('{{ task.id }}')"
+                                        class="border border-gray-300 bg-white hover:bg-green-50 hover:text-green-600 hover:border-green-400 text-gray-700 font-bold text-[12px] px-4 py-1.5 rounded shadow-sm transition">
+                                        Mark as Complete
+                                    </button>
+                                    {% else %}
+                                    <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
+                                        <i class="fas fa-check-circle"></i> Done
+                                    </span>
+                                    {% endif %}
+                                </td>
+                            </tr>
                             {% endfor %}
-                        {% endfor %}
-                    {% endif %}
-                </tbody>
-            </table>
+                            {% endfor %}
+                            {% endfor %}
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-    </div>
+
+        <div id="expense-section" class="hidden animate-fadeIn">
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Submit Expense Details</h2>
+            
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 mb-6 shadow-sm">
+                <h3 class="text-lg font-bold mb-6">Expense Breakdown</h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold mb-2 uppercase tracking-wide">Travel<span class="text-red-500">*</span></label>
+                        <input type="number" placeholder="₹ 0" class="w-full bg-gray-50 border-none rounded-lg p-3 outline-none focus:ring-2 focus:ring-red-100 font-semibold" id="travel-exp">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-2 uppercase tracking-wide">Food<span class="text-red-500">*</span></label>
+                        <input type="number" placeholder="₹ 0" class="w-full bg-gray-50 border-none rounded-lg p-3 outline-none focus:ring-2 focus:ring-red-100 font-semibold" id="food-exp">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold mb-2 uppercase tracking-wide">Accommodation<span class="text-red-500">*</span></label>
+                        <input type="number" placeholder="₹ 0" class="w-full bg-gray-50 border-none rounded-lg p-3 outline-none focus:ring-2 focus:ring-red-100 font-semibold" id="acc-exp">
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-xl font-bold mb-4 text-gray-800">Upload Images</h2>
+            <div class="bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+                <div class="border-2 border-dashed border-gray-300 rounded-xl py-12 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition">
+                    <i class="fas fa-upload text-3xl text-gray-400 mb-4"></i>
+                    <p class="font-bold text-lg mb-1">Click to upload receipt or drag and drop</p>
+                    <p class="text-gray-500 text-sm">PNG, JPG, PDF up to 10MB</p>
+                    <input type="file" class="hidden" id="file-upload">
+                </div>
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between items-center mt-10 gap-6">
+                <div>
+                    <p class="text-gray-500 font-bold text-sm">Total Amount</p>
+                    <p class="text-4xl font-black text-[#A9323D]" id="total-amount">₹ 0</p>
+                </div>
+                <div class="flex gap-4 w-full md:w-auto">
+                    <button onclick="resetForm()" class="flex-1 md:flex-none border border-gray-300 px-8 py-3 rounded-xl font-bold hover:bg-gray-100 transition">
+                        Clear Form
+                    </button>
+                    <button class="flex-1 md:flex-none bg-[#A9323D] text-white px-8 py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-red-800 transition shadow-lg">
+                        <i class="far fa-check-circle"></i> Submit Expense
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    {% endif %}
 
 </div>
 
 <script>
-    function getCsrf() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let c of cookies) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) {
-                return decodeURIComponent(c.substring(name.length + 1));
-            }
+function getCsrf() {
+    const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+}
+
+let totalTasks = {{ my_tasks.count }};
+
+document.addEventListener('DOMContentLoaded', () => {
+    const completed = [...document.querySelectorAll('[id^="status-pill-"]')]
+        .filter(el => el.innerText.trim() === 'Completed').length;
+    updateProgressBar(completed, totalTasks);
+});
+
+function updateProgressBar(completed, total) {
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    const bar = document.getElementById('progress-bar');
+    const txt = document.getElementById('progress-text');
+    if (bar) bar.style.width = pct + '%';
+    if (txt) txt.innerText = `${completed} / ${total} tasks complete`;
+}
+
+// ── Mark task complete (PROJECT-assigned employees) ──
+function markComplete(taskId) {
+    const btn = document.getElementById(`btn-${taskId}`);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
+
+    fetch(`/api/task/${taskId}/complete/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrf()
         }
-        return '';
-    }
-
-    let totalTasks = {{ my_tasks.count }};
-    let completedTasks = {{ my_tasks|length }}; 
-
-    document.addEventListener('DOMContentLoaded', () => {
-        completedTasks = document.querySelectorAll('[id^="status-pill-"]')
-            ? [...document.querySelectorAll('[id^="status-pill-"]')]
-                .filter(el => el.innerText.trim() === 'Completed').length
-            : 0;
-        updateProgressBar(completedTasks, totalTasks);
-    });
-
-    function updateProgressBar(completed, total) {
-        const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-        const bar = document.getElementById('progress-bar');
-        const txt = document.getElementById('progress-text');
-        if (bar) bar.style.width = pct + '%';
-        if (txt) txt.innerText = `${completed} / ${total} tasks complete`;
-    }
-
-    function markComplete(taskId) {
-        const btn = document.getElementById(`btn-${taskId}`);
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
-        }
-
-        fetch(`/api/task/${taskId}/complete/`, {
-            method: 'POST',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-CSRFToken': getCsrf(),
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Update status pill
+            const pill = document.getElementById(`status-pill-${taskId}`);
+            if (pill) {
+                pill.innerText = 'Completed';
+                pill.className = 'px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm bg-gray-200 text-gray-500';
             }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.status === 'success') {
-                const pill = document.getElementById(`status-pill-${taskId}`);
-                if (pill) {
-                    pill.innerText = 'Completed';
-                    pill.className = 'px-5 py-1.5 rounded text-[11px] font-bold tracking-wide shadow-sm bg-gray-200 text-gray-500';
-                }
-
-                const icon = document.getElementById(`icon-${taskId}`);
-                if (icon) {
-                    icon.className = 'far fa-check-circle text-green-500';
-                }
-
-                if (btn) {
-                    btn.outerHTML = `
-                        <span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
-                            <i class="fas fa-check-circle"></i> Done
-                        </span>`;
-                }
-
-                if (data.total_tasks !== undefined) {
-                    updateProgressBar(data.completed_tasks, data.total_tasks);
-                } else {
-                    const donePills = [...document.querySelectorAll('[id^="status-pill-"]')]
-                        .filter(el => el.innerText.trim() === 'Completed').length;
-                    updateProgressBar(donePills, totalTasks);
-                }
-
-            } else {
-                alert('Error: ' + (data.message || 'Could not complete task.'));
-                if (btn) {
-                    btn.disabled = false;
-                    btn.innerHTML = 'Mark as Complete';
-                }
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+            // Update icon
+            const icon = document.getElementById(`icon-${taskId}`);
+            if (icon) icon.className = 'far fa-check-circle text-green-500';
+            // Replace button with Done label
             if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = 'Mark as Complete';
+                btn.outerHTML = `<span class="text-green-600 font-bold text-[12px] flex items-center justify-end gap-1">
+                    <i class="fas fa-check-circle"></i> Done
+                </span>`;
             }
-        });
+            // Update progress bar
+            if (data.total_tasks !== undefined) {
+                updateProgressBar(data.completed_tasks, data.total_tasks);
+            } else {
+                const done = [...document.querySelectorAll('[id^="status-pill-"]')]
+                    .filter(el => el.innerText.trim() === 'Completed').length;
+                updateProgressBar(done, totalTasks);
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Could not complete task.'));
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Mark as Complete'; }
+        }
+    })
+    .catch(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Mark as Complete'; }
+    });
+}
+
+// ── Mark shoot complete (SESSION-assigned employees) ──
+function markShootComplete(assignmentId) {
+    const btn = document.getElementById(`shoot-btn-${assignmentId}`);
+    if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...'; }
+
+    fetch(`/api/shoot/${assignmentId}/complete/`, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCsrf()
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const actionDiv = document.getElementById(`shoot-action-${assignmentId}`);
+            if (actionDiv) {
+                actionDiv.innerHTML = `<span class="text-green-600 font-bold text-[12px] flex items-center gap-1">
+                    <i class="fas fa-check-circle"></i> Completed
+                </span>`;
+            }
+            if (data.all_completed) {
+                setTimeout(() => {
+                    window.location.href = "{% url 'employee_projects' %}";
+                }, 800);
+            }
+        } else {
+            alert('Error: ' + (data.message || 'Could not complete.'));
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Mark as Complete'; }
+        }
+    })
+    .catch(() => {
+        if (btn) { btn.disabled = false; btn.innerHTML = 'Mark as Complete'; }
+    });
+}
+
+
+function switchTab(tab) {
+    const taskSec = document.getElementById('task-section');
+    const expenseSec = document.getElementById('expense-section');
+    const taskBtn = document.getElementById('task-tab-btn');
+    const expenseBtn = document.getElementById('expense-tab-btn');
+
+    if (tab === 'task') {
+        taskSec.classList.remove('hidden');
+        expenseSec.classList.add('hidden');
+        
+        // Update Buttons
+        taskBtn.classList.add('bg-white', 'text-black', 'shadow-sm');
+        taskBtn.classList.remove('text-gray-500');
+        expenseBtn.classList.remove('bg-white', 'text-black', 'shadow-sm');
+        expenseBtn.classList.add('text-gray-500');
+    } else {
+        taskSec.classList.add('hidden');
+        expenseSec.classList.remove('hidden');
+        
+        // Update Buttons
+        expenseBtn.classList.add('bg-white', 'text-black', 'shadow-sm');
+        expenseBtn.classList.remove('text-gray-500');
+        taskBtn.classList.remove('bg-white', 'text-black', 'shadow-sm');
+        taskBtn.classList.add('text-gray-500');
     }
+}
+
+// Logic to auto-calculate total amount
+const inputs = ['travel-exp', 'food-exp', 'acc-exp'];
+inputs.forEach(id => {
+    document.getElementById(id).addEventListener('input', function() {
+        let total = 0;
+        inputs.forEach(i => {
+            total += Number(document.getElementById(i).value) || 0;
+        });
+        document.getElementById('total-amount').innerText = `₹ ${total.toLocaleString('en-IN')}`;
+    });
+});
+
+function resetForm() {
+    inputs.forEach(id => document.getElementById(id).value = '');
+    document.getElementById('total-amount').innerText = '₹ 0';
+}
 </script>
 {% endblock %}

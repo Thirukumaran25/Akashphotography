@@ -1,0 +1,965 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit Lead — {{ lead.name }}{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<div class="max-w-5xl mx-auto p-10 bg-gray-50 min-h-screen">
+
+  <!-- Page header -->
+  <div class="flex items-center gap-4 mb-8">
+    <a href="{% url 'home' %}" class="w-9 h-9 bg-white border border-gray-200 rounded-lg flex items-center justify-center hover:bg-gray-50 transition shadow-sm">
+      <i class="fas fa-arrow-left text-gray-500 text-sm"></i>
+    </a>
+    <div>
+      <h1 class="text-[22px] font-black text-gray-900">Edit Lead</h1>
+      <p class="text-sm text-gray-400 font-medium mt-0.5">{{ lead.name }} &mdash; {{ project.project_name|default:"No project" }}</p>
+    </div>
+  </div>
+
+  <form method="POST" id="leadForm" onsubmit="handleFormSubmit(event)" class="space-y-8">
+    {% csrf_token %}
+    <input type="hidden" name="package"              id="packageInput"             value="{{ selected_package_ids }}">
+    <input type="hidden" name="deliverables"         id="deliverablesInput"        value="{{ selected_deliverable_ids }}">
+    <input type="hidden" name="additional_services"  id="additionalServicesInput"  value="">
+
+    <!-- ── Lead + Project ─────────────────────────────────────────────── -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+      <!-- Lead details -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h3 class="text-lg text-[#903043] font-semibold mb-4">Lead Details</h3>
+        <div class="space-y-3">
+          <div class="relative">
+            <span class="absolute inset-y-0 left-3 flex items-center text-gray-400"><i class="fas fa-user"></i></span>
+            <input type="text" name="name" id="clientNameInput" placeholder="Name" required
+              value="{{ lead.name }}"
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 outline-none">
+          </div>
+          <input type="text" name="mobile_number" placeholder="Mobile No." required
+            value="{{ lead.mobile_number }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <input type="email" name="email" id="clientEmailInput" placeholder="Email Address"
+            value="{{ lead.email|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <input type="text" name="address" placeholder="Address"
+            value="{{ lead.address|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <select name="lead_source" class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+            <option value="">Lead Source</option>
+            {% for val, label in lead.LEAD_SOURCE_CHOICES %}
+            <option value="{{ val }}" {% if lead.lead_source == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <label class="block text-gray-600 mb-1">Follow Up Date:</label>
+          <input type="date" name="follow_up_date"
+            value="{{ lead.follow_up_date|date:'Y-m-d'|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+        </div>
+      </div>
+
+      <!-- Project details -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+        <h3 class="text-lg text-[#903043] font-semibold mb-4">Project Details</h3>
+        <div class="space-y-3">
+          <input type="text" name="project_name" id="projectNameInput" placeholder="Project Name" required
+            value="{{ project.project_name|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <input type="text" name="project_mobile" placeholder="Mobile No." required
+            value="{{ project.mobile_number|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <input type="text" name="project_address" placeholder="Project Address" required
+            value="{{ project.project_address|default:'' }}"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg outline-none">
+          <div>
+            <label class="block text-gray-600 mb-1">Event Date:</label>
+            <input type="date" name="start_date" required
+              value="{{ project.start_date|date:'Y-m-d'|default:'' }}"
+              class="w-1/2 px-4 py-2 border border-gray-300 rounded-lg outline-none text-gray-500">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Package Details ────────────────────────────────────────────── -->
+    <div class="bg-white p-6 rounded-2xl shadow border">
+      <div class="flex justify-between mb-4">
+        <h3 class="font-semibold text-[#903043] text-lg">Package Details</h3>
+        <button type="button" onclick="openModal()" class="text-green-600 font-bold hover:underline">Create +</button>
+      </div>
+      <div class="grid grid-cols-4 gap-4" id="packageContainer">
+        {% for pkg in packages %}
+        <div class="bg-gray-50 border p-4 rounded-xl relative hover:border-red-500 cursor-pointer transition"
+             id="pkg-card-{{ pkg.id }}"
+             onclick="selectPackage('{{ pkg.id }}', this)">
+          <p class="text-sm text-[#903043] font-medium">{{ pkg.package_name }}</p>
+          <p class="text-xs font-bold mt-1 text-gray-700">Total: ₹ {{ pkg.total_cost }}</p>
+          <div class="flex gap-2 mt-2">
+            <button type="button" onclick="event.stopPropagation(); editPackage({{ pkg.id }})"
+              class="text-blue-600 text-xs hover:underline">Edit</button>
+            <button type="button" onclick="event.stopPropagation(); deletePackage({{ pkg.id }}, this)"
+              class="text-red-600 text-xs hover:underline">Delete</button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- ── Deliverables ───────────────────────────────────────────────── -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <div class="flex justify-between mb-4">
+        <h3 class="text-lg font-semibold text-[#903043]">Deliverables</h3>
+        <button type="button" onclick="openDeliverablesModal()" class="text-blue-600 font-bold hover:underline">+ Add Deliverables</button>
+      </div>
+      <div id="selectedDeliverablesContainer" class="flex flex-wrap gap-2">
+        <span class="text-sm text-gray-400 italic">Loading…</span>
+      </div>
+    </div>
+
+    <!-- ── Additional Services ────────────────────────────────────────── -->
+    <div class="mt-8 max-w-4xl mx-auto">
+      <h2 class="text-[28px] font-serif text-[#903043] text-center mb-8 font-bold tracking-wide">Additional Services</h2>
+      <div id="additionalServicesList" class="space-y-4">
+        {% for svc in available_additional_services %}
+        <div class="bg-[#FCEDEE] rounded-xl p-5 flex justify-between items-center shadow-sm border border-[#F8E1E4]"
+             id="add-svc-{{ svc.id }}" data-id="{{ svc.id }}" data-title="{{ svc.name }}" data-price="{{ svc.price }}">
+          <div>
+            <h4 class="text-[#903043] font-bold text-[17px] mb-3">{{ svc.name }}</h4>
+            <div class="flex items-center gap-3 text-[#903043] font-bold text-sm">
+              <button type="button" class="hover:scale-125 transition px-1" onclick="updateAddSvcQty('{{ svc.id }}', -1, event)">-</button>
+              <span class="bg-[#903043] text-white px-2.5 py-0.5 rounded shadow-sm qty-val-1">1</span>
+              <button type="button" class="hover:scale-125 transition px-1" onclick="updateAddSvcQty('{{ svc.id }}', 1, event)">+</button>
+            </div>
+          </div>
+          <div class="flex flex-col items-end gap-2.5">
+            <div class="bg-white text-[#903043] font-black py-1.5 px-6 rounded-lg text-[13px] shadow-sm border border-gray-100 min-w-[120px] text-center">
+              ₹ {{ svc.price|floatformat:0 }}
+            </div>
+            <button type="button" onclick="toggleAddService('{{ svc.id }}', this)"
+              class="bg-white border border-[#903043] text-[#903043] font-bold py-1.5 px-4 rounded-lg text-[13px] shadow-sm hover:bg-[#903043] hover:text-white transition flex items-center gap-1.5 add-svc-btn min-w-[120px] justify-center">
+              <i class="fas fa-plus"></i> Add Service
+            </button>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      <button type="button" onclick="openManualServiceModal()"
+        class="w-full mt-4 bg-[#FCEDEE] border border-[#F8E1E4] rounded-xl p-6 flex justify-center items-center gap-3 hover:bg-[#F9E4E6] transition shadow-sm text-[#903043] font-bold text-[16px]">
+        <i class="fas fa-puzzle-piece text-xl"></i> Enter Additional Service Manually
+      </button>
+    </div>
+
+    <!-- ── Totals + actions ───────────────────────────────────────────── -->
+    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+      <h3 class="text-lg font-semibold mb-4 text-gray-800">Quotation Details</h3>
+      <div class="flex flex-col md:flex-row justify-between gap-6">
+        <div class="flex-1 space-y-4">
+          <button type="button" onclick="openQuotationModal()"
+            class="flex-1 px-6 py-3 bg-white hover:bg-gray-50 text-gray-800 font-bold rounded-lg flex items-center justify-center gap-2 border border-gray-300 transition-colors shadow-sm">
+            <i class="fa-regular fa-file-lines"></i> View Quotation
+          </button>
+        </div>
+        <div class="text-right flex flex-col justify-end">
+          <p class="text-gray-600 font-semibold">Sub Total : <span id="subTotal" class="text-black">₹ 0</span></p>
+          <h2 class="text-2xl font-black mt-2">Total : <span id="totalAmount">₹ 0</span></h2>
+          <p class="text-green-600 text-xs font-bold cursor-pointer">(Excluding Tax)</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-center gap-4 mt-10">
+      <a href="{% url 'home' %}"
+        class="px-8 py-3 bg-white text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition shadow border border-gray-200">
+        Cancel
+      </a>
+      <button type="submit" id="btnSubmitMain"
+        class="px-12 py-3 bg-[#A9323D] text-white font-bold rounded-xl hover:bg-red-800 transition shadow-lg">
+        Save Changes
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- ── Manual service modal ────────────────────────────────────────────── -->
+<div id="manualServiceModal" class="hidden fixed inset-0 bg-black/50 z-[5000] flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-8 relative">
+    <button type="button" onclick="closeManualServiceModal()" class="absolute top-4 right-5 text-gray-400 hover:text-red-600 text-2xl">&times;</button>
+    <h3 class="font-serif text-2xl mb-6 text-[#903043] font-bold text-center">Add Custom Service</h3>
+    <div class="space-y-4">
+      <input type="text"   id="manualSvcName"  placeholder="e.g. Travel Expenses" class="w-full border border-gray-300 p-3 rounded-lg text-sm outline-none focus:border-[#903043]">
+      <input type="number" id="manualSvcPrice" placeholder="0.00"                  class="w-full border border-gray-300 p-3 rounded-lg text-sm outline-none focus:border-[#903043]">
+      <button type="button" onclick="saveManualService()" class="w-full bg-[#903043] text-white py-3 rounded-lg font-bold text-[15px] hover:bg-[#7a2838] transition shadow-md">Add to List</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Deliverables modal ──────────────────────────────────────────────── -->
+<div id="deliverablesModal" class="hidden fixed inset-0 bg-black/40 z-[5000] flex items-center justify-center p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative" onclick="event.stopPropagation()">
+    <button type="button" onclick="closeDeliverablesModal()" class="absolute top-4 right-4 text-gray-400 hover:text-red-600 text-xl">&times;</button>
+    <h3 class="font-black text-xl mb-4">Select Deliverables</h3>
+    <div id="deliverablesListContainer" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+      {% for d in available_deliverables %}
+      <div class="flex items-center justify-between p-3 border rounded-lg hover:bg-blue-50 cursor-pointer transition deliverable-option"
+           data-id="{{ d.id }}" data-title="{{ d.title }}" data-price="{{ d.price }}"
+           onclick="toggleDeliverable(this)">
+        <p class="font-bold text-sm text-gray-800">{{ d.title }}</p>
+        <p class="text-xs text-gray-500">₹ {{ d.price|floatformat:0 }}</p>
+      </div>
+      {% empty %}
+      <div class="text-center text-gray-400 text-sm py-4">No deliverables found.</div>
+      {% endfor %}
+    </div>
+    <div class="mt-4 border-t pt-4">
+      <button type="button"
+        onclick="document.getElementById('newDeliverableForm').classList.remove('hidden'); this.classList.add('hidden');"
+        class="text-blue-600 text-sm font-bold hover:underline w-full text-left">+ Create New Deliverable</button>
+      <div id="newDeliverableForm" class="hidden bg-gray-50 border border-gray-200 p-3 rounded-lg space-y-2 mt-2">
+        <input type="text"   id="newDelivTitle" placeholder="Deliverable Title" class="w-full border border-gray-300 p-2 rounded text-sm outline-none">
+        <input type="number" id="newDelivPrice" placeholder="Price ₹"           class="w-full border border-gray-300 p-2 rounded text-sm outline-none">
+        <div class="flex gap-2 mt-2">
+          <button type="button" onclick="saveNewGlobalDeliverable(this)" class="bg-blue-600 text-white text-xs px-4 py-2 rounded font-bold hover:bg-blue-700 transition">Save & Add</button>
+          <button type="button" onclick="document.getElementById('newDeliverableForm').classList.add('hidden'); this.parentElement.parentElement.previousElementSibling.classList.remove('hidden');" class="text-gray-500 text-xs px-2 hover:text-black">Cancel</button>
+        </div>
+      </div>
+    </div>
+    <div class="mt-6 flex justify-end">
+      <button type="button" onclick="closeDeliverablesModal()" class="bg-black text-white px-6 py-2.5 rounded-lg text-sm font-bold">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Quotation preview modal ─────────────────────────────────────────── -->
+<div id="quotationModal" class="hidden fixed inset-0 bg-black/40 z-[5000] items-center justify-center p-4">
+  <div class="bg-white rounded-xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-2xl p-8 lg:p-10">
+    <button type="button" onclick="closeQuotationModal()"
+      class="absolute top-6 right-6 w-8 h-8 bg-black text-white rounded-md flex items-center justify-center hover:bg-gray-800 transition z-[6000]">
+      <i class="fas fa-times text-sm"></i>
+    </button>
+    <h2 class="text-[22px] font-bold mb-5 text-black">Quotation To</h2>
+    <div class="flex items-center gap-3 mb-10">
+      <div id="quoteInitials" class="w-10 h-10 bg-[#111] text-white rounded-full flex items-center justify-center text-sm font-bold">--</div>
+      <div class="leading-tight">
+        <p id="quoteClientName"  class="font-bold text-[15px] text-black">Client Name</p>
+        <p id="quoteClientEmail" class="text-[12px] text-gray-600">client@email.com</p>
+      </div>
+    </div>
+    <h3 class="text-lg font-bold mb-4 text-black">Services &amp; Deliverables</h3>
+    <div class="bg-[#f8f9fa] rounded-xl p-6">
+      <div class="grid grid-cols-12 gap-4 text-[11px] font-bold text-gray-500 mb-4 tracking-wide border-b border-gray-200 pb-3">
+        <div class="col-span-5 uppercase">SERVICE</div>
+        <div class="col-span-3 uppercase">INCLUDED</div>
+        <div class="col-span-1 text-center uppercase">QTY</div>
+        <div class="col-span-3 text-right uppercase">AMOUNT</div>
+      </div>
+      <div id="quoteServicesList" class="space-y-6"></div>
+      <div class="flex justify-end mt-12">
+        <div class="w-full max-w-[280px] space-y-4">
+          <div class="flex justify-between text-[15px] text-gray-800 font-medium">
+            <p>Subtotal</p><p id="quoteSubtotal" class="font-bold text-black">₹ 0</p>
+          </div>
+          <div class="border-t border-gray-300 pt-4 flex justify-between font-bold text-[18px] text-black">
+            <p>Total</p><p id="quoteTotal">₹ 0</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Package editor modal ────────────────────────────────────────────── -->
+<div id="packageModal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-[5000]" onclick="closeModal()">
+  <div class="bg-white w-11/12 max-w-5xl rounded-xl shadow-2xl max-h-[90vh] overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+    <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200 flex-shrink-0">
+      <h2 class="text-xl font-bold">Package Editor</h2>
+      <button type="button" onclick="closeModal()" class="text-2xl text-gray-500 hover:text-black">&times;</button>
+    </div>
+    <div class="px-6 pt-4 flex-shrink-0">
+      <input type="hidden" id="packageIdModalInput">
+      <label class="block mb-1 font-medium text-sm">Package Name</label>
+      <input id="packageNameInput" class="border w-full p-2 rounded mb-3 outline-none focus:border-gray-400" placeholder="e.g., Ultimate Wedding Combo">
+    </div>
+    <div class="flex-1 overflow-y-auto px-6 pb-6 pt-2">
+      <h3 id="grandTotal" class="font-bold text-base mb-3 text-[#A9323D]">Service Total Cost: ₹ 0</h3>
+      <table class="w-full border text-sm">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="p-2 border text-left">Service Name</th>
+            <th class="p-2 border text-left min-w-[200px]">Included Services</th>
+            <th class="p-2 border text-center">Qty</th>
+            <th class="p-2 border text-left">Cost</th>
+            <th class="p-2 border text-center">Subtotal</th>
+            <th class="p-2 border text-center"></th>
+          </tr>
+        </thead>
+        <tbody id="serviceTable"></tbody>
+      </table>
+      <button type="button" onclick="addServiceRow()" class="bg-blue-600 text-white px-4 py-2 mt-4 rounded hover:bg-blue-700 transition text-sm">+ Add Service</button>
+    </div>
+    <div class="px-6 py-4 border-t border-gray-200 flex justify-end gap-3 flex-shrink-0">
+      <button type="button" onclick="closeModal()" class="px-5 py-2 rounded-lg border border-gray-300 text-sm text-gray-600 hover:bg-gray-50">Cancel</button>
+      <button type="button" onclick="saveServices()" class="bg-green-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-green-700 transition text-sm">Save Package</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Success modal (same as create_lead) ────────────────────────────── -->
+<div id="leadSuccessModal" class="hidden fixed inset-0 bg-black/60 z-[6000] flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl w-full max-w-md p-8 text-center shadow-2xl relative">
+    <button onclick="redirectToHome()" class="absolute top-4 right-4 text-gray-400 hover:text-black text-2xl">&times;</button>
+    <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-5">
+      <i class="fa-solid fa-check text-4xl text-green-500"></i>
+    </div>
+    <h2 class="text-2xl font-black text-gray-900 mb-2">Changes Saved!</h2>
+    <p class="text-gray-500 mb-8">Lead updated successfully. Share the quotation below.</p>
+    <div class="space-y-3">
+      <button onclick="downloadSuccessPDF()" id="btnModalDownload"
+        class="w-full bg-[#A9323D] text-white py-3.5 rounded-lg font-bold hover:bg-red-800 transition flex justify-center items-center gap-2 shadow">
+        <i class="fa-solid fa-file-pdf"></i> Download PDF
+      </button>
+      <button onclick="shareWeblink()" id="btnModalShare"
+        class="w-full bg-blue-600 text-white py-3.5 rounded-lg font-bold hover:bg-blue-700 transition flex justify-center items-center gap-2 shadow">
+        <i class="fa-solid fa-share-nodes"></i> Share Weblink
+      </button>
+      <button onclick="redirectToHome()"
+        class="w-full bg-gray-100 text-gray-800 py-3.5 rounded-lg font-bold hover:bg-gray-200 transition mt-4">
+        Finish &amp; Go Home
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+// ── Initial state from Django ─────────────────────────────────────────────
+let selectedPackageIds   = "{{ selected_package_ids }}".split(',').filter(Boolean);
+let selectedDeliverables = new Map();
+let selectedAddServices  = new Map();
+let allSubServices       = [];
+let globalPDFPayload     = null;
+let globalPDFFileName    = "Quotation_{{ lead.name|escapejs }}.pdf";
+let currentSecureUrl     = "";
+
+// Pre-selected additional services from backend
+const PRE_ADD_SERVICES = {{ selected_add_services|safe }};
+
+// Pre-selected deliverable IDs from backend
+const PRE_DELIV_IDS = "{{ selected_deliverable_ids }}".split(',').filter(Boolean);
+
+fetch('/get-sub-services/').then(r => r.json()).then(d => { allSubServices = d.sub_services; });
+
+// ── Boot: restore pre-selected state ─────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Highlight pre-selected packages
+  selectedPackageIds.forEach(id => {
+    const card = document.getElementById(`pkg-card-${id}`);
+    if (card) {
+      card.classList.remove('border-gray-200', 'bg-white');
+      card.classList.add('border-red-500', 'bg-red-50');
+    }
+  });
+  document.getElementById('packageInput').value = selectedPackageIds.join(',');
+
+  // Restore pre-selected deliverables
+  PRE_DELIV_IDS.forEach(id => {
+    const el = document.querySelector(`.deliverable-option[data-id="${id}"]`);
+    if (el) {
+      selectedDeliverables.set(id, { title: el.dataset.title, price: parseFloat(el.dataset.price) || 0 });
+      el.classList.add('border-blue-500', 'bg-blue-50');
+    }
+  });
+  renderSelectedDeliverables();
+
+  // Restore pre-selected additional services
+  PRE_ADD_SERVICES.forEach(svc => {
+    const card = document.getElementById(`add-svc-${svc.id}`);
+    selectedAddServices.set(svc.id, { title: svc.name, price: svc.price, qty: svc.qty });
+    if (card) {
+      const qtySpan = card.querySelector('.qty-val-1');
+      if (qtySpan) qtySpan.innerText = svc.qty;
+      const btn = card.querySelector('.add-svc-btn');
+      if (btn) {
+        btn.innerHTML = '<i class="fas fa-check"></i> Added';
+        btn.classList.remove('bg-white', 'text-[#903043]');
+        btn.classList.add('bg-[#903043]', 'text-white');
+      }
+    }
+  });
+  syncAddServicesInput();
+  loadPackageDeliverables();
+});
+
+// ── Utilities ──────────────────────────────────────────────────────────────
+function getCookie(name) {
+  let v = null;
+  if (document.cookie) document.cookie.split(';').forEach(c => {
+    c = c.trim();
+    if (c.startsWith(name + '=')) v = decodeURIComponent(c.slice(name.length + 1));
+  });
+  return v;
+}
+
+function syncAddServicesInput() {
+  const data = Array.from(selectedAddServices.entries())
+    .map(([id, d]) => `${d.title}|${d.price}|${d.qty}`);
+  document.getElementById('additionalServicesInput').value = data.join(',');
+}
+
+// ── Additional services ────────────────────────────────────────────────────
+function updateAddSvcQty(id, delta, event) {
+  event.stopPropagation();
+  const card    = document.getElementById(`add-svc-${id}`);
+  const qtySpan = card.querySelector('.qty-val-1');
+  let   qty     = Math.max(1, parseInt(qtySpan.innerText) + delta);
+  qtySpan.innerText = qty;
+  if (selectedAddServices.has(id)) {
+    selectedAddServices.get(id).qty = qty;
+    syncAddServicesInput();
+    updateAddSvcTotals();
+  }
+}
+
+function toggleAddService(id, btn) {
+  const card  = document.getElementById(`add-svc-${id}`);
+  const title = card.dataset.title;
+  const price = parseFloat(card.dataset.price);
+  const qty   = parseInt(card.querySelector('.qty-val-1').innerText);
+
+  if (selectedAddServices.has(id)) {
+    selectedAddServices.delete(id);
+    btn.innerHTML = '<i class="fas fa-plus"></i> Add Service';
+    btn.classList.remove('bg-[#903043]', 'text-white');
+    btn.classList.add('bg-white', 'text-[#903043]');
+  } else {
+    selectedAddServices.set(id, { title, price, qty });
+    btn.innerHTML = '<i class="fas fa-check"></i> Added';
+    btn.classList.remove('bg-white', 'text-[#903043]');
+    btn.classList.add('bg-[#903043]', 'text-white');
+  }
+  updateAddSvcTotals();
+}
+
+function updateAddSvcTotals() {
+  syncAddServicesInput();
+  loadPackageDeliverables();
+}
+
+function openManualServiceModal() {
+  document.getElementById('manualSvcName').value = '';
+  document.getElementById('manualSvcPrice').value = '';
+  document.getElementById('manualServiceModal').classList.remove('hidden');
+}
+function closeManualServiceModal() { document.getElementById('manualServiceModal').classList.add('hidden'); }
+
+function saveManualService() {
+  const name  = document.getElementById('manualSvcName').value.trim();
+  const price = parseFloat(document.getElementById('manualSvcPrice').value) || 0;
+  if (!name) { alert("Please enter a service name"); return; }
+  fetch('/add-additional-service/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({ name, price })
+  }).then(r => r.json()).then(svc => {
+    const list = document.getElementById('additionalServicesList');
+    list.insertAdjacentHTML('beforeend', `
+      <div class="bg-[#FCEDEE] rounded-xl p-5 flex justify-between items-center shadow-sm border border-[#F8E1E4]"
+           id="add-svc-${svc.id}" data-id="${svc.id}" data-title="${svc.name}" data-price="${svc.price}">
+        <div>
+          <h4 class="text-[#903043] font-bold text-[17px] mb-3">${svc.name}</h4>
+          <div class="flex items-center gap-3 text-[#903043] font-bold text-sm">
+            <button type="button" class="hover:scale-125 transition px-1" onclick="updateAddSvcQty('${svc.id}', -1, event)">-</button>
+            <span class="bg-[#903043] text-white px-2.5 py-0.5 rounded shadow-sm qty-val-1">1</span>
+            <button type="button" class="hover:scale-125 transition px-1" onclick="updateAddSvcQty('${svc.id}', 1, event)">+</button>
+          </div>
+        </div>
+        <div class="flex flex-col items-end gap-2.5">
+          <div class="bg-white text-[#903043] font-black py-1.5 px-6 rounded-lg text-[13px] shadow-sm border border-gray-100 min-w-[120px] text-center">
+            ₹ ${parseFloat(svc.price).toLocaleString('en-IN')}
+          </div>
+          <button type="button" onclick="toggleAddService('${svc.id}', this)"
+            class="bg-white border border-[#903043] text-[#903043] font-bold py-1.5 px-4 rounded-lg text-[13px] shadow-sm hover:bg-[#903043] hover:text-white transition flex items-center gap-1.5 add-svc-btn min-w-[120px] justify-center">
+            <i class="fas fa-plus"></i> Add Service
+          </button>
+        </div>
+      </div>`);
+    closeManualServiceModal();
+    toggleAddService(svc.id, document.querySelector(`#add-svc-${svc.id} .add-svc-btn`));
+  });
+}
+
+// ── Deliverables ───────────────────────────────────────────────────────────
+function openDeliverablesModal()  { document.getElementById('deliverablesModal').classList.remove('hidden'); }
+function closeDeliverablesModal() { document.getElementById('deliverablesModal').classList.add('hidden'); renderSelectedDeliverables(); }
+
+function toggleDeliverable(el) {
+  const id = el.dataset.id;
+  if (selectedDeliverables.has(id)) {
+    selectedDeliverables.delete(id);
+    el.classList.remove('border-blue-500', 'bg-blue-50');
+  } else {
+    selectedDeliverables.set(id, { title: el.dataset.title, price: parseFloat(el.dataset.price) || 0 });
+    el.classList.add('border-blue-500', 'bg-blue-50');
+  }
+}
+
+function renderSelectedDeliverables() {
+  const container   = document.getElementById('selectedDeliverablesContainer');
+  const hiddenInput = document.getElementById('deliverablesInput');
+  if (selectedDeliverables.size === 0) {
+    container.innerHTML = '<span class="text-sm text-gray-400 italic">No deliverables selected.</span>';
+    hiddenInput.value = '';
+    loadPackageDeliverables();
+    return;
+  }
+  let html = '', ids = [];
+  selectedDeliverables.forEach((data, id) => {
+    ids.push(id);
+    html += `<span class="bg-blue-50 border border-blue-200 text-blue-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2">
+      ${data.title} <button type="button" onclick="removeSelectedDeliverable('${id}')" class="text-blue-400 hover:text-blue-700">&times;</button>
+    </span>`;
+  });
+  container.innerHTML = html;
+  hiddenInput.value   = ids.join(',');
+  loadPackageDeliverables();
+}
+
+function removeSelectedDeliverable(id) {
+  selectedDeliverables.delete(id);
+  const el = document.querySelector(`.deliverable-option[data-id="${id}"]`);
+  if (el) el.classList.remove('border-blue-500', 'bg-blue-50');
+  renderSelectedDeliverables();
+}
+
+function saveNewGlobalDeliverable(btn) {
+  const title = document.getElementById('newDelivTitle').value.trim();
+  const price = parseFloat(document.getElementById('newDelivPrice').value) || 0;
+  if (!title) { alert("Title is required"); return; }
+  btn.innerHTML = "Saving..."; btn.disabled = true;
+  fetch('/add-deliverable-quick/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({ title, price })
+  }).then(r => r.json()).then(d => {
+    const list  = document.getElementById('deliverablesListContainer');
+    const newEl = document.createElement('div');
+    newEl.className = "flex items-center justify-between p-3 border rounded-lg hover:bg-blue-50 cursor-pointer transition deliverable-option";
+    newEl.dataset.id = d.id; newEl.dataset.title = d.title; newEl.dataset.price = d.price;
+    newEl.onclick = function() { toggleDeliverable(this); };
+    newEl.innerHTML = `<p class="font-bold text-sm text-gray-800">${d.title}</p><p class="text-xs text-gray-500">₹ ${d.price}</p>`;
+    list.appendChild(newEl);
+    document.getElementById('newDelivTitle').value = '';
+    document.getElementById('newDelivPrice').value = '';
+    toggleDeliverable(newEl);
+    btn.innerHTML = "Save & Add"; btn.disabled = false;
+  });
+}
+
+// ── Package selection ──────────────────────────────────────────────────────
+function selectPackage(packageId, cardElement) {
+  const id    = packageId.toString();
+  const index = selectedPackageIds.indexOf(id);
+  if (index > -1) {
+    selectedPackageIds.splice(index, 1);
+    cardElement.classList.remove('border-red-500', 'bg-red-50');
+    cardElement.classList.add('border-gray-200', 'bg-white');
+  } else {
+    selectedPackageIds.push(id);
+    cardElement.classList.remove('border-gray-200', 'bg-white');
+    cardElement.classList.add('border-red-500', 'bg-red-50');
+  }
+  document.getElementById('packageInput').value = selectedPackageIds.join(',');
+  loadPackageDeliverables();
+}
+
+// ── Package editor (identical to create_lead) ─────────────────────────────
+function buildSubServiceDropdown() {
+  let html = `<select class="border border-gray-300 p-2 rounded w-full text-xs font-medium outline-none mt-2 sub-service-select" onchange="handleSubServiceSelect(this)">
+    <option value="" disabled selected>+ Add Included Service...</option>`;
+  allSubServices.forEach(p => {
+    html += `<option value="${p.id}" data-price="${p.price}" data-name="${p.name}">${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}</option>`;
+  });
+  html += `<option value="__new__">➕ Create New Included Service...</option></select>
+  <div class="new-sub-service-form hidden mt-2 p-2 bg-blue-50 border border-blue-200 rounded space-y-1">
+    <input type="text"   placeholder="Service Name" class="new-sub-service-name border p-1.5 rounded w-full text-xs">
+    <input type="number" placeholder="Price ₹"       class="new-sub-service-price border p-1.5 rounded w-full text-xs">
+    <button type="button" onclick="saveNewSubService(this)" class="bg-blue-600 text-white text-xs px-3 py-1 rounded hover:bg-blue-700">Save & Add</button>
+    <button type="button" onclick="this.closest('.new-sub-service-form').classList.add('hidden')" class="text-xs text-gray-500 ml-2">Cancel</button>
+  </div>`;
+  return html;
+}
+
+function addServiceRow() {
+  document.getElementById("serviceTable").insertAdjacentHTML("beforeend", `
+  <tr>
+    <td class="p-2 border align-top"><input type="text" class="service border p-2 w-full rounded text-sm" placeholder="e.g. Wedding Event"></td>
+    <td class="p-2 border sub-service-cell align-top min-w-[200px]">
+      <div class="sub-service-list flex flex-col gap-1.5 mb-1"></div>
+      <div class="sub-service-subtotal text-[10px] text-blue-700 font-bold mb-1"></div>
+      ${buildSubServiceDropdown()}
+    </td>
+    <td class="p-2 border align-top"><input type="number" class="qty border p-2 w-16 text-center rounded" value="1" oninput="calculateSubtotal(this)"></td>
+    <td class="p-2 border align-top"><input type="number" class="cost border p-2 w-24 rounded bg-gray-100 text-gray-600 outline-none cursor-not-allowed font-bold" value="0" readonly></td>
+    <td class="p-2 border subtotal text-center align-top font-bold pt-4 text-[#A9323D]">₹0</td>
+    <td class="p-2 border align-top pt-3 text-center"><button type="button" onclick="removeRow(this)" class="text-red-600 font-bold hover:scale-125 transition">&times;</button></td>
+  </tr>`);
+}
+
+function handleSubServiceSelect(selectEl) {
+  const val = selectEl.value;
+  if (val === '__new__') { selectEl.value = ''; selectEl.closest('.sub-service-cell').querySelector('.new-sub-service-form').classList.remove('hidden'); return; }
+  if (!val) return;
+  const opt  = selectEl.options[selectEl.selectedIndex];
+  const cell = selectEl.closest('.sub-service-cell');
+  const list = cell.querySelector('.sub-service-list');
+  if (list.querySelector(`[data-id="${opt.value}"]`)) { selectEl.value = ''; return; }
+  list.insertAdjacentHTML('beforeend', `
+    <div class="sub-service-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${opt.value}" data-price="${opt.dataset.price}">
+      <span class="font-semibold text-blue-800">${opt.dataset.name}</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-blue-600 font-bold">₹${parseFloat(opt.dataset.price).toLocaleString('en-IN')}</span>
+        <button type="button" onclick="removeSubService(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+      </div>
+    </div>`);
+  selectEl.value = ''; recalculateRowCost(selectEl.closest('tr'));
+}
+
+function saveNewSubService(btn) {
+  const form  = btn.closest('.new-sub-service-form');
+  const name  = form.querySelector('.new-sub-service-name').value.trim();
+  const price = parseFloat(form.querySelector('.new-sub-service-price').value) || 0;
+  if (!name) { alert('Name required'); return; }
+  fetch('/add-sub-service/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body: JSON.stringify({ name, price })
+  }).then(r => r.json()).then(p => {
+    allSubServices.push(p);
+    document.querySelectorAll('.sub-service-select').forEach(sel => {
+      const o = document.createElement('option');
+      o.value = p.id; o.dataset.price = p.price; o.dataset.name = p.name;
+      o.text  = `${p.name} — ₹${parseFloat(p.price).toLocaleString('en-IN')}`;
+      sel.insertBefore(o, sel.querySelector('[value="__new__"]'));
+    });
+    btn.closest('.sub-service-cell').querySelector('.sub-service-list').insertAdjacentHTML('beforeend', `
+      <div class="sub-service-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${p.id}" data-price="${p.price}">
+        <span class="font-semibold text-blue-800">${p.name}</span>
+        <div class="flex items-center gap-1.5">
+          <span class="text-blue-600 font-bold">₹${parseFloat(p.price).toLocaleString('en-IN')}</span>
+          <button type="button" onclick="removeSubService(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+        </div>
+      </div>`);
+    form.classList.add('hidden');
+    form.querySelector('.new-sub-service-name').value = '';
+    form.querySelector('.new-sub-service-price').value = '';
+    recalculateRowCost(btn.closest('tr'));
+  });
+}
+
+function removeSubService(btn) { const r = btn.closest('tr'); btn.closest('.sub-service-item').remove(); recalculateRowCost(r); }
+
+function recalculateRowCost(row) {
+  let subs = 0; row.querySelectorAll('.sub-service-item').forEach(i => subs += parseFloat(i.dataset.price) || 0);
+  row.querySelector('.cost').value = subs.toFixed(2);
+  const ps = row.querySelector('.sub-service-subtotal');
+  if (ps) ps.textContent = subs > 0 ? `Included: ₹${subs.toLocaleString('en-IN')}` : '';
+  calculateSubtotal(row.querySelector('.cost'));
+}
+
+function calculateSubtotal(input) {
+  const row  = input.closest("tr");
+  const qty  = parseFloat(row.querySelector(".qty").value)  || 0;
+  const cost = parseFloat(row.querySelector(".cost").value) || 0;
+  row.querySelector(".subtotal").innerText = "₹" + (qty * cost).toLocaleString('en-IN');
+  updateGrandTotal();
+}
+
+function updateGrandTotal() {
+  let g = 0; document.querySelectorAll(".subtotal").forEach(c => g += Number(c.innerText.replace(/[₹,]/g,"")));
+  document.getElementById("grandTotal").innerText = "Service Total Cost: ₹ " + g.toLocaleString('en-IN');
+}
+
+function removeRow(btn) { btn.closest("tr").remove(); updateGrandTotal(); }
+
+function openModal() {
+  document.getElementById("packageIdModalInput").value = "";
+  document.getElementById("packageNameInput").value    = "";
+  document.getElementById("serviceTable").innerHTML    = "";
+  document.getElementById("grandTotal").innerText      = "Service Total Cost: ₹ 0";
+  document.getElementById("packageModal").classList.remove("hidden");
+}
+function openModalForEdit() { document.getElementById("packageModal").classList.remove("hidden"); }
+function closeModal()       { document.getElementById("packageModal").classList.add("hidden"); }
+
+function saveServices() {
+  const packageId   = document.getElementById("packageIdModalInput").value || null;
+  const packageName = document.getElementById("packageNameInput").value.trim();
+  if (!packageName) { alert("Package Name required"); return; }
+  const services = [];
+  document.querySelectorAll("#serviceTable tr").forEach(row => {
+    const svc = row.querySelector(".service");
+    if (!svc || !svc.value.trim()) return;
+    services.push({
+      service_name:    svc.value.trim(),
+      sub_service_ids: Array.from(row.querySelectorAll(".sub-service-item")).map(i => parseInt(i.dataset.id)),
+      qty:             row.querySelector(".qty").value,
+      cost:            row.querySelector(".cost").value,
+    });
+  });
+  fetch("/save-package/", {
+    method:  "POST",
+    headers: { "Content-Type": "application/json", "X-CSRFToken": getCookie("csrftoken") },
+    body:    JSON.stringify({ package_id: packageId, package_name: packageName, services })
+  }).then(r => r.json()).then(d => { if (d.status === "success") location.reload(); else alert("Error saving package"); });
+}
+
+function deletePackage(id, btn) {
+  if (!confirm("Delete this package?")) return;
+  fetch(`/delete-package/${id}/`, {
+    method:  'POST',
+    headers: { 'X-CSRFToken': getCookie('csrftoken') }
+  }).then(r => r.json()).then(d => {
+    if (d.status === 'success') {
+      const card = document.getElementById(`pkg-card-${id}`);
+      if (card) card.remove();
+      selectedPackageIds = selectedPackageIds.filter(x => x !== String(id));
+      document.getElementById('packageInput').value = selectedPackageIds.join(',');
+    }
+  });
+}
+
+function editPackage(id) {
+  fetch(`/get-package/?ids=${id}`).then(r => r.json()).then(data => {
+    document.getElementById("packageIdModalInput").value = id;
+    document.getElementById("packageNameInput").value    = data.name;
+    document.getElementById("serviceTable").innerHTML    = "";
+    const pkgsArray = Array.isArray(data) ? data : (data.packages || [data]);
+    pkgsArray.forEach(pkg => {
+      (pkg.services || []).forEach(s => {
+        addServiceRow();
+        const row  = document.getElementById("serviceTable").lastElementChild;
+        row.querySelector(".service").value = s.service_name || s.name;
+        row.querySelector(".qty").value     = s.qty;
+        (s.sub_services || []).forEach(p => {
+          row.querySelector(".sub-service-list").insertAdjacentHTML('beforeend', `
+            <div class="sub-service-item flex justify-between items-center bg-blue-50 border border-blue-200 p-1.5 rounded text-xs" data-id="${p.id||0}" data-price="${parseFloat(p.price||0)}">
+              <span class="font-semibold text-blue-800">${p.name||p.title||p}</span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-blue-600 font-bold">₹${parseFloat(p.price||0).toLocaleString('en-IN')}</span>
+                <button type="button" onclick="removeSubService(this)" class="text-red-500 hover:bg-red-500 hover:text-white rounded-full w-4 h-4 flex items-center justify-center transition">&times;</button>
+              </div>
+            </div>`);
+        });
+        recalculateRowCost(row);
+      });
+    });
+    openModalForEdit();
+  });
+}
+
+// ── Quotation preview ──────────────────────────────────────────────────────
+function loadPackageDeliverables() {
+  let delivTotal     = 0; selectedDeliverables.forEach(d => delivTotal += d.price);
+  let additionalTotal = 0; selectedAddServices.forEach(d => additionalTotal += d.price * d.qty);
+  let subtotal       = delivTotal + additionalTotal;
+  const quoteList    = document.getElementById("quoteServicesList");
+
+  const renderItems = pkgHtml => {
+    quoteList.innerHTML = pkgHtml;
+    if (selectedDeliverables.size > 0) {
+      quoteList.insertAdjacentHTML("beforeend", `
+        <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 mt-4">
+          <div class="col-span-5"><p class="font-bold text-[14px] text-gray-900">Deliverables</p></div>
+          <div class="col-span-3"><ul class="text-[12px] ml-1 mt-1.5 leading-relaxed text-gray-600 list-disc list-inside">${Array.from(selectedDeliverables.values()).map(d => `<li>${d.title}</li>`).join('')}</ul></div>
+          <div class="col-span-1 text-center"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">1</div></div>
+          <div class="col-span-3 text-right"><div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${delivTotal.toLocaleString('en-IN')}</div></div>
+        </div>`);
+    }
+    selectedAddServices.forEach(data => {
+      const sTotal = data.price * data.qty;
+      quoteList.insertAdjacentHTML("beforeend", `
+        <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 mt-4">
+          <div class="col-span-5"><p class="font-bold text-[14px] text-gray-900">${data.title} (Additional)</p></div>
+          <div class="col-span-3"><span class="text-gray-400 text-xs italic">-</span></div>
+          <div class="col-span-1 text-center"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${data.qty}</div></div>
+          <div class="col-span-3 text-right"><div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${sTotal.toLocaleString('en-IN')}</div></div>
+        </div>`);
+    });
+    const fmt = subtotal.toLocaleString('en-IN');
+    document.getElementById("subTotal").innerText      = `₹ ${fmt}`;
+    document.getElementById("totalAmount").innerText   = `₹ ${fmt}`;
+    document.getElementById("quoteSubtotal").innerText = `₹ ${fmt}`;
+    document.getElementById("quoteTotal").innerText    = `₹ ${fmt}`;
+  };
+
+  if (selectedPackageIds.length > 0) {
+    Promise.all(selectedPackageIds.map(id => fetch(`/get-package/?ids=${id}`).then(r => r.json())))
+    .then(results => {
+      let pkgHtml = '';
+      results.forEach(data => {
+        const pkgsArray = Array.isArray(data) ? data : (data.packages || [data]);
+        pkgsArray.forEach(pkg => {
+          (pkg.services || []).forEach(svc => {
+            const sTotal = parseFloat(svc.qty) * (parseFloat(svc.cost) || parseFloat(svc.price) || 0);
+            subtotal += sTotal;
+            const subs  = svc.sub_services || [];
+            const subHtml = subs.length
+              ? subs.map(p => `<div class="bg-blue-50 text-blue-700 px-2 py-1 rounded text-[10px] inline-block mr-1 mb-1 font-bold">${p.name||p}</div>`).join('')
+              : '<span class="text-gray-400 text-xs italic">-</span>';
+            pkgHtml += `
+              <div class="grid grid-cols-12 gap-4 items-start border-b border-gray-100 pb-5 mt-4">
+                <div class="col-span-5"><p class="font-bold text-[14px] text-gray-900">${svc.service_name||svc.name}</p></div>
+                <div class="col-span-3"><div class="flex flex-wrap">${subHtml}</div></div>
+                <div class="col-span-1 text-center"><div class="bg-white border rounded text-gray-800 py-1.5 px-2 shadow-sm inline-block font-medium min-w-[2.5rem] text-xs">${svc.qty}</div></div>
+                <div class="col-span-3 text-right"><div class="font-bold text-[15px] text-gray-900 mt-1">₹ ${sTotal.toLocaleString('en-IN')}</div></div>
+              </div>`;
+          });
+        });
+      });
+      renderItems(pkgHtml);
+    });
+  } else { renderItems(''); }
+}
+
+function openQuotationModal() {
+  if (selectedPackageIds.length === 0 && selectedDeliverables.size === 0 && selectedAddServices.size === 0) {
+    alert("Please select items for the quotation."); return;
+  }
+  const name    = document.getElementById('clientNameInput').value   || 'Client Name';
+  const project = document.getElementById('projectNameInput').value  || '';
+  document.getElementById('quoteClientName').innerText  = project ? `${name} - ${project}` : name;
+  document.getElementById('quoteClientEmail').innerText = document.getElementById('clientEmailInput').value || 'No email provided';
+  document.getElementById('quoteInitials').innerText    = name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+  document.getElementById('quotationModal').classList.remove('hidden');
+  document.getElementById('quotationModal').classList.add('flex');
+  document.body.style.overflow = 'hidden';
+}
+function closeQuotationModal() {
+  document.getElementById('quotationModal').classList.add('hidden');
+  document.getElementById('quotationModal').classList.remove('flex');
+  document.body.style.overflow = 'auto';
+}
+
+// ── Form submit ────────────────────────────────────────────────────────────
+function handleFormSubmit(event) {
+  event.preventDefault();
+  const form      = event.target;
+  const submitBtn = document.getElementById('btnSubmitMain');
+  const origText  = submitBtn.innerHTML;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…';
+  submitBtn.disabled  = true;
+
+  const pkgPromises = selectedPackageIds.length > 0
+    ? selectedPackageIds.map(id => fetch(`/get-package/?ids=${id}`).then(r => r.json()))
+    : [];
+
+  Promise.all(pkgPromises).then(pkgResults => {
+    let subtotal = 0;
+    const clientName  = document.getElementById('clientNameInput').value  || 'Client';
+    const projectName = document.getElementById('projectNameInput').value || '';
+    const email       = document.getElementById('clientEmailInput').value || '';
+
+    const payload = {
+      show_bill_to:      true,
+      display_name:      projectName ? `${clientName} - ${projectName}` : clientName,
+      initials:          clientName.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() || '--',
+      email:             email || 'No email provided',
+      packages:          [],
+      single_packages:   [],
+      deliverables:      [],
+      additional_services: [],
+    };
+
+    pkgResults.forEach(data => {
+      const pkgsArray = Array.isArray(data) ? data : (data.packages || [data]);
+      pkgsArray.forEach(pkg => {
+        const services = pkg.services || [];
+        if (!services.length) return;
+        const isSingle = services.length <= 1;
+        const pkgObj   = { name: pkg.name || pkg.package_name || "Package", services: [] };
+        services.forEach(svc => {
+          const qty  = parseFloat(svc.qty)  || 1;
+          const cost = parseFloat(svc.cost) || parseFloat(svc.price) || 0;
+          subtotal  += qty * cost;
+          pkgObj.services.push({
+            name:  svc.service_name || svc.name,
+            items: (svc.sub_services || []).map(p => {
+              const n = p.name || p.title || p;
+              return String(n).startsWith("1 ") ? n : `1 ${n}`;
+            }),
+          });
+        });
+        if (isSingle) payload.single_packages.push(pkgObj);
+        else          payload.packages.push(pkgObj);
+      });
+    });
+
+    selectedDeliverables.forEach(d  => { subtotal += d.price; payload.deliverables.push(d.title); });
+    selectedAddServices.forEach(d   => {
+      const sTotal = d.price * d.qty;
+      subtotal    += sTotal;
+      payload.additional_services.push({ name: d.title, qty: d.qty, total_price: sTotal.toLocaleString('en-IN') });
+    });
+
+    payload.grand_total = subtotal.toLocaleString('en-IN');
+    globalPDFPayload    = payload;
+    globalPDFFileName   = `Quotation_${clientName.replace(/\s+/g,'_')}.pdf`;
+
+    fetch(window.location.href, {
+      method:  'POST',
+      body:    new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': getCookie('csrftoken') }
+    })
+    .then(r => { if (!r.ok) throw new Error('Network error'); return r.json(); })
+    .then(data => {
+      if (data.success) {
+        currentSecureUrl = window.location.origin + "/quotation/view/" + data.secure_token + "/";
+        document.getElementById('leadSuccessModal').classList.remove('hidden');
+      } else throw new Error("Server reported failure");
+    })
+    .catch(err => {
+      alert("Error: " + err.message);
+      submitBtn.disabled  = false;
+      submitBtn.innerHTML = origText;
+    });
+  });
+}
+
+// ── Share / Download ────────────────────────────────────────────────────────
+function shareWeblink() {
+  if (navigator.share) {
+    navigator.share({ title: 'Project Quotation', url: currentSecureUrl });
+  } else {
+    navigator.clipboard.writeText(currentSecureUrl).then(() => {
+      const btn = document.getElementById('btnModalShare');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-clipboard-check"></i> Link Copied!';
+      setTimeout(() => btn.innerHTML = orig, 2000);
+    });
+  }
+}
+
+function downloadSuccessPDF() {
+  const btn  = document.getElementById('btnModalDownload');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating…';
+  btn.disabled  = true;
+  fetch('/generate-pdf/', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+    body:    JSON.stringify(globalPDFPayload)
+  })
+  .then(r => r.blob())
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a   = document.createElement('a');
+    a.href = url; a.download = globalPDFFileName;
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Downloaded';
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 2000);
+  });
+}
+
+function redirectToHome() { window.location.href = "{% url 'home' %}"; }
+</script>
+{% endblock %}

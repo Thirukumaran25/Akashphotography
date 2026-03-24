@@ -1,234 +1,788 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quotation | {{ lead.project.project_name|default:lead.name }}</title>
-    <style>
-        /* 🌟 Web Page Background 🌟 */
-        body { 
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; 
-            color: #333; 
-            background-color: #f3f4f6; /* Gray background for web view */
-            margin: 0; 
-            padding: 40px 20px; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quotation — {{ lead.name }} | AR Akash Photography</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --mauve:    #a32e37;
+  --mauve-dk: #a32e37;
+  --mauve-lt: #f3e6ec;
+  --blush:    #f8ede8;
+  --cream:    #fdf7f4;
+  --ink:      #2c1a22;
+  --muted:    #a32e37;
+  --gold:     #c9a46e;
+  --white:    #ffffff;
+  --border:   rgba(125,63,90,0.18);
+}
 
-        /* 🌟 Paper Container 🌟 */
-        .web-document {
-            max-width: 850px;
-            margin: 0 auto;
-            background-color: #FCFAF7;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            border-radius: 8px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .serif { font-family: "Times New Roman", Times, serif; }
-        .text-maroon { color: #903043; }
-        .bg-maroon { background-color: #903043; color: white; }
-        
-        .content-wrapper { padding: 40px 50px; }
-        
-        /* 🌟 Perfect Grid System 🌟 */
-        .service-grid {
-            width: 100%;
-            font-size: 0; /* Fixes inline-block whitespace bugs */
-        }
-        .service-grid > * {
-            font-size: 14px; /* Restores font size */
-        }
-        
-        /* 3-Column Inner Cards (Reception, Wedding) */
-        .multi-service-card {
-            display: inline-block; width: 32%; margin-right: 2%; margin-bottom: 15px;
-            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px;
-            background: white; box-sizing: border-box; vertical-align: top;
-        }
-        .multi-service-card:nth-child(3n) { margin-right: 0; }
-        
-        /* 4-Column Single Event Cards (Engagement, Haldi) */
-        .single-pkg-card {
-            display: inline-block; width: 23.5%; margin-right: 2%; margin-bottom: 20px;
-            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px;
-            background: white; box-sizing: border-box; vertical-align: top;
-        }
-        .single-pkg-card:nth-child(4n) { margin-right: 0; }
-        
-        /* 3-Column Deliverables */
-        .deliv-card {
-            display: inline-block; width: 32%; margin-right: 2%; margin-bottom: 15px;
-            border: 1px solid #EAEAEA; border-radius: 8px; padding: 15px 20px;
-            background: white; box-sizing: border-box; vertical-align: top;
-        }
-        .deliv-card:nth-child(3n) { margin-right: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Jost', sans-serif;
+  background: var(--cream);
+  color: var(--ink);
+  font-weight: 300;
+  line-height: 1.7;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+h1,h2,h3,h4 { font-family: 'Cormorant Garamond', serif; font-weight: 400; }
 
-        .layout-table { display: table; width: 100%; box-sizing: border-box; }
-        .layout-cell { display: table-cell; vertical-align: middle; }
-        
-        .radio-circle {
-            display: inline-block; width: 16px; height: 16px;
-            border: 2px solid #EAEAEA; border-radius: 50%; vertical-align: middle;
-        }
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; }
+  .section { page-break-inside: avoid; }
+  .topbar, .download-fab { display: none !important; }
+  .hero { height: 60vh; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 
-        /* 🌟 Mobile Responsiveness for Client Phones 🌟 */
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .content-wrapper { padding: 20px 25px; }
-            .multi-service-card, .single-pkg-card, .deliv-card {
-                width: 100% !important; margin-right: 0 !important;
-            }
-            .layout-cell { display: block; width: 100% !important; text-align: left !important; }
-            .header-cell { text-align: center !important; margin-bottom: 15px; }
-            .payment-banner { font-size: 24px !important; padding: 25px 15px !important; }
-            .payment-banner div { font-size: 24px !important; padding: 10px 20px !important; }
-        }
-    </style>
+  /* ── WEASYPRINT GRID CRASH FIX ── */
+  /* Convert all grids to flexbox strictly for the PDF generator */
+  .story, .editorial, .editorial-images, .video-grid, .events-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 20px !important;
+    display: -webkit-flex !important;
+  }
+  .story-image, .story-text, .editorial-images, .editorial-text {
+    flex: 1 1 45% !important;
+    width: 48% !important;
+  }
+  .event-card {
+    flex: 1 1 45% !important;
+    width: 45% !important;
+    margin-bottom: 20px;
+  }
+  .video-item {
+    flex: 1 1 100% !important;
+    width: 100% !important;
+    margin-bottom: 20px;
+  }
+  .gallery-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: space-around !important;
+  }
+  .gallery-item {
+    /* Remove vertical staggers so Weasyprint calculates height properly */
+    transform: none !important; 
+    flex: 0 0 18% !important;
+    margin-bottom: 20px;
+  }
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  background: var(--mauve);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 40px; height: 56px;
+}
+.topbar-nav { display: flex; gap: 32px; }
+.topbar-nav a {
+  color: rgba(255,255,255,0.85); text-decoration: none;
+  font-size: 13px; letter-spacing: 1.5px; text-transform: uppercase;
+  font-weight: 400; transition: color 0.2s;
+}
+.topbar-nav a:hover { color: white; }
+.topbar-logo {
+  font-family: 'Cormorant Garamond', serif;
+  color: white; font-size: 18px; letter-spacing: 3px; text-transform: uppercase;
+}
+.topbar-price {
+  color: rgba(255,255,255,0.9); font-size: 14px; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 10px;
+}
+.topbar-price .price-val { font-weight: 500; font-size: 15px; }
+
+/* ── HERO ── */
+.hero {
+  position: relative; height: 100vh; min-height: 600px;
+  overflow: hidden; display: flex; align-items: center;
+  justify-content: center; text-align: center;
+}
+.hero-bg { position: absolute; inset: 0; background: linear-gradient(160deg, #2c1a22 0%, #5a2d42 60%, #7d3f5a 100%); }
+.hero-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.55; display: block; }
+.hero-bg video { width: 100%; height: 100%; object-fit: cover; opacity: 0.45; display: block; }
+.hero-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(44,26,34,0.3) 0%, rgba(44,26,34,0.15) 50%, rgba(44,26,34,0.5) 100%);
+}
+.hero-content { position: relative; z-index: 2; color: white; max-width: 700px; padding: 0 20px; }
+.hero-brand { display: flex; flex-direction: column; align-items: center; margin-bottom: 28px; }
+.hero-brand-logo { width: 64px; height: 64px; margin-bottom: 10px; opacity: 0.9; }
+.hero-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 13px; letter-spacing: 6px; text-transform: uppercase; opacity: 0.8; }
+.hero-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(32px, 5vw, 52px); font-weight: 400; line-height: 1.2; margin-bottom: 14px; }
+.hero-subtitle { font-size: 13px; letter-spacing: 2px; opacity: 0.7; font-style: italic; }
+
+/* ── WELCOME ── */
+.welcome { background: var(--blush); padding: 90px 40px; text-align: center; }
+.welcome h2 { font-size: clamp(28px, 4vw, 42px); color: var(--mauve-dk); margin-bottom: 28px; }
+.welcome p { max-width: 660px; margin: 0 auto 36px; font-size: 14.5px; color: var(--muted); line-height: 1.9; }
+.welcome-btn {
+  display: inline-block; border: 1px solid var(--mauve); color: var(--mauve);
+  padding: 12px 36px; font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  text-decoration: none; transition: all 0.25s; cursor: pointer;
+  background: transparent; font-family: 'Jost', sans-serif;
+}
+.welcome-btn:hover { background: var(--mauve); color: white; }
+
+/* ── STORY ── */
+.story-wrap { background: var(--cream); padding: 80px 40px; }
+.story {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0;
+  max-width: 1200px; margin: 0 auto; align-items: center;
+}
+.story-image { position: relative; padding-right: 30px; }
+.story-image img { width: 100%; height: 480px; object-fit: cover; display: block; margin-left: 100px; }
+.story-text {
+  background: var(--mauve); color: rgba(255,255,255,0.9);
+  padding: 30px 120px; margin-top: 100px;
+}
+.story-text h2 { font-size: 25px; color: white; margin-bottom: 24px; font-weight: 400; text-align: left; }
+.story-text p { font-size: 12px; line-height: 1.9; opacity: 0.85; margin-bottom: 16px; text-align: left; }
+.story-text p:last-child { margin-bottom: 0; }
+
+/* ── SIGNATURE GALLERY ── */
+.gallery-section { background: var(--blush); padding: 80px 40px; text-align: center; }
+.gallery-section h2 { font-size: clamp(28px, 4vw, 40px); color: var(--mauve-dk); margin-bottom: 52px; }
+.gallery-grid {
+  display: flex; gap: 16px; justify-content: center; align-items: flex-start;
+  overflow-x: auto; padding-bottom: 8px; padding-top: 40px;
+}
+.gallery-item { flex: 0 0 auto; text-align: center; }
+.gallery-item:nth-child(1) { transform: translateY(60px); }
+.gallery-item:nth-child(2) { transform: translateY(20px); }
+.gallery-item:nth-child(3) { transform: translateY(-40px); }
+.gallery-item:nth-child(4) { transform: translateY(20px); }
+.gallery-item:nth-child(5) { transform: translateY(60px); }
+.gallery-img { width: 200px; height: 280px; object-fit: cover; display: block; }
+.gallery-item:nth-child(3) .gallery-img { height: 480px; width: 280px; }
+.gallery-img-placeholder {
+  width: 200px; height: 280px;
+  background: linear-gradient(160deg, var(--mauve-lt), rgba(125,63,90,0.15));
+  display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 11px; letter-spacing: 1px;
+}
+.gallery-item h4 { font-family: 'Cormorant Garamond', serif; font-size: 14px; color: var(--mauve-dk); margin-top: 12px; font-weight: 500; }
+.gallery-item small { display: block; font-size: 10px; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
+
+/* ── VIDEO SECTION ── */
+.video-section { background: var(--cream); padding: 80px 40px; text-align: center; margin-bottom: 50px; }
+.video-section h2 { font-size: clamp(28px, 4vw, 42px); color: black; margin-bottom: 10px; }
+.video-subtitle { font-size: 13px; color: var(--muted); letter-spacing: 2px; font-style: italic; margin-bottom: 48px; }
+.video-grid {
+  display: grid; grid-template-columns: 1.6fr 1fr; grid-template-rows: auto auto;
+  gap: 12px; max-width: 1000px; margin: 0 auto;
+}
+.video-item--large { grid-row: 1 / 3; }
+.video-item { position: relative; overflow: hidden; cursor: pointer; }
+.video-item video, .video-item img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  min-height: 220px; transition: transform 0.5s ease;
+}
+.video-item--large video, .video-item--large img { min-height: 460px; }
+.video-item:hover video, .video-item:hover img { transform: scale(1.04); }
+.video-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(44,26,34,0.75) 0%, rgba(44,26,34,0.1) 50%, transparent 100%);
+  display: flex; align-items: flex-end; padding: 20px; transition: background 0.3s;
+}
+.video-item:hover .video-overlay { background: linear-gradient(to top, rgba(44,26,34,0.5) 0%, transparent 100%); }
+.video-label { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: white; letter-spacing: 2px; font-weight: 400; }
+
+/* ── DEAR CLIENT ── */
+.dear-client { background: var(--mauve); padding: 60px 40px; text-align: center; color: white; }
+.dear-client .small-label { font-style: italic; font-family: 'Cormorant Garamond', serif; font-size: 16px; opacity: 0.7; margin-bottom: 8px; }
+.dear-client h2 { font-size: clamp(32px, 5vw, 52px); color: white; font-weight: 400; letter-spacing: 1px; }
+.dear-client p { margin-top: 14px; font-size: 14px; opacity: 0.75; letter-spacing: 1px; }
+
+/* ── PAYMENT PRICE ── */
+.payment-price { background: var(--mauve-dk); padding: 70px 40px; text-align: center; color: white; }
+.payment-price h2 { font-size: 36px; color: white; margin-bottom: 10px; }
+.payment-price .subtitle { font-size: 13px; opacity: 0.65; letter-spacing: 1px; margin-bottom: 20px; }
+.price-display { font-family: 'Cormorant Garamond', serif; font-size: clamp(36px, 6vw, 56px); font-weight: 400; color: rgba(255,255,255,0.95); letter-spacing: 1px; }
+.price-breakdown {
+  margin-top: 20px; display: inline-flex; flex-direction: column;
+  gap: 6px; text-align: left; background: rgba(255,255,255,0.07);
+  padding: 18px 28px; border-radius: 4px; min-width: 260px;
+}
+.price-row { display: flex; justify-content: space-between; gap: 40px; font-size: 13px; opacity: 0.8; }
+.price-row.total-row { border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px; margin-top: 4px; opacity: 1; font-weight: 500; }
+
+/* ── EVENTS ── */
+.events-section { background: var(--blush); padding: 80px 40px; text-align: center; }
+.events-section h2 { font-size: clamp(28px, 4vw, 40px); color: var(--mauve-dk); margin-bottom: 48px; }
+.events-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; max-width: 960px; margin: 0 auto; text-align: left; }
+.event-card { background: rgba(255,255,255,0.7); border: 1px solid var(--border); padding: 32px 28px; border-radius: 4px; }
+.event-card h3 { font-size: 22px; color: var(--mauve-dk); margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.event-card ul { list-style: none; }
+.event-card li { font-size: 13.5px; color: var(--muted); padding: 5px 0; display: flex; gap: 10px; align-items: center; }
+.event-card li::before { content: ''; width: 4px; height: 4px; background: var(--mauve); border-radius: 50%; flex-shrink: 0; }
+
+/* ── DELIVERABLES ── */
+.deliverables-section { background: var(--cream); padding: 80px 40px; text-align: center; }
+.deliverables-section h2 { font-size: clamp(28px, 4vw, 40px); color: var(--mauve-dk); margin-bottom: 40px; }
+.deliverables-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.deliverable-item {
+  background: rgba(255,255,255,0.8); border: 1px solid var(--border);
+  padding: 18px 28px; border-radius: 4px; text-align: left;
+  font-size: 14px; color: var(--muted);
+  display: flex; align-items: center; gap: 14px;
+}
+.deliverable-item::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--mauve); flex-shrink: 0; }
+
+/* ── ADDITIONAL SERVICES ── */
+.addl-section { background: var(--blush); padding: 80px 40px; text-align: center; }
+.addl-section h2 { font-size: clamp(28px, 4vw, 40px); color: var(--mauve-dk); margin-bottom: 40px; }
+.addl-list { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+.addl-item { background: rgba(255,255,255,0.7); border: 1px solid var(--border); padding: 20px 24px; border-radius: 4px; text-align: left; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.addl-item-name { font-size: 14.5px; color: var(--ink); }
+.addl-badge { background: var(--mauve); color: white; font-size: 11px; padding: 5px 16px; border-radius: 20px; letter-spacing: 0.5px; white-space: nowrap; }
+
+/* ── EDITORIAL ── */
+.editorial-wrap { background: var(--mauve); padding: 0; }
+.editorial {
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 50px;
+  align-items: center; max-width: 1200px; margin: 0 auto; padding: 80px 40px;
+}
+.editorial-images { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.editorial-images img { width: 100%; aspect-ratio: 3/4; object-fit: cover; display: block; }
+.editorial-img-placeholder { width: 100%; aspect-ratio: 3/4; background: rgba(255,255,255,0.1); }
+.editorial-text { color: rgba(255,255,255,0.9); }
+.editorial-text .tagline { font-size: 12px; letter-spacing: 2px; text-transform: uppercase; opacity: 0.65; margin-bottom: 12px; }
+.editorial-text h2 { font-size: clamp(28px, 4vw, 44px); color: white; margin-bottom: 12px; line-height: 1.1; }
+.editorial-text .sep { width: 40px; height: 1px; background: rgba(255,255,255,0.35); margin: 20px 0; }
+.editorial-text p { font-size: 13.5px; line-height: 1.9; opacity: 0.8; margin-bottom: 14px; }
+
+/* ── TERMS ── */
+.terms-section { background: var(--blush); padding: 80px 40px; text-align: center; }
+.terms-section h2 { font-size: clamp(28px, 4vw, 40px); color: var(--mauve-dk); margin-bottom: 40px; }
+.terms-list { max-width: 680px; margin: 0 auto; text-align: left; counter-reset: terms; }
+.terms-list li {
+  counter-increment: terms; font-size: 13.5px; color: var(--muted);
+  line-height: 1.8; padding: 10px 0 10px 48px; border-bottom: 1px solid var(--border);
+  position: relative; list-style: none;
+}
+.terms-list li::before { content: counter(terms) '.'; position: absolute; left: 0; color: var(--mauve); font-family: 'Cormorant Garamond', serif; font-size: 16px; font-weight: 500; }
+.terms-list li:last-child { border-bottom: none; }
+
+/* ── FOOTER ── */
+.footer { background: var(--mauve); padding: 40px; display: flex; justify-content: center; align-items: center; gap: 40px; flex-wrap: wrap; }
+.footer-logo { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.footer-brand-name { font-family: 'Cormorant Garamond', serif; font-size: 10px; letter-spacing: 5px; color: rgba(255,255,255,0.7); text-transform: uppercase; }
+.footer-gallery { display: flex; gap: 6px; }
+.footer-gallery img { width: 62px; height: 62px; object-fit: cover; opacity: 0.85; }
+.footer-gallery-placeholder { width: 62px; height: 62px; background: rgba(255,255,255,0.15); }
+.footer-socials { display: flex; flex-direction: column; gap: 12px; }
+.footer-socials a { color: rgba(255,255,255,0.7); text-decoration: none; font-size: 22px; transition: opacity 0.2s; }
+.footer-socials a:hover { opacity: 1; color: white; }
+
+/* ── DOWNLOAD FAB ── */
+.download-fab {
+  position: fixed; bottom: 32px; right: 32px;
+  background: var(--mauve); color: white; border: none;
+  padding: 14px 24px; font-family: 'Jost', sans-serif;
+  font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
+  box-shadow: 0 8px 32px rgba(90,45,66,0.35); z-index: 999;
+  transition: background 0.2s, transform 0.15s; text-decoration: none;
+}
+.download-fab:hover { background: var(--mauve-dk); transform: translateY(-2px); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .story { grid-template-columns: 1fr; }
+  .story-image { padding-right: 0; }
+  .story-image img { margin-left: 0; }
+  .story-text { padding: 30px 30px; margin-top: 0; }
+  .editorial { grid-template-columns: 1fr; }
+  .gallery-grid { justify-content: flex-start; }
+  .topbar { padding: 0 16px; }
+  .topbar-nav { display: none; }
+  .footer { flex-direction: column; gap: 24px; }
+  .video-grid { grid-template-columns: 1fr; }
+  .video-item--large { grid-row: auto; }
+}
+
+</style>
 </head>
 <body>
+{% csrf_token %}
 
-    <div class="web-document">
-        
-        <div class="bg-maroon layout-table" style="padding: 40px 50px; height: auto; min-height: 60px;">
-            <div class="layout-cell header-cell" style="width: 50%;">
-                {% if settings.logo %}
-                <div style="background: white; padding: 8px; border-radius: 8px; width: 60px; height: 60px; text-align: center; display: inline-block;">
-                    <img src="{{ settings.logo.url }}" style="max-height: 100%; max-width: 100%; object-fit: contain;">
-                </div>
-                {% endif %}
-            </div>
-            <div class="layout-cell header-cell" style="width: 50%; text-align: right;">
-                <h1 class="serif" style="margin: 0; font-size: 32px; letter-spacing: 2px;">PROPOSAL</h1>
-            </div>
-        </div>
+<nav class="topbar no-print">
+  <div class="topbar-nav">
+    <a href="#proposal">Proposal</a>
+    <a href="#gallery">Gallery</a>
+  </div>
+  <div class="topbar-logo">
+    {% if settings.logo %}
+      <img src="{{ settings.logo.url }}" style="height:32px;object-fit:contain;vertical-align:middle;">
+    {% else %}
+      AKASH
+    {% endif %}
+  </div>
+  <div class="topbar-price">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    <span class="price-val">₹ {{ total_cost|floatformat:0 }}</span>
+  </div>
+</nav>
 
-        <div class="content-wrapper">
-            
-            {% if settings.banner_image %}
-            <div style="text-align: center; margin-bottom: 40px;">
-                <img src="{{ settings.banner_image.url }}" style="max-width: 100%; border-radius: 12px;">
-            </div>
-            {% endif %}
-
-            <h2 class="serif" style="font-size: 24px; color: #111; margin: 0 0 15px 0;">Prepared For</h2>
-            <div class="layout-table" style="margin-bottom: 40px;">
-                <div class="layout-cell" style="width: 65px;">
-                    <div style="background: #111; color: white; width: 50px; height: 50px; border-radius: 25px; line-height: 50px; text-align: center; font-weight: bold; font-size: 16px;">
-                        {{ lead.name.0|upper }}{{ lead.name.1|upper }}
-                    </div>
-                </div>
-                <div class="layout-cell">
-                    <div style="font-weight: bold; font-size: 18px; color: #111;">{{ lead.project.project_name|default:lead.name }}</div>
-                    <div style="font-size: 13px; color: #666; margin-top: 4px;">{{ lead.email|default:"No email provided" }}</div>
-                </div>
-            </div>
-
-            <div class="bg-maroon text-center payment-banner" style="padding: 40px 20px; margin-bottom: 50px; border-radius: 4px;">
-                <h2 class="serif" style="margin: 0 0 10px 0; font-size: 32px; font-weight: normal; color: white;">Payment Price</h2>
-                <p style="margin: 0 0 25px 0; font-size: 16px; opacity: 0.9; color: white;">Your Total Package Cost</p>
-                <div style="display: inline-block; background: white; color: #903043; padding: 12px 40px; border-radius: 8px; font-size: 32px; font-weight: bold;">
-                    ₹ {{ total_cost|floatformat:0 }}
-                </div>
-            </div>
-
-            {% if packages %}
-            <h2 class="text-maroon serif" style="text-align: center; font-size: 28px; font-weight: bold; margin-bottom: 30px;">Events</h2>
-            {% endif %}
-
-            <div style="width: 100%;">
-                {% for pkg in packages %}
-                    {% if pkg.services.count > 1 %}
-                    <div style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 25px; margin-bottom: 25px; width: 100%; box-sizing: border-box;">
-                        
-                        <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #F5F5F5;">
-                            <div class="radio-circle"></div>
-                            <span class="text-maroon serif" style="font-size: 22px; font-weight: bold; vertical-align: middle; margin-left: 10px;">{{ pkg.package_name }}</span>
-                        </div>
-                        
-                        <div class="service-grid">
-                            {% for svc in pkg.services.all %}
-                            <div class="multi-service-card">
-                                <h4 class="text-maroon serif" style="margin: 0 0 12px 0; font-size: 16px; font-weight: bold;">{{ svc.service_name }}</h4>
-                                <div style="font-size: 12px; color: #444; line-height: 1.8;">
-                                    {% for sub in svc.sub_services.all %}<div>1 {{ sub.name }}</div>{% endfor %}
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            <div class="service-grid">
-                {% for pkg in packages %}
-                    {% if pkg.services.count <= 1 %}
-                    <div class="single-pkg-card">
-                        <div style="border-bottom: 1px solid #F5F5F5; padding-bottom: 12px; margin-bottom: 12px;">
-                            <div class="radio-circle"></div>
-                            <span class="text-maroon serif" style="font-size: 16px; font-weight: bold; vertical-align: middle; margin-left: 8px;">{{ pkg.package_name }}</span>
-                        </div>
-                        <div style="font-size: 12px; color: #444; line-height: 1.8;">
-                            {% for svc in pkg.services.all %}
-                                {% for sub in svc.sub_services.all %}<div>1 {{ sub.name }}</div>{% endfor %}
-                            {% endfor %}
-                        </div>
-                    </div>
-                    {% endif %}
-                {% endfor %}
-            </div>
-
-            {% if deliverables %}
-            <div class="bg-maroon serif" style="text-align: center; padding: 15px; font-size: 26px; font-weight: bold; color: white; margin: 30px 0 25px 0;">
-                Deliverables
-            </div>
-            <div class="service-grid">
-                {% for d in deliverables %}
-                <div class="deliv-card">
-                    <div class="radio-circle"></div>
-                    <span class="serif" style="font-size: 15px; font-weight: bold; color: #111; vertical-align: middle; margin-left: 10px;">{{ d.title }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if additional_services %}
-            <h2 class="text-maroon serif" style="text-align: center; font-size: 28px; font-weight: bold; margin: 40px 0 25px 0;">Additional Services</h2>
-            
-            <div style="width: 100%;">
-                {% for svc in additional_services %}
-                <div class="layout-table" style="background: white; border: 1px solid #EAEAEA; border-radius: 8px; padding: 20px 25px; margin-bottom: 15px;">
-                    <div class="layout-cell" style="width: 50%;">
-                        <h4 class="text-maroon serif" style="margin: 0; font-size: 18px; font-weight: bold; display: inline-block; vertical-align: middle;">{{ svc.name }}</h4>
-                        <span style="font-size: 16px; color: #903043; font-weight: bold; display: inline-block; vertical-align: middle; margin-left: 20px;">
-                            - &nbsp;<span style="background: #903043; color: white; padding: 4px 10px; border-radius: 4px; font-size: 14px;">{{ svc.qty }}</span>&nbsp; +
-                        </span>
-                    </div>
-                    <div class="layout-cell" style="width: 50%; text-align: right; padding-top: 10px;">
-                        <span class="text-maroon" style="border: 1px solid #EAEAEA; border-radius: 20px; padding: 8px 25px; font-weight: bold; font-size: 16px; margin-right: 15px;">
-                            ₹ {% widthratio svc.price 1 svc.qty %}
-                        </span>
-                        <span class="bg-maroon" style="padding: 8px 20px; border-radius: 6px; font-size: 14px; font-weight: bold; color: white;">
-                            ☑ Added
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <div style="background: white; border: 1px solid #EAEAEA; border-radius: 12px; padding: 35px; margin-top: 50px; margin-bottom: 50px;">
-                <h2 class="text-maroon serif" style="margin: 0 0 20px 0; font-size: 22px; text-align: center;">Terms & Conditions</h2>
-                <div style="font-size: 13px; color: #444; line-height: 1.8;">
-                    {{ settings.terms_and_conditions|default:"Terms and conditions will be applied as per company policy."|linebreaks }}
-                </div>
-            </div>
-
-        </div>
-
-        <div class="bg-maroon" style="width: 100%; height: 30px;"></div>
+<section class="hero" id="proposal">
+  <div class="hero-bg">
+    {% with hero_media|first as first_hero %}
+      {% if first_hero %}
+        {% if first_hero.video and first_hero.video.name %}
+          <video autoplay muted loop playsinline style="width:100%;height:100%;object-fit:cover;opacity:0.5;">
+            <source src="{{ first_hero.video.url }}" type="video/mp4">
+          </video>
+        {% elif first_hero.image and first_hero.image.name %}
+          <img src="{{ first_hero.image.url }}" alt="Hero background">
+        {% endif %}
+      {% else %}
+        {% if settings.logo %}
+          {# fallback gradient — logo already shown in hero-content #}
+        {% endif %}
+      {% endif %}
+    {% endwith %}
+  </div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <div class="hero-brand">
+      {% if settings.logo %}
+      <div class="hero-brand-logo" style="width:64px;height:64px;background:rgba(255,255,255,0.15);border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid rgba(255,255,255,0.3);">
+        <img src="{{ settings.logo.url }}" style="max-width:48px;max-height:48px;object-fit:contain;">
+      </div>
+      {% else %}
+      <svg class="hero-brand-logo" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.4)" stroke-width="1"/>
+        <text x="40" y="52" text-anchor="middle" fill="white" font-family="Cormorant Garamond, serif" font-size="30" font-weight="300">AR</text>
+      </svg>
+      {% endif %}
+      <span class="hero-brand-name">AKASH</span>
     </div>
+    <h1 class="hero-title">Framing the Joy of Your Grand Occasion</h1>
+    <p class="hero-subtitle">Where Love Meets Legacy in Unforgettable Moments</p>
+  </div>
+</section>
+
+<section class="welcome section">
+  <h2>Welcome to AR Akash Photography</h2>
+  <p>Since 2015, AR Akash Photography has been crafting stories through bespoke photography and videography. Serving Vizag, across AP, Telangana, and Chennai, we offer candid &amp; traditional photography, cinematic wedding films, bridal shoots, maternity sessions, fashion, themed shoots, and pre-wedding films — capturing your moments with creativity and care.</p>
+  <button class="welcome-btn no-print" onclick="document.getElementById('gallery').scrollIntoView({behavior:'smooth'})">View Gallery</button>
+</section>
+
+<section class="story-wrap section">
+  <div class="story">
+    <div class="story-image">
+      {% with story_media|first as sm1 %}
+        {% if sm1 %}
+          {% if sm1.video and sm1.video.name %}
+            <video autoplay muted loop playsinline style="width:100%;height:480px;object-fit:cover;display:block;margin-left:100px;">
+              <source src="{{ sm1.video.url }}" type="video/mp4">
+            </video>
+          {% elif sm1.image and sm1.image.name %}
+            <img src="{{ sm1.image.url }}" alt="Our story" style="width:100%;height:480px;object-fit:cover;display:block;margin-left:100px;">
+          {% else %}
+            <img src="https://images.unsplash.com/photo-1583939411023-14783179e581?w=900&q=80&fit=crop" alt="Wedding couple" style="width:100%;height:480px;object-fit:cover;display:block;margin-left:100px;">
+          {% endif %}
+        {% else %}
+          <img src="https://images.unsplash.com/photo-1583939411023-14783179e581?w=900&q=80&fit=crop" alt="Wedding couple" style="width:100%;height:480px;object-fit:cover;display:block;margin-left:100px;">
+        {% endif %}
+      {% endwith %}
+    </div>
+    <div class="story-text">
+      <h2>Our Story</h2>
+      <p>At AR Akash Photography, we have been capturing love stories since 2015, turning wedding moments into timeless memories. With over a decade of experience, our dedicated team blends creativity, passion, and precision to document every emotion — from candid smiles to grand celebrations.</p>
+      <p>We specialize in pre-wedding, wedding, and post-wedding shoots, ensuring every frame reflects elegance, authenticity, and joy. Having served hundreds of happy couples, we take pride in crafting stunning visuals and luxury albums that you'll cherish for a lifetime.</p>
+      <p>With over 10 years of experience and 1,000+ projects completed, we're known for creative storytelling, attention to detail, and client-centric service.</p>
+      <p style="margin-top:20px;font-size:11px;opacity:0.6;letter-spacing:1px;">Owned by Akash Ramchandran</p>
+    </div>
+  </div>
+</section>
+
+<section class="gallery-section section" id="gallery">
+  <h2>Signature Works</h2>
+  <div class="gallery-grid">
+    {% for media in signature_media %}
+    <div class="gallery-item">
+      {% if media.video and media.video.name %}
+        <video autoplay muted loop playsinline class="gallery-img">
+          <source src="{{ media.video.url }}" type="video/mp4">
+        </video>
+      {% elif media.image and media.image.name %}
+        <img src="{{ media.image.url }}" alt="{{ media.caption|default:'Signature work' }}" class="gallery-img" loading="lazy">
+      {% else %}
+        <div class="gallery-img-placeholder">Upload Image</div>
+      {% endif %}
+      <h4>{{ media.caption|default:"Signature Work" }}</h4>
+      <small>View the Images</small>
+    </div>
+    {% empty %}
+    {% for i in "12345" %}
+    <div class="gallery-item">
+      <div class="gallery-img-placeholder" style="display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;letter-spacing:1px;">Upload Image</div>
+      <h4>Add from Admin</h4>
+      <small>Signature Works</small>
+    </div>
+    {% endfor %}
+    {% endfor %}
+  </div>
+</section>
+
+<section class="dear-client section">
+  <p class="small-label">Dear</p>
+  <h2>{{ lead.name }}</h2>
+  <p>Thanks for Choosing Us!</p>
+</section>
+
+<section class="video-section section">
+  <h2>Our Films</h2>
+  <p class="video-subtitle">Cinematic stories told through our lens</p>
+  <div class="video-grid">
+    {# Use films_media if available, otherwise fall back to hero_media #}
+    {% if films_media %}
+      {% for media in films_media|slice:":3" %}
+      <div class="video-item {% if forloop.first %}video-item--large{% endif %}">
+        {% if media.video and media.video.name %}
+          <video autoplay muted loop playsinline>
+            <source src="{{ media.video.url }}" type="video/mp4">
+          </video>
+        {% elif media.image and media.image.name %}
+          <img src="{{ media.image.url }}" alt="Film showcase">
+        {% endif %}
+        <div class="video-overlay">
+          <span class="video-label">
+            {% if media.caption %}{{ media.caption }}
+            {% elif forloop.first %}Wedding Film
+            {% elif forloop.counter == 2 %}Pre Wedding
+            {% else %}Cinematic Reel{% endif %}
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    {% elif hero_media %}
+      {% for media in hero_media|slice:":3" %}
+      <div class="video-item {% if forloop.first %}video-item--large{% endif %}">
+        {% if media.video and media.video.name %}
+          <video autoplay muted loop playsinline>
+            <source src="{{ media.video.url }}" type="video/mp4">
+          </video>
+        {% elif media.image and media.image.name %}
+          <img src="{{ media.image.url }}" alt="Film showcase">
+        {% endif %}
+        <div class="video-overlay">
+          <span class="video-label">
+            {% if media.caption %}{{ media.caption }}
+            {% elif forloop.first %}Wedding Film
+            {% elif forloop.counter == 2 %}Pre Wedding
+            {% else %}Cinematic Reel{% endif %}
+          </span>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="video-item video-item--large" style="background:var(--mauve-lt);min-height:460px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:var(--muted);font-size:13px;letter-spacing:1px;">Upload videos in Admin → FILMS section</span>
+      </div>
+      <div class="video-item" style="background:#f0e0e8;min-height:220px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:var(--muted);font-size:12px;">Video 2</span>
+      </div>
+      <div class="video-item" style="background:#f0e0e8;min-height:220px;display:flex;align-items:center;justify-content:center;">
+        <span style="color:var(--muted);font-size:12px;">Video 3</span>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<section class="payment-price section">
+  <h2>Payment Price</h2>
+  <p class="subtitle">Your total package cost</p>
+  <div class="price-display">₹{{ total_cost|floatformat:0 }}</div>
+
+  {% comment %}Build subtotal from packages only, show discount if any{% endcomment %}
+  {% with pkg_total=0 %}
+  <div class="price-breakdown">
+    <div class="price-row">
+      <span>Sub Total</span>
+      <span>₹{{ total_cost|floatformat:0 }}</span>
+    </div>
+    <div class="price-row total-row">
+      <span>Total</span>
+      <span>₹{{ total_cost|floatformat:0 }}</span>
+    </div>
+  </div>
+  {% endwith %}
+</section>
+
+{% if packages %}
+<section class="events-section section">
+  <h2>Events</h2>
+  <div class="events-grid">
+    {% for pkg in packages %}
+      {% for svc in pkg.services.all %}
+      <div class="event-card">
+        <h3>{{ svc.service_name }}</h3>
+        <ul>
+          {% for sub in svc.sub_services.all %}
+          <li>1 {{ sub.name }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if deliverables %}
+<section class="deliverables-section section">
+  <h2>Deliverables</h2>
+  <div class="deliverables-list">
+    {% for d in deliverables %}
+    <div class="deliverable-item">{{ d.title }}</div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if additional_services %}
+<section class="addl-section section">
+  <h2>Additional Services</h2>
+  <div class="addl-list">
+    {% for svc in additional_services %}
+    <div class="addl-item">
+      <div class="addl-item-name">{{ svc.name }}</div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <span style="font-size:13px;color:var(--muted);">Qty: {{ svc.qty }}</span>
+        <span style="font-size:13px;color:var(--muted);">₹{{ svc.price|floatformat:0 }}</span>
+        <span class="addl-badge">☑ Added</span>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<section class="editorial-wrap section">
+  <div class="editorial">
+    <div class="editorial-images">
+      {% with story_media as sm %}
+        {% for media in sm|slice:":2" %}
+          {% if media.video and media.video.name %}
+            <video autoplay muted loop playsinline style="width:100%;aspect-ratio:3/4;object-fit:cover;{% if forloop.counter == 2 %}margin-top:30px;{% endif %}">
+              <source src="{{ media.video.url }}" type="video/mp4">
+            </video>
+          {% elif media.image and media.image.name %}
+            <img src="{{ media.image.url }}" alt="Editorial" style="{% if forloop.counter == 2 %}margin-top:30px;{% endif %}">
+          {% else %}
+            <div class="editorial-img-placeholder"></div>
+          {% endif %}
+        {% empty %}
+          <img src="https://images.unsplash.com/photo-1598902108854-10e335adac99?w=500&q=80&fit=crop" alt="Wedding editorial">
+          <img src="https://images.unsplash.com/photo-1587271407850-8d438ca9fdf2?w=500&q=80&fit=crop" alt="Wedding editorial" style="margin-top:30px;">
+        {% endfor %}
+      {% endwith %}
+    </div>
+    <div class="editorial-text">
+      <p class="tagline">For weddings in India and beyond</p>
+      <h2>Hey Sweethearts!</h2>
+      <div class="sep"></div>
+      <p>Your wedding is more than just an event — it's a beautiful journey filled with emotions, traditions, and unforgettable moments. At AR Akash Photography, we specialize in capturing the essence of your big day, blending artistry with storytelling to preserve every detail with elegance and authenticity.</p>
+      <p>Whether you're celebrating an Indian wedding or a love story that transcends cultures, we are here to document every heartfelt moment.</p>
+      <p>From the intricate details of your bridal attire to the joyful tears of your loved ones, we specialize in preserving the beauty, traditions, and emotions that make your wedding unforgettable.</p>
+    </div>
+  </div>
+</section>
+
+<section class="terms-section section">
+  <h2>Terms &amp; Conditions</h2>
+  <ol class="terms-list">
+    {% if settings and settings.terms_and_conditions %}
+      {% for line in settings.terms_and_conditions.splitlines %}
+        {% if line.strip %}
+        <li>{{ line }}</li>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <li>40% Advance, 60% 1 week before the event day.</li>
+      <li>You have to submit min. 2TB Hard Disk after the first payment.</li>
+      <li>For Customers who don't collect deliverables within 60 days, we will not hold responsibility for the project or data loss.</li>
+      <li>All deliverables are given at once (Teaser, Album, Full Length Video).</li>
+      <li>Any Cancellation Advance will not be refunded.</li>
+      <li>You shall arrange for travel and accommodation of our shoot crew for all events away from our office.</li>
+      <li>Any change of plan or postponement will be accommodated based on our availability on new dates.</li>
+      <li>Soft copies will be given only after 90% of the total payment.</li>
+    {% endif %}
+  </ol>
+</section>
+
+<footer class="footer section">
+  <div class="footer-logo">
+    {% if settings.logo %}
+      <img src="{{ settings.logo.url }}" style="width:44px;height:44px;object-fit:contain;opacity:0.9;">
+    {% else %}
+      <svg width="44" height="44" viewBox="0 0 80 80" fill="none">
+        <circle cx="40" cy="40" r="38" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+        <text x="40" y="52" text-anchor="middle" fill="rgba(255,255,255,0.85)" font-family="Cormorant Garamond, serif" font-size="28" font-weight="300">AR</text>
+      </svg>
+    {% endif %}
+    <span class="footer-brand-name">AKASH</span>
+  </div>
+  <div class="footer-gallery">
+    {% for media in footer_media|slice:":4" %}
+      {% if media.image and media.image.name %}
+        <img src="{{ media.image.url }}" alt="Gallery" style="width:62px;height:62px;object-fit:cover;opacity:0.85;">
+      {% elif media.video and media.video.name %}
+        <video autoplay muted loop playsinline style="width:62px;height:62px;object-fit:cover;opacity:0.85;flex-shrink:0;">
+          <source src="{{ media.video.url }}" type="video/mp4">
+        </video>
+      {% else %}
+        <div class="footer-gallery-placeholder"></div>
+      {% endif %}
+    {% empty %}
+      <div class="footer-gallery-placeholder"></div>
+      <div class="footer-gallery-placeholder"></div>
+      <div class="footer-gallery-placeholder"></div>
+      <div class="footer-gallery-placeholder"></div>
+    {% endfor %}
+  </div>
+  <div class="footer-socials">
+    <a href="#" aria-label="Instagram">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor"/></svg>
+    </a>
+    <a href="#" aria-label="YouTube">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.5C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="currentColor" stroke="none"/></svg>
+    </a>
+  </div>
+</footer>
+
+<button class="download-fab no-print" onclick="downloadBackendPDF()">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+  <span id="btnText">Download PDF</span>
+</button>
+
+<script>
+function downloadBackendPDF() {
+    const btnText = document.getElementById('btnText');
+    const originalText = btnText.innerText;
+    btnText.innerText = "Generating PDF...";
+
+    // Dynamically build initials from the Lead name
+    const leadName = "{{ lead.name|escapejs }}";
+    const initials = leadName ? leadName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : "C";
+
+    // 1. Build the data payload identically to what the backend expects for quotation_pdf_template.html
+    const payload = {
+        html: "", // 🌟 EMPTY STRING: Tells backend to use the luxury quotation_pdf_template.html
+        show_bill_to: true,
+        display_name: leadName,
+        initials: initials,
+        email: "{{ lead.email|default:''|escapejs }}",
+        grand_total: "{{ total_cost|floatformat:0 }}",
+        packages: [],
+        single_packages: [],
+        deliverables: [
+            {% for d in deliverables %}
+            "{{ d.title|escapejs }}",
+            {% endfor %}
+        ],
+        additional_services: [
+            {% for a in additional_services %}
+            {
+                name: "{{ a.name|escapejs }}",
+                qty: "{{ a.qty }}",
+                // Calculate total price accurately inside the template mapping
+                total_price: (parseFloat("{{ a.price }}") * parseInt("{{ a.qty }}", 10)).toLocaleString('en-IN')
+            },
+            {% endfor %}
+        ]
+    };
+
+    // Construct Packages and Single Packages dynamically using Django tags
+    {% for pkg in packages %}
+        var pkgServices = [];
+        {% for svc in pkg.services.all %}
+            pkgServices.push({
+                name: "{{ svc.service_name|escapejs }}",
+                items: [
+                    {% for sub in svc.sub_services.all %}
+                    "1 {{ sub.name|escapejs }}",
+                    {% endfor %}
+                ]
+            });
+        {% endfor %}
+
+        if (pkgServices.length <= 1) {
+            payload.single_packages.push({
+                name: "{{ pkg.package_name|escapejs }}",
+                services: pkgServices
+            });
+        } else {
+            payload.packages.push({
+                name: "{{ pkg.package_name|escapejs }}",
+                services: pkgServices
+            });
+        }
+    {% endfor %}
+
+    // 2. Send the structured data to the PDF Generator
+    fetch('/generate-pdf/', { 
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(response => {
+        if (!response.ok) throw new Error("Backend failed to generate PDF");
+        return response.blob();
+    })
+    .then(blob => {
+        // 3. Trigger download
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = `Quotation_AR_Akash_${leadName.replace(/\s+/g, '_')}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        btnText.innerHTML = '<i class="fa-solid fa-check"></i> Downloaded';
+        setTimeout(() => { btnText.innerText = originalText; }, 2000);
+    })
+    .catch(err => {
+        console.error("PDF Error:", err);
+        btnText.innerText = "Error - Try Again";
+        setTimeout(() => { btnText.innerText = originalText; }, 3000);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
 
 </body>
 </html>

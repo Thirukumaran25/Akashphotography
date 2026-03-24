@@ -56,11 +56,10 @@
             
             {% if user.is_staff or user.is_superuser %}
 
-            <a href="{% url 'home' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+            <a href="#" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
                 <img src="{% static 'images/dashboard.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Dashboard</span>
             </a>
-
             <a href="{% url 'home' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
                 <img src="{% static 'images/leads.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Leads</span>
@@ -70,6 +69,7 @@
                 <img src="{% static 'images/project.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Projects</span>
             </a>
+
             <a href="{% url 'session_list' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
                 <img src="{% static 'images/session.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Session</span>
@@ -126,8 +126,6 @@
             <div id="profileButton" class="profile-circle flex items-center justify-center w-[36px] h-[36px] bg-[#111] text-white text-[13px] font-bold rounded-xl cursor-pointer transition-transform duration-300 hover:scale-[1.08] hover:shadow-md border border-gray-100" onclick="toggleProfileDropdown()">
                 {% if user.is_authenticated %}
                     {{ user.username|make_list|first|upper }}
-                {% else %}
-                    AK
                 {% endif %}
             </div>
             
@@ -145,7 +143,6 @@
 </main>
 
 <script>
-// MAKE FUNCTIONS GLOBALLY AVAILABLE IMMEDIATELY
 window.toggleMobileMenu = function() {
     const navCenter = document.querySelector(".nav-center");
     if (navCenter) {
@@ -153,7 +150,6 @@ window.toggleMobileMenu = function() {
     }
 };
 
-// 🌟 FIX: Added missing functions so the bell doesn't throw errors
 window.openFollowup = function() {
     document.getElementById("followupPanel").classList.add("open");
 };
@@ -178,12 +174,20 @@ window.addEventListener('click', function(e) {
 document.addEventListener("DOMContentLoaded", () => {
     const currentPath = window.location.pathname;
     const navItems = document.querySelectorAll(".nav-item");
-    navItems.forEach(item => item.classList.remove("active"));
 
+    navItems.forEach(item => item.classList.remove("active"));
     navItems.forEach(item => {
         const href = item.getAttribute("href");
         if (!href || href === "#") return;
-        if (currentPath === href || (href !== "/" && currentPath.startsWith(href))) {
+
+        let isActive = false;
+        if (href === "/dashboard/" || href.endsWith("/dashboard/")) {
+            isActive = currentPath === href;
+        } else {
+            isActive = currentPath === href || (href !== "/" && currentPath.startsWith(href));
+        }
+
+        if (isActive) {
             item.classList.add("active");
         }
     });
@@ -196,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     if (typeof loadFollowups === "function") {
-        loadFollowups(); 
+        loadFollowups();
     }
 });
 </script>
