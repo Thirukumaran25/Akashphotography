@@ -22,6 +22,8 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from weasyprint import HTML
 from django.contrib.auth.decorators import login_required
+from django.db.models.functions import ExtractMonth
+from django.db.models import Count
 
 
 def custom_login_view(request):
@@ -194,6 +196,101 @@ def public_quotation_view(request, token):
 
 @login_required(login_url='login')
 def home(request):
+    user = request.user
+    display_name = user.get_full_name() or user.username
+
+    # Counts
+    ongoing_count = ProjectDetail.objects.filter(
+        status__in=['PRE', 'SELECTION', 'POST']
+    ).count()
+
+    upcoming_count = ProjectDetail.objects.filter(
+        status='ASSIGNED'
+    ).count()
+
+    completed_count = ProjectDetail.objects.filter(
+        status='COMPLETED'
+    ).count()
+
+    # Notifications (same structure as employee dashboard)
+    notifications_qs = ProjectDetail.objects.filter(
+        status='ASSIGNED'
+    ).order_by('start_date')[:10]
+
+    notifications = []
+    for proj in notifications_qs:
+        proj.my_assignments = []  # keep same structure
+        notifications.append(proj)
+
+    # Chart data (same format as employee dashboard)
+    completed_data = [0] * 12
+    upcoming_data = [0] * 12
+
+    completed_qs = ProjectDetail.objects.filter(status='COMPLETED')\
+        .annotate(month=ExtractMonth('start_date'))\
+        .values('month')\
+        .annotate(count=models.Count('id'))
+
+    for entry in completed_qs:
+        if entry['month']:
+            completed_data[entry['month'] - 1] = entry['count']
+
+    upcoming_qs = ProjectDetail.objects.exclude(status='COMPLETED')\
+        .annotate(month=ExtractMonth('start_date'))\
+        .values('month')\
+        .annotate(count=models.Count('id'))
+
+    for entry in upcoming_qs:
+        if entry['month']:
+            upcoming_data[entry['month'] - 1] = entry['count']
+
+    calendar_projects = ProjectDetail.objects.exclude(status='COMPLETED')
+    
+    return render(request, 'admin_dashboard.html', {
+        'display_name': display_name,
+        'ongoing_count': ongoing_count,
+        'upcoming_count': upcoming_count,
+        'completed_count': completed_count,
+        'chart_completed': completed_data,
+        'chart_upcoming': upcoming_data,
+        'notifications': notifications,
+        'calendar_projects': calendar_projects,
+    })
+
+
+@csrf_exempt
+@login_required
+def admin_mark_read(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+        notif_id = data.get('id')
+        # Filter for the notification and mark as read
+        EmployeeNotification.objects.filter(id=notif_id).update(is_read=True)
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+
+@csrf_exempt
+@login_required
+def admin_mark_all_read(request):
+    if request.method == "POST":
+        if request.user.is_staff or request.user.is_superuser:
+            try:
+                admin_profile = request.user.employee_profile
+                EmployeeNotification.objects.filter(employee=admin_profile, is_read=False).update(is_read=True)
+            except:
+                EmployeeNotification.objects.filter(is_read=False).update(is_read=True)
+        else:
+            EmployeeNotification.objects.filter(
+                employee=request.user.employee_profile, 
+                is_read=False
+            ).update(is_read=True)
+            
+        return JsonResponse({"status": "success"})
+    return JsonResponse({"status": "error"}, status=400)
+
+
+def lead(request):
     today = date.today()
     Lead.objects.filter(status='NEW', follow_up_date__lte=today).update(status='FOLLOW_UP')
     all_leads = Lead.objects.all()
@@ -285,13 +382,12 @@ def update_lead_status(request):
 def projects(request):
     def format_projects(queryset):
         formatted_list = []
-        for proj in queryset:
+        for proj in queryset.prefetch_related('tasks'):
             lead        = proj.lead_set.first()
             client_name = lead.name if lead else "Unknown Client"
             start_str   = proj.start_date.strftime('%d %b, %Y') if proj.start_date else 'TBD'
             end_str     = proj.end_date.strftime('%d %b, %Y')   if proj.end_date   else 'TBD'
 
-            # Show only PROJECT-board crew on the project card (not session shoot crew)
             project_emp_ids = list(
                 CrewAssignment.objects.filter(project=proj, source='PROJECT')
                 .values_list('employee_id', flat=True).distinct()
@@ -302,6 +398,13 @@ def projects(request):
                 initials     = "".join([n[0] for n in display_name.split() if n])[:2].upper()
                 team.append({"initials": initials})
 
+            project_tasks = []
+            for task in proj.tasks.all():
+                project_tasks.append({
+                    "name": task.task_name,
+                    "status": task.status
+                })
+
             formatted_list.append({
                 "id":          proj.id,
                 "client_name": client_name,
@@ -309,6 +412,7 @@ def projects(request):
                 "start_date":  start_str,
                 "end_date":    end_str,
                 "team":        team,
+                "tasks":       project_tasks,
             })
         return formatted_list
 
@@ -324,14 +428,17 @@ def projects(request):
 
 def get_project_details(request, project_id):
     """
-    Projects board Assign Team popup.
-    Pre-selects only PROJECT-source crew — session crew is never shown here.
+    Projects board Assign Team popup API.
+    FIX: Returns pre_deadline_date from first PRE task (not any task).
+         Returns deadline_date from project.end_date (post due date).
+         assigned_ids = PROJECT-source crew only (session crew excluded).
     """
     project = get_object_or_404(ProjectDetail, id=project_id)
     lead    = project.lead_set.first()
 
-    pre_task         = project.tasks.filter(phase='PRE').first()
-    pre_deadline_str = pre_task.due_date.strftime('%Y-%m-%d') if pre_task and pre_task.due_date else ""
+    # Pre-fill PRE due date: take due_date from any PRE task that has one set
+    pre_task = project.tasks.filter(phase='PRE').exclude(due_date__isnull=True).first()
+    pre_deadline_str = pre_task.due_date.strftime('%Y-%m-%d') if pre_task else ""
 
     def get_team_members(team_keyword):
         members = Employee.objects.filter(team__name__icontains=team_keyword)
@@ -342,7 +449,7 @@ def get_project_details(request, project_id):
             result.append({"id": m.id, "name": display, "initials": initials})
         return result
 
-    # Pre-select only PROJECT-board crew (not session crew)
+    # Pre-select only PROJECT-board crew (never session crew)
     project_assigned_ids = list(
         CrewAssignment.objects.filter(project=project, source='PROJECT')
         .values_list('employee_id', flat=True).distinct()
@@ -355,12 +462,14 @@ def get_project_details(request, project_id):
         "event_type":        project.project_name,
         "start_date":        project.start_date.strftime('%d %b, %Y') if project.start_date else "TBD",
         "end_date":          project.end_date.strftime('%d %b, %Y')   if project.end_date   else "TBD",
+        # deadline_date = post-production due date (project.end_date)
         "deadline_date":     project.end_date.strftime('%Y-%m-%d')    if project.end_date   else "",
+        # pre_deadline_date = pre-production due date (from existing PRE tasks)
         "pre_deadline_date": pre_deadline_str,
         "general_team":      get_team_members('General'),
         "pre_team":          get_team_members('Pre'),
         "post_team":         get_team_members('Post'),
-        "assigned_ids":      project_assigned_ids,   # PROJECT crew only
+        "assigned_ids":      project_assigned_ids,
     }
     return JsonResponse(data)
 
@@ -368,18 +477,19 @@ def get_project_details(request, project_id):
 @csrf_exempt
 def assign_team_from_projects(request):
     """
-    Projects board save. Only touches SOURCE='PROJECT' crew.
-    SESSION assignments are never deleted or modified here.
+    Projects board "Assign Team" save.
+    - Only touches SOURCE='PROJECT' crew
+    - Saves pre_deadline to PRE tasks, post_deadline to SELECTION+POST tasks and project.end_date
+    - SESSION assignments are never modified
     """
-    from .models import CrewAssignment, EmployeeNotification, SubService
 
     if request.method != 'POST':
         return JsonResponse({'status': 'error'}, status=405)
 
     project_id    = request.POST.get('project_id')
     raw_ids       = request.POST.get('employee_ids', '[]')
-    post_deadline = request.POST.get('deadline_date', '')
-    pre_deadline  = request.POST.get('pre_deadline', '')
+    post_deadline = request.POST.get('deadline_date', '').strip()
+    pre_deadline  = request.POST.get('pre_deadline', '').strip()
 
     try:
         emp_ids = json.loads(raw_ids)
@@ -387,9 +497,14 @@ def assign_team_from_projects(request):
         emp_ids = [x.strip() for x in raw_ids.split(',') if x.strip()]
 
     project = get_object_or_404(ProjectDetail, id=project_id)
-
-    # Delete only PROJECT-source assignments; leave SESSION intact
     CrewAssignment.objects.filter(project=project, source='PROJECT').delete()
+
+    if pre_deadline:
+        try:
+            parsed_pre = datetime.strptime(pre_deadline, '%Y-%m-%d').date()
+            project.tasks.filter(phase='PRE').update(due_date=parsed_pre)
+        except ValueError:
+            pass
 
     if post_deadline:
         try:
@@ -399,19 +514,11 @@ def assign_team_from_projects(request):
         except ValueError:
             pass
 
-    if pre_deadline:
-        try:
-            parsed_pre = datetime.strptime(pre_deadline, '%Y-%m-%d').date()
-            project.tasks.filter(phase='PRE').update(due_date=parsed_pre)
-        except ValueError:
-            pass
-
     project.save()
 
     if project.end_date:
         project.tasks.filter(due_date__isnull=True).update(due_date=project.end_date)
 
-    # Rebuild M2M = new PROJECT crew + existing SESSION crew
     session_emp_ids = list(
         CrewAssignment.objects.filter(project=project, source='SESSION')
         .values_list('employee_id', flat=True).distinct()
@@ -440,22 +547,29 @@ def assign_team_from_projects(request):
             date=project.start_date,
             source='PROJECT',
         )
-        EmployeeNotification.objects.create(
-            employee=emp,
-            project=project,
-            subservice=ss,
-            title=f"New Assignment: {project.project_name}",
-            message=f"You have been assigned to {project.project_name}.",
-            date=project.start_date,
-        )
-        notified.add(emp.id)
 
+        msg_parts = [f"You have been assigned to {project.project_name}."]
+        if pre_deadline:
+            msg_parts.append(f"Pre-production due: {pre_deadline}.")
+        if post_deadline:
+            msg_parts.append(f"Post-production deadline: {post_deadline}.")
+
+        if not (emp.name.is_staff or emp.name.is_superuser):
+            EmployeeNotification.objects.create(
+                employee=emp,
+                project=project,
+                subservice=ss,
+                title=f"New Assignment: {project.project_name}",
+                message=" ".join(msg_parts),
+                date=project.start_date,
+            )
+        notified.add(emp.id)
     return JsonResponse({'status': 'success', 'notified_count': len(notified)})
 
 
 @csrf_exempt
 def assign_team_to_project(request):
-    """Legacy endpoint — same isolation: only PROJECT-source crew touched."""
+    """Legacy endpoint — same source isolation: only PROJECT crew touched."""
     from .models import CrewAssignment, EmployeeNotification, SubService
 
     if request.method == "POST":
@@ -471,6 +585,7 @@ def assign_team_to_project(request):
             if deadline_date:
                 try:
                     project.end_date = datetime.strptime(deadline_date, '%Y-%m-%d').date()
+                    project.tasks.filter(phase__in=['SELECTION', 'POST']).update(due_date=project.end_date)
                 except ValueError:
                     pass
 
@@ -505,7 +620,6 @@ def assign_team_to_project(request):
             )
             project.assigned_employees.set(list(set(project_emp_ids + session_emp_ids)))
 
-        # Status moves to PRE only on employee acceptance
         project.save()
         return JsonResponse({"success": True})
 
@@ -1054,7 +1168,7 @@ def employees_list(request):
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# SESSIONS — fully_assigned uses SESSION-source crew ONLY
+# SESSIONS — fully_assigned and badge use SESSION-source crew ONLY
 # ─────────────────────────────────────────────────────────────────────────────
 
 def _is_fully_assigned(project):
@@ -1083,7 +1197,6 @@ def _is_fully_assigned(project):
     if not required_roles:
         return False
 
-    # Count only SESSION-source assignments
     assigned_roles = Counter()
     for ca in CrewAssignment.objects.filter(project=project, source='SESSION'):
         assigned_roles[(ca.service_name, ca.subservice_id)] += 1
@@ -1100,19 +1213,31 @@ def session_list_view(request):
         ProjectDetail.objects
         .filter(lead__status='ACCEPTED')
         .order_by('start_date')
-        .prefetch_related('assigned_employees__subservices', 'lead_set')
+        .prefetch_related('lead_set')
         .distinct()
     )
 
     grouped_projects = {}
     for proj in all_projects:
         proj.fully_assigned = _is_fully_assigned(proj)
-        # session_crew_count = SESSION-only crew count (for badge display in template)
+
+        # SESSION-only crew count — drives badge and avatar display
         proj.session_crew_count = (
             CrewAssignment.objects
             .filter(project=proj, source='SESSION')
             .values('employee_id').distinct().count()
         )
+
+        # SESSION-only employee list for avatar display in card
+        session_emp_ids = list(
+            CrewAssignment.objects
+            .filter(project=proj, source='SESSION')
+            .values_list('employee_id', flat=True).distinct()
+        )
+        proj.session_employees = list(
+            Employee.objects.filter(id__in=session_emp_ids).select_related('name')
+        )
+
         key = proj.start_date.strftime('%B %Y') if proj.start_date else 'To Be Decided'
         grouped_projects.setdefault(key, []).append(proj)
 
@@ -1128,6 +1253,7 @@ def get_project_details_api(request, project_id):
     Sessions modal API.
     Pre-selects only SESSION-source assignments.
     PROJECT-board crew is completely excluded.
+    Also returns session_due_dates per employee for the notification message.
     """
     project = get_object_or_404(ProjectDetail, id=project_id)
     lead    = project.lead_set.first()
@@ -1170,14 +1296,13 @@ def get_project_details_api(request, project_id):
             'employee_id':   ca.employee_id,
             'subservice_id': ca.subservice_id,
             'service_name':  ca.service_name or '',
-            'date':          ca.date.strftime('%Y-%m-%d')  if ca.date       else '',
+            'date':          ca.date.strftime('%Y-%m-%d')    if ca.date       else '',
             'start_time':    ca.start_time.strftime('%H:%M') if ca.start_time else '',
             'end_time':      ca.end_time.strftime('%H:%M')   if ca.end_time   else '',
         }
         for ca in session_cas
     ]
 
-    # assigned_ids = SESSION crew only
     session_assigned_ids = list(session_cas.values_list('employee_id', flat=True).distinct())
 
     # Build booked-dates map
@@ -1228,8 +1353,8 @@ def get_project_details_api(request, project_id):
             'start_time': st, 'end_time': et,
         },
         'availability': availability,
-        'assigned_ids':  session_assigned_ids,   # SESSION crew only
-        'assignments':   assignments_data,        # SESSION assignments only
+        'assigned_ids':  session_assigned_ids,
+        'assignments':   assignments_data,
     })
 
 
@@ -1242,13 +1367,13 @@ def auto_generate_deliverable_tasks(project):
         for svc in inv.services.all():
             for d in svc.deliverables.all():
                 Task.objects.get_or_create(
-                    project=project, task_name=f"Deliver: {d.title}",
+                    project=project, task_name=f"{d.title}",
                     phase='POST', category='Deliverables', defaults={'status': 'ON_HOLD'},
                 )
     else:
         for d in lead.deliverables.all():
             Task.objects.get_or_create(
-                project=project, task_name=f"Deliver: {d.title}",
+                project=project, task_name=f"{d.title}",
                 phase='POST', category='Deliverables', defaults={'status': 'ON_HOLD'},
             )
 
@@ -1257,7 +1382,9 @@ def auto_generate_deliverable_tasks(project):
 def save_team_assignment_api(request):
     """
     Sessions page crew save.
-    Touches ONLY SESSION-source assignments. PROJECT-source is never touched.
+    - Touches ONLY SESSION-source assignments
+    - Sends detailed notification to each employee with their shoot date/time and role
+    - Never modifies project.end_date (that's the post-production deadline, not shoot date)
     """
     if request.method != 'POST':
         return JsonResponse({'status': 'error'}, status=405)
@@ -1318,14 +1445,30 @@ def save_team_assignment_api(request):
             date=rec_date, start_time=rec_start, end_time=rec_end,
             source='SESSION',
         )
+
         if emp_id not in notified:
             notified.add(emp_id)
-            EmployeeNotification.objects.create(
-                employee=emp, project=project, subservice=ss,
-                title=f"New Assignment: {project.project_name}",
-                message=f"You have been assigned to {project.project_name}. Your role: {ss.name}.",
-                date=rec_date, start_time=rec_start,
-            )
+
+            # Build a detailed notification message with shoot date/time/role
+            msg_parts = [f"You have been assigned as {ss.name} for {project.project_name}."]
+            if rec_date:
+                msg_parts.append(f"Shoot date: {rec_date}.")
+            if rec_start:
+                time_str = rec_start
+                if rec_end:
+                    time_str += f" – {rec_end}"
+                msg_parts.append(f"Time: {time_str}.")
+            if project.project_address:
+                msg_parts.append(f"Location: {project.project_address}.")
+
+            if not (emp.name.is_staff or emp.name.is_superuser):
+                EmployeeNotification.objects.create(
+                    employee=emp, project=project, subservice=ss,
+                    title=f"Shoot Assignment: {project.project_name}",
+                    message=" ".join(msg_parts),
+                    date=rec_date,
+                    start_time=rec_start,
+                )
 
     return JsonResponse({'status': 'success', 'notified_count': len(notified)})
 
@@ -1422,6 +1565,7 @@ def add_project_task(request):
     project     = get_object_or_404(ProjectDetail, id=request.POST.get("project_id"))
     template_id = request.POST.get("template_id")
     raw_phase   = request.POST.get("phase", "PRE PRODUCTION")
+    passed_due_date = request.POST.get("due_date")
     phase_map   = {'PRE PRODUCTION': 'PRE', 'SELECTION': 'SELECTION', 'POST PRODUCTION': 'POST'}
     db_phase    = phase_map.get(raw_phase.upper(), 'PRE')
     category    = "General"
@@ -1448,18 +1592,27 @@ def add_project_task(request):
     if auto_assignee is None and assigned_emps.exists():
         auto_assignee = assigned_emps.first()
 
-    target_due_date = None
     if db_phase == 'PRE':
-        existing_pre = project.tasks.filter(phase='PRE').exclude(due_date__isnull=True).first()
-        target_due_date = existing_pre.due_date if existing_pre else None
+        sibling = project.tasks.filter(phase='PRE').exclude(due_date__isnull=True).first()
+        target_due = sibling.due_date if sibling else None
     else:
-        target_due_date = project.end_date
+        target_due = project.end_date
 
     Task.objects.create(
         project=project, phase=db_phase, category=category,
         task_name=task_name, status='ON_HOLD', assigned_to=auto_assignee,
-        due_date=target_due_date,
+        due_date=passed_due_date if passed_due_date else None,
     )
+
+    
+    EmployeeNotification.objects.create(
+            employee=auto_assignee,
+            project=project,
+            title="New Task Assigned",
+            message=f"You have been assigned a new task: {task_name} for {project.project_name}.",
+            date=date.today()
+        )
+
     return JsonResponse({"status": "success"})
 
 
@@ -1467,6 +1620,8 @@ def add_project_task(request):
 def update_project_task(request):
     if request.method == "POST":
         task = get_object_or_404(Task, id=request.POST.get("task_id"))
+
+        old_assignee = task.assigned_to
         if request.POST.get("title"):
             task.task_name = request.POST["title"].strip()
 
@@ -1492,6 +1647,18 @@ def update_project_task(request):
                 pass
 
         task.save()
+
+        if task.assigned_to and task.assigned_to != old_assignee:
+            if not (task.assigned_to.name.is_staff or task.assigned_to.name.is_superuser):
+                from datetime import date
+                from .models import EmployeeNotification
+                EmployeeNotification.objects.create(
+                    employee=task.assigned_to,
+                    project=task.project,
+                    title="Task Reassigned",
+                    message=f"You have been assigned the task: {task.task_name} for {task.project.project_name}.",
+                    date=date.today()
+                )
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error", "message": "Invalid request"}, status=400)
 
@@ -1511,8 +1678,6 @@ def delete_project_task(request):
 
 @login_required(login_url='login')
 def employee_dashboard(request):
-    from .models import CrewAssignment, EmployeeNotification
-
     employee     = request.user.employee_profile
     display_name = (employee.name.get_full_name() or employee.name.username) if employee.name else (request.user.get_full_name() or request.user.username)
     initials     = "".join([n[0] for n in display_name.split() if n])[:2].upper()
@@ -1579,6 +1744,25 @@ def employee_dashboard(request):
         .select_related('project', 'subservice').order_by('-created_at')[:15]
     )
 
+    all_my_projects = employee.assigned_projects.all()
+    completed_data = [0] * 12
+    upcoming_data = [0] * 12
+
+    completed_qs = all_my_projects.filter(status='COMPLETED').annotate(
+        month=ExtractMonth('start_date')
+    ).values('month').annotate(count=models.Count('id'))
+
+    for entry in completed_qs:
+        if entry['month']:
+            completed_data[entry['month'] - 1] = entry['count']
+    upcoming_qs = all_my_projects.exclude(status='COMPLETED').annotate(
+        month=ExtractMonth('start_date')
+    ).values('month').annotate(count=models.Count('id'))
+
+    for entry in upcoming_qs:
+        if entry['month']:
+            upcoming_data[entry['month'] - 1] = entry['count']
+
     return render(request, 'teams/employee_dashboard.html', {
         'employee': employee, 'display_name': display_name, 'initials': initials,
         'ongoing_count': ongoing_count, 'upcoming_count': upcoming_count,
@@ -1586,12 +1770,13 @@ def employee_dashboard(request):
         'notifications': notification_projects,
         'unread_notifications': unread_notifications,
         'unread_count': len(unread_notifications),
+        'chart_completed': completed_data,
+        'chart_upcoming': upcoming_data,
     })
 
 
 @csrf_exempt
 def employee_accept_project(request):
-    from .models import CrewAssignment, SubService
     if request.method == "POST":
         project  = get_object_or_404(ProjectDetail, id=request.POST.get("project_id"))
         employee = request.user.employee_profile
@@ -1604,9 +1789,6 @@ def employee_accept_project(request):
             CrewAssignment.objects.filter(
                 project=project, employee=employee, source='PROJECT'
             ).update(is_accepted=True)
-            if project.status == 'ASSIGNED':
-                project.status = 'PRE'
-                project.save()
         else:
             generic_ss, _ = SubService.objects.get_or_create(
                 name="General Assignment", defaults={'price': 0}
@@ -1619,6 +1801,30 @@ def employee_accept_project(request):
                 project=project, employee=employee, source='PROJECT'
             ).update(is_accepted=True)
 
+        total_assigned = CrewAssignment.objects.filter(project=project, source='PROJECT').count()
+        total_accepted = CrewAssignment.objects.filter(project=project, source='PROJECT', is_accepted=True).count()
+
+        if project.status == 'ASSIGNED' and total_assigned > 0 and total_assigned == total_accepted:
+            project.status = 'PRE'
+            project.save()
+
+        admin_display_name = employee.name.get_full_name() or employee.name.username
+        
+        from django.contrib.auth.models import User
+        from django.db.models import Q
+        from datetime import date
+        
+        admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).distinct()
+        for admin_user in admins:
+            if hasattr(admin_user, 'employee_profile') and admin_user.employee_profile:
+                EmployeeNotification.objects.create(
+                    employee=admin_user.employee_profile, 
+                    project=project,
+                    title="Project Accepted",
+                    message=f"{admin_display_name} has accepted the project.",
+                    date=date.today()
+                )
+        
         return JsonResponse({"status": "success"})
     return JsonResponse({"status": "error"}, status=400)
 
@@ -1694,7 +1900,6 @@ def employee_projects(request):
 
 
 def employee_project_tasks(request, project_id):
-    from .models import CrewAssignment
     project = get_object_or_404(ProjectDetail, id=project_id)
     try:
         employee     = request.user.employee_profile
@@ -1738,6 +1943,11 @@ def employee_project_tasks(request, project_id):
         has_real_project_assignment = has_session_assignment = False
         session_assignments = project_assignments = []
 
+    existing_expense = ExpenseReport.objects.filter(
+        project=project, 
+        employee=request.user.employee_profile
+    ).first()
+
     return render(request, 'teams/employee_project_tasks.html', {
         'project': project,
         'my_tasks': my_tasks,
@@ -1751,6 +1961,7 @@ def employee_project_tasks(request, project_id):
         'project_assignments': project_assignments,
         'has_project_assignment': has_real_project_assignment,
         'has_session_assignment': has_session_assignment,
+        'existing_expense': existing_expense,
     })
 
 
@@ -1767,6 +1978,21 @@ def mark_shoot_complete(request, assignment_id):
     ca = get_object_or_404(CrewAssignment, id=assignment_id, employee=employee)
     ca.is_accepted = True
     ca.save(update_fields=['is_accepted'])
+
+    emp_name = employee.name.get_full_name() or employee.name.username
+    admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).distinct()
+    for admin_user in admins:
+        if hasattr(admin_user, 'employee_profile') and admin_user.employee_profile:
+            service_name = ca.subservice.name if ca.subservice else 'a service'
+            EmployeeNotification.objects.create(
+                employee=admin_user.employee_profile,
+                project=ca.project,
+                subservice=ca.subservice,
+                title="Service Accepted",
+                message=f"{emp_name} has accepted {service_name} for {ca.project.project_name}.",
+                date=date.today()
+            )
+
     all_my_session = CrewAssignment.objects.filter(project=ca.project, employee=employee, source='SESSION')
     all_completed  = all_my_session.filter(is_accepted=True).count() == all_my_session.count()
     return JsonResponse({'status': 'success', 'all_completed': all_completed})
@@ -1780,33 +2006,41 @@ def mark_task_complete(request, task_id):
             employee = request.user.employee_profile
             if task.status == 'COMPLETED':
                 return JsonResponse({'status': 'error', 'message': 'Already completed'}, status=400)
-            if task.assigned_to is not None and task.assigned_to != employee:
-                return JsonResponse({'status': 'error', 'message': 'Unauthorized'}, status=403)
-
+            
             task.status = 'COMPLETED'
             task.save()
 
-            project       = task.project
-            current_phase = task.phase
+            emp_name = employee.name.get_full_name() or employee.name.username
+            admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).distinct()
+            for admin_user in admins:
+                if hasattr(admin_user, 'employee_profile') and admin_user.employee_profile:
+                    EmployeeNotification.objects.create(
+                        employee=admin_user.employee_profile,
+                        project=task.project,
+                        title="Task Completed",
+                        message=f"{emp_name} has completed the task: '{task.task_name}' for {task.project.project_name}.",
+                        date=date.today()
+                    )
 
-            if not project.tasks.filter(phase=current_phase).exclude(status='COMPLETED').exists():
-                if current_phase == 'PRE':
-                    project.status = 'SELECTION'
-                elif current_phase == 'SELECTION':
-                    project.status = 'POST'
-                elif current_phase == 'POST':
-                    if not project.tasks.filter(phase='POST').exclude(status='COMPLETED').exists():
-                        project.status = 'COMPLETED'
-                project.save()
+            project = task.project
+            has_incomplete_pre = project.tasks.filter(phase='PRE').exclude(status='COMPLETED').exists()
+            has_incomplete_sel = project.tasks.filter(phase='SELECTION').exclude(status='COMPLETED').exists()
+            has_incomplete_post = project.tasks.filter(phase='POST').exclude(status='COMPLETED').exists()
 
-            total_tasks     = project.tasks.filter(assigned_to=employee).count()
-            completed_tasks = project.tasks.filter(assigned_to=employee, status='COMPLETED').count()
-            return JsonResponse({'status': 'success', 'total_tasks': total_tasks, 'completed_tasks': completed_tasks})
+            if has_incomplete_pre:
+                project.status = 'PRE'
+            elif has_incomplete_sel:
+                project.status = 'SELECTION'
+            elif has_incomplete_post:
+                project.status = 'POST'
+            else:
+                project.status = 'COMPLETED'
+            
+            project.save()
+            return JsonResponse({'status': 'success', 'new_status': project.status})
 
         except AttributeError:
             return JsonResponse({'status': 'error', 'message': 'No employee profile'}, status=403)
-
-    return JsonResponse({'status': 'error', 'message': 'Invalid request'}, status=400)
 
 
 def get_employee_notifications(request):
@@ -1857,3 +2091,70 @@ def mark_all_notifications_read(request):
     from .models import EmployeeNotification
     EmployeeNotification.objects.filter(employee=employee, is_read=False).update(is_read=True)
     return JsonResponse({'status': 'success'})
+
+
+@csrf_exempt
+@login_required
+def submit_expense(request):
+    if request.method == "POST":
+        try:
+            # 1. Get and Validate Data
+            project_id = request.POST.get('project_id')
+            # Handle empty strings by defaulting to '0'
+            travel = request.POST.get('travel') or '0'
+            food = request.POST.get('food') or '0'
+            accommodation = request.POST.get('accommodation') or '0'
+            
+            try:
+                total = float(travel) + float(food) + float(accommodation)
+            except ValueError:
+                return JsonResponse({"status": "error", "message": "Invalid amount format"}, status=400)
+            
+            project = get_object_or_404(ProjectDetail, id=project_id)
+            employee = request.user.employee_profile
+            
+            assignment = CrewAssignment.objects.filter(project=project, employee=employee).first()
+
+            report, created = ExpenseReport.objects.update_or_create(
+                project=project,
+                employee=employee,
+                defaults={
+                    'assignment': assignment,
+                    'travel_amount': travel,
+                    'food_amount': food,
+                    'accommodation_amount': accommodation,
+                    'total_amount': total,
+                    'is_approved': False  # Always reset to pending on edit/submission
+                }
+            )
+
+            files = request.FILES.getlist('receipts')
+            if files:
+                for f in files:
+                    ExpenseImage.objects.create(
+                        expense_report=report,
+                        image=f
+                    )
+
+            admin_msg = f"New expense claim: {request.user.get_full_name() or request.user.username} for {project.project_name} (Total: ₹{total})"
+            admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True))
+            
+            for admin_user in admins:
+                if hasattr(admin_user, 'employee_profile') and admin_user.employee_profile:
+                    EmployeeNotification.objects.create(
+                        employee=admin_user.employee_profile,
+                        project=project,
+                        title="Expense Claim Received",
+                        message=admin_msg,
+                        date=date.today()
+                    )
+
+            return JsonResponse({
+                "status": "success", 
+                "message": "Expense details submitted. Admin has been notified."
+            })
+
+        except Exception as e:
+            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            
+    return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)

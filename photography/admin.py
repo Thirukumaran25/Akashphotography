@@ -304,11 +304,38 @@ class EmployeeNotificationAdmin(admin.ModelAdmin):
     employee_name.short_description = 'Employee'
  
     def is_read_badge(self, obj):
-        if obj.is_read:
-            return format_html('<span style="color:#16a34a;font-weight:700;">✓ Read</span>')
-        return format_html('<span style="color:#A9323D;font-weight:700;">● Unread</span>')
-    is_read_badge.short_description = 'Status'
+        if not obj.is_read:
+            return format_html('<span style="color:#A9323D;font-weight:700;">● Unread</span>', "")
+        return format_html('<span style="color:#666;">Read</span>', "")
 
 
 
 admin.site.register(Deliverable)
+
+class ExpenseImageInline(admin.TabularInline):
+    model = ExpenseImage
+    extra = 1
+
+@admin.register(ExpenseReport)
+class ExpenseReportAdmin(admin.ModelAdmin):
+    list_display = ('id', 'project', 'employee', 'total_amount', 'is_approved', 'submitted_at')
+    list_filter = ('is_approved', 'submitted_at', 'project')
+    search_fields = ('project__project_name', 'employee__name__username')
+    list_editable = ('is_approved',)
+    
+    # Add the inline here to show the multiple images
+    inlines = [ExpenseImageInline]
+
+    fieldsets = (
+        ('Reference Information', {
+            'fields': ('project', 'employee', 'assignment')
+        }),
+        ('Financial Details', {
+            'fields': ('travel_amount', 'food_amount', 'accommodation_amount', 'total_amount')
+        }),
+        ('Status', {
+            'fields': ('is_approved',)
+        }),
+    )
+    
+    readonly_fields = ('submitted_at',)

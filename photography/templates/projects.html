@@ -52,8 +52,43 @@
   .tt-dd-wrap { position:relative; display:inline-block; }
   .tt-dd-trigger { display:flex; align-items:center; gap:8px; cursor:pointer; padding:3px 6px; border-radius:8px; transition:background .1s; }
   .tt-dd-trigger:hover { background:#f0f0f0; }
-  .tt-dd-menu { display:none; position:absolute; top:calc(100% + 4px); left:0; background:#fff; border:1px solid #e5e7eb; border-radius:10px; box-shadow:0 8px 28px rgba(0,0,0,.13); min-width:200px; z-index:200; overflow:hidden; }
-  .tt-dd-wrap:hover .tt-dd-menu { display:block; }
+  .tt-dd-menu { 
+    visibility: hidden; /* Use this instead of display:none */
+    opacity: 0;
+    position: absolute; 
+    top: calc(100% + 4px); 
+    left: 0; 
+    background: #fff; 
+    border: 1px solid #e5e7eb; 
+    border-radius: 10px; 
+    box-shadow: 0 8px 28px rgba(0,0,0,.13); 
+    min-width: 200px; 
+    z-index: 200; 
+    overflow: hidden; 
+    
+    /* Transition settings */
+    transition: opacity 0.2s ease, visibility 0.3s ease; 
+    transition-delay: 0.2s; /* This makes it stay for nearly a second before closing */
+  }
+
+  /* 2. Show the menu on hover with 0 delay (instant open) */
+  .tt-dd-wrap:hover .tt-dd-menu {
+    visibility: visible;
+    opacity: 1;
+    transition-delay: 0s; 
+  }
+
+  /* 3. This invisible bridge prevents the menu from closing if there's a gap 
+        between the button and the dropdown */
+  .tt-dd-menu::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background: transparent;
+  }
   .tt-dd-item { display:flex; align-items:center; gap:8px; padding:9px 14px; font-size:13px; cursor:pointer; transition:background .1s; }
   .tt-dd-item:hover { background:#f5f5f5; }
   .t-pill { display:inline-block; padding:4px 16px; border-radius:6px; font-size:12.5px; font-weight:700; white-space:nowrap; cursor:pointer; }
@@ -352,47 +387,227 @@
 
   <!-- LIST VIEW -->
   <div id="listView" style="display:none" class="animate-[fadeIn_0.4s_ease]">
-    <div class="w-full max-w-[1200px] mx-auto bg-white p-0 relative max-h-[calc(100vh-220px)] overflow-y-auto">
-      <div class="grid grid-cols-[120px_1fr_200px_180px_2fr_160px] font-semibold text-[#666] px-5 py-3.5 text-[16px] bg-white gap-5 border-b-[2px] border-black sticky top-0 z-50 shadow-[0_4px_10px_rgba(0,0,0,0.04)]">
-        <span>Project ID</span><span>Project Name</span><span>Event Date</span>
-        <span>Assigned To</span><span>Tasks</span><span>Task Status</span>
+    <div class="w-full max-w-[1400px] mx-auto bg-white p-0 relative max-h-[calc(100vh-220px)] overflow-y-auto rounded-xl">
+      
+      <div class="grid grid-cols-[100px_2.5fr_2fr_180px_3fr_140px] font-bold text-[#999] px-8 py-4 text-[14px] bg-white gap-4 border-b-[2px] border-[#eaeaea] sticky top-0 z-50">
+        <span>Project ID</span>
+        <span>Project Name</span>
+        <span>Event Date</span>
+        <span>Assigned To</span>
+        <span>Tasks</span>
+        <span>Task Status</span>
       </div>
-      <div>
-        <div class="font-bold text-[19px] w-full p-[16px_20px] bg-[#f2f1ff] text-[#5b4ce6] border-y border-[#eee]">● PRE PRODUCTION</div>
+
+      <div class="pb-6">
+        
+        <div class="font-bold text-[15px] w-full p-[12px_32px] bg-[#f2f1ff] text-[#3a1cba] border-y border-[#e6e5f5] uppercase tracking-wide">
+          ● PRE PRODUCTION
+        </div>
         {% for p in pre_cards %}
-        <div class="list-row grid grid-cols-[120px_1fr_200px_180px_2fr_160px] items-center px-5 py-3.5 gap-5 border-b border-[#eee] hover:bg-[#f8f7ff] hover:-translate-y-[1px] cursor-pointer transition-all"
-             data-project-id="{{ p.id }}">
-          <span>AK-{{ p.id }}</span>
-          <span class="text-[18px]">{{ p.client_name }}</span>
-          <span class="text-[14px] -ml-[30px]">{{ p.start_date }} – {{ p.end_date }}</span>
-          <span class="flex items-center pl-5">
+        <div class="list-row grid grid-cols-[100px_2.5fr_2fr_180px_3fr_140px] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fcfcff] cursor-pointer transition-all" data-project-id="{{ p.id }}">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="flex items-center">
             {% for m in p.team %}
-            <span class="w-8 h-8 rounded-full bg-black text-white text-[12px] font-semibold flex items-center justify-center -ml-2 border-2 border-white first:ml-0">{{ m.initials }}</span>
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0 shadow-sm">{{ m.initials }}</span>
             {% endfor %}
           </span>
-          <span></span>
-          <span class="px-3.5 py-1.5 rounded-[20px] text-[12px] font-semibold w-fit bg-[#ffd54f] text-[#5d4a00]">In-Progress</span>
+          <span class="flex flex-wrap gap-2 pr-4">
+             {% for task in p.tasks %}
+               <span class="text-[10px] font-medium border rounded-[4px] px-1.5 py-0.5 shadow-sm
+                            {% if task.status == 'COMPLETED' %}
+                               bg-[#f0f0f0] text-[#999] border-[#e0e0e0] line-through
+                            {% else %}
+                               bg-[#fdfdfd] text-[#555] border-[#d1d5db]
+                            {% endif %}">
+                 {{ task.name }}
+               </span>
+             {% empty %}
+               <span class="text-[11px] text-[#aaa] italic mt-1">No tasks assigned</span>
+             {% endfor %}
+          </span>
+          <span class="px-3 py-1.5 rounded-[4px] text-[13px] font-bold w-fit bg-[#fcd34d] text-white text-center shadow-sm">In-Progress</span>
         </div>
-        {% empty %}<div class="p-4 text-gray-400">No projects</div>{% endfor %}
+        {% empty %}
+        <div class="p-4 text-[#999] text-[13px] italic px-8">No projects in Pre Production</div>
+        {% endfor %}
+
+
+        <div class="font-bold text-[15px] w-full p-[12px_32px] bg-[#fcffe5] text-[#b8d200] border-y border-[#f4f7d4] uppercase tracking-wide mt-4">
+          ● SELECTION
+        </div>
+        {% for p in selection %}
+        <div class="list-row grid grid-cols-[100px_2.5fr_2fr_180px_3fr_140px] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fffff9] cursor-pointer transition-all" data-project-id="{{ p.id }}">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="flex items-center">
+            {% for m in p.team %}
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0 shadow-sm">{{ m.initials }}</span>
+            {% endfor %}
+          </span>
+          <span class="flex flex-wrap gap-2 pr-4">
+             {% for task in p.tasks %}
+               <span class="text-[10px] font-medium border rounded-[4px] px-1.5 py-0.5 shadow-sm
+                            {% if task.status == 'COMPLETED' %}
+                               bg-[#f0f0f0] text-[#999] border-[#e0e0e0] line-through
+                            {% else %}
+                               bg-[#fdfdfd] text-[#555] border-[#d1d5db]
+                            {% endif %}">
+                 {{ task.name }}
+               </span>
+             {% empty %}
+               <span class="text-[11px] text-[#aaa] italic mt-1">No tasks assigned</span>
+             {% endfor %}
+          </span>
+          <span class="px-3 py-1.5 rounded-[4px] text-[13px] font-bold w-fit bg-[#9e2a2f] text-white text-center shadow-sm">To be assigned</span>
+        </div>
+        {% empty %}
+        <div class="p-4 text-[#999] text-[13px] italic px-8">No projects in Selection</div>
+        {% endfor %}
+
+
+        <div class="font-bold text-[15px] w-full p-[12px_32px] bg-[#ffeaea] text-[#ef4444] border-y border-[#fad4d4] uppercase tracking-wide mt-4">
+          ● POST PRODUCTION
+        </div>
+        {% for p in post %}
+        <div class="list-row grid grid-cols-[100px_2.5fr_2fr_180px_3fr_140px] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fffafa] cursor-pointer transition-all" data-project-id="{{ p.id }}">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="flex items-center">
+            {% for m in p.team %}
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white first:ml-0 shadow-sm">{{ m.initials }}</span>
+            {% endfor %}
+          </span>
+          <span class="flex flex-wrap gap-2 pr-4">
+             {% for task in p.tasks %}
+               <span class="text-[10px] font-medium border rounded-[4px] px-1.5 py-0.5 shadow-sm
+                            {% if task.status == 'COMPLETED' %}
+                               bg-[#f0f0f0] text-[#999] border-[#e0e0e0] line-through
+                            {% else %}
+                               bg-[#fdfdfd] text-[#555] border-[#d1d5db]
+                            {% endif %}">
+                 {{ task.name }}
+               </span>
+             {% empty %}
+               <span class="text-[11px] text-[#aaa] italic mt-1">No tasks assigned</span>
+             {% endfor %}
+          </span>
+          <span class="px-3 py-1.5 rounded-[4px] text-[13px] font-bold w-fit bg-[#9e2a2f] text-white text-center shadow-sm">To be assigned</span>
+        </div>
+        {% empty %}
+        <div class="p-4 text-[#999] text-[13px] italic px-8">No projects in Post Production</div>
+        {% endfor %}
+
       </div>
     </div>
   </div>
 
   <!-- OVERVIEW VIEW -->
-  <div id="overviewView" style="display:none" class="animate-[fadeSlide_0.4s_ease]">
-    <div class="bg-white p-[26px] rounded-[18px] mt-[-30px]">
-      <div class="bg-[#fafafa] p-5 mt-[-30px] w-full">
-        <div class="bg-white p-[30px] rounded-full flex gap-2.5 justify-center mb-[30px] w-[500px] mx-auto
-                    [&>span]:px-[18px] [&>span]:py-2 [&>span]:rounded-full [&>span]:text-[13px] [&>span]:font-semibold [&>span]:cursor-pointer
-                    [&>span]:bg-[#f1f1f1] [&>span.active]:bg-[#ffe5e5] [&>span.active]:text-[#b3262d]">
-          <span class="active" data-tab="internal">Pending Internally</span>
-          <span data-tab="client">Awaiting Client Response</span>
-        </div>
+  <div id="overviewView" style="display:none" class="animate-[fadeSlide_0.4s_ease] bg-white rounded-xl min-h-[600px] mt-[-30px]">
+    
+    <style>
+      .overview-table { display: none; }
+      .overview-table.active { display: block; }
+    </style>
+    
+    <div class="bg-[#fafafa] pt-8 pb-10 w-full rounded-t-[18px] flex justify-center border-b border-[#f0f0f0]">
+      <div class="overview-tabs bg-white p-1.5 rounded-full flex gap-1 shadow-sm border border-[#eaeaea] w-fit
+                  [&>span]:px-8 [&>span]:py-2.5 [&>span]:rounded-full [&>span]:text-[14px] [&>span]:font-bold [&>span]:cursor-pointer [&>span]:transition-all
+                  [&>span]:text-[#333] [&>span.active]:bg-[#fff5f5] [&>span.active]:text-[#9e2a2f]">
+        <span class="active" data-tab="internal">Pending Internally</span>
+        <span data-tab="client">Awaiting Client Response</span>
       </div>
-      <div class="overview-table active" id="overview-internal">
-        <div class="grid grid-cols-[120px_2fr_2fr_2fr_2fr] font-semibold text-[15px] py-3 text-[#9a9a9a] border-b border-[#bdbdbd] max-w-[1200px] w-[80%] mx-auto">
-          <span>Project ID</span><span>Project Name</span><span>Event Date</span><span>Assigned To</span><span>Pending Tasks</span>
+    </div>
+
+    <div class="overview-table active w-full max-w-[1400px] mx-auto p-0 relative" id="overview-internal">
+      <div class="grid grid-cols-[100px_2.5fr_2fr_180px_3fr] font-bold text-[#999] px-8 py-4 text-[14px] gap-4 border-b-[2px] border-[#eaeaea]">
+        <span>Project ID</span>
+        <span>Project Name</span>
+        <span>Event Date</span>
+        <span>Assigned To</span>
+        <span>Pending Tasks</span>
+      </div>
+      
+      <div class="pb-6">
+        
+        {% for p in pre_cards %}
+        <div class="grid grid-cols-[100px_2.5fr_2fr_180px_3fr] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fafafa] transition-all">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="flex items-center">
+            {% for m in p.team %}
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white shadow-sm first:ml-0">{{ m.initials }}</span>
+            {% endfor %}
+          </span>
+          <span class="flex flex-wrap gap-2 pr-4">
+             {% for task in p.tasks %}
+               {% if task.status != 'COMPLETED' %}
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">{{ task.name }}</span>
+               {% endif %}
+             {% empty %}
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">Video Editing</span>
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">Photo Editing</span>
+             {% endfor %}
+          </span>
         </div>
+        {% endfor %}
+
+        {% for p in post %}
+        <div class="grid grid-cols-[100px_2.5fr_2fr_180px_3fr] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fafafa] transition-all">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="flex items-center">
+            {% for m in p.team %}
+            <span class="w-[30px] h-[30px] rounded-full bg-[#111] text-white text-[11px] font-bold flex items-center justify-center -ml-2 border-2 border-white shadow-sm first:ml-0">{{ m.initials }}</span>
+            {% endfor %}
+          </span>
+          <span class="flex flex-wrap gap-2 pr-4">
+             {% for task in p.tasks %}
+               {% if task.status != 'COMPLETED' %}
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">{{ task.name }}</span>
+               {% endif %}
+             {% empty %}
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">Video Editing</span>
+               <span class="text-[11px] font-semibold text-[#555] border border-[#d1d5db] rounded-full px-2.5 py-1 bg-white shadow-sm">Photo Editing</span>
+             {% endfor %}
+          </span>
+        </div>
+        {% endfor %}
+
+        {% if not pre_cards and not post %}
+        <div class="p-6 text-center text-[#999] text-[13px] italic">No pending internal projects found.</div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="overview-table w-full max-w-[1400px] mx-auto p-0 relative" id="overview-client">
+      <div class="grid grid-cols-[100px_2.5fr_2fr_2fr_2fr] font-bold text-[#999] px-8 py-4 text-[14px] gap-4 border-b-[2px] border-[#eaeaea]">
+        <span>Project ID</span>
+        <span>Project Name</span>
+        <span>Event Date</span>
+        <span>Due Date</span>
+        <span>Pending List</span>
+      </div>
+      <div class="pb-6">
+        {% for p in selection %}
+        <div class="grid grid-cols-[100px_2.5fr_2fr_2fr_2fr] items-center px-8 py-4 gap-4 border-b border-[#f0f0f0] hover:bg-[#fafafa] transition-all">
+          <span class="text-[#555] font-medium text-[14px]">AK-{{ p.id }}</span>
+          <span class="text-[15px] font-semibold text-[#222] truncate pr-4">{{ p.client_name }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.start_date }} - {{ p.end_date }}</span>
+          <span class="text-[13px] text-[#444] font-medium truncate">{{ p.end_date }}</span>
+          <span class="flex flex-col gap-1.5 items-start">
+             <span class="text-[10px] font-bold text-white rounded-[4px] px-2.5 py-1 bg-[#ef4444] shadow-sm">Payment Pending</span>
+             <span class="text-[10px] font-bold text-white rounded-[4px] px-2.5 py-1 bg-[#f59e0b] shadow-sm">Selection Link Pending</span>
+          </span>
+        </div>
+        {% empty %}
+        <div class="p-6 text-center text-[#999] text-[13px] italic">No projects awaiting client response.</div>
+        {% endfor %}
       </div>
     </div>
   </div>
@@ -607,13 +822,14 @@ function validateAndProceed() {
   proceedToTasks();
 }
 
+let selectedPreDeadline = "";
+let selectedPostDeadline = "";
+
 function proceedToTasks() {
     const selectedPills = Array.from(document.querySelectorAll("#teamAssignPopup .member-pill.selected"));
     const ids = selectedPills.map(p => p.dataset.id);
-    
-    // Capture both date inputs from the Team Assign Popup
-    const postDate = document.getElementById("teamDueDate")?.value || "";
-    const preDate = document.getElementById("preDate")?.value || "";
+    selectedPostDeadline = document.getElementById("teamDueDate")?.value || "";
+    selectedPreDeadline = document.getElementById("preDate")?.value || "";
     
     fetch("/projects/assign-team-basic/", {
         method: "POST",
@@ -624,8 +840,8 @@ function proceedToTasks() {
         body: new URLSearchParams({ 
             project_id: currentProjectId, 
             employee_ids: JSON.stringify(ids), 
-            deadline_date: postDate,
-            pre_deadline: preDate  
+            deadline_date: selectedPostDeadline,
+            pre_deadline: selectedPreDeadline
         }),
     })
     .then(r => r.json())
@@ -633,7 +849,6 @@ function proceedToTasks() {
         if (data.status === 'success') {
             document.getElementById("teamAssignPopup").style.display = "none";
             document.getElementById("taskPopup").style.display = "flex";
-            // Refresh tasks so the new dates appear in the table immediately
             loadTasks(currentProjectId); 
         } else {
             showWarningToast("Error saving team assignment.");
@@ -646,35 +861,50 @@ function proceedToTasks() {
 function closeTaskPopup() { document.getElementById("taskPopup").style.display = "none"; }
 
 function finishAssignment() {
-  const pendingIds = Object.keys(pendingTaskUpdates);
-  
-  // 1. Save any pending task changes
-  const saves = pendingIds.map(taskId =>
-    fetch("/projects/tasks/update/", {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ task_id: taskId, ...pendingTaskUpdates[taskId] }),
-    })
-  );
+    const pendingIds = Object.keys(pendingTaskUpdates);
+    const saves = pendingIds.map(taskId =>
+        fetch("/projects/tasks/update/", {
+            method: "POST",
+            headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({ task_id: taskId, ...pendingTaskUpdates[taskId] }),
+        })
+    );
 
-  Promise.all(saves).then(() => {
-    pendingTaskUpdates = {};
-    closeTaskPopup();
-    fetch("/projects/update-status/", {
-      method: "POST",
-      headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({ project_id: currentProjectId, status: "PRE" }),
-    }).then(() => {
-      const toast = document.getElementById("saveToast");
-      if (toast) {
-        toast.innerText = "Project Moved to Pre-Production";
-        toast.style.opacity = "1";
-        toast.style.transform = "translateY(0)";
-      }
-      
-      setTimeout(() => window.location.reload(), 500);
+    Promise.all(saves).then(() => {
+        pendingTaskUpdates = {};
+
+        fetch(`/projects/${currentProjectId}/tasks/`)
+            .then(r => r.json())
+            .then(data => {
+                const taskGroups = data.tasks || {};
+                let newStatus = "POST"; 
+                const preTasks = taskGroups["PRE"] || taskGroups["PRE PRODUCTION"] || [];
+                const selTasks = taskGroups["SELECTION"] || [];
+                const postTasks = taskGroups["POST"] || taskGroups["POST PRODUCTION"] || [];
+                const preIncomplete = preTasks.length === 0 || preTasks.some(t => t.status !== 'COMPLETED');
+                const selIncomplete = selTasks.some(t => t.status !== 'COMPLETED');
+                const postIncomplete = postTasks.some(t => t.status !== 'COMPLETED');
+
+                if (preIncomplete) {
+                    newStatus = "PRE";
+                } else if (selIncomplete) {
+                    newStatus = "SELECTION";
+                } else if (postIncomplete) {
+                    newStatus = "POST";
+                } else {
+                    newStatus = "COMPLETED";
+                }
+
+                fetch("/projects/update-status/", {
+                    method: "POST",
+                    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+                    body: new URLSearchParams({ project_id: currentProjectId, status: newStatus }),
+                }).then(() => {
+                    closeTaskPopup();
+                    setTimeout(() => window.location.reload(), 500);
+                });
+            });
     });
-  });
 }
 
 document.addEventListener("click", e => {
@@ -787,7 +1017,7 @@ function renderTasks(taskGroups) {
               <td><div class="tt-dd-wrap"><div class="tt-dd-trigger" id="assign-${task.id}"><div style="display:flex;align-items:center;gap:8px;">${avatarHTML(task.assigned_to_id)}</div></div><div class="tt-dd-menu">${dropItems}</div></div></td>
               <td><div class="tt-dd-wrap"><div class="tt-dd-trigger" id="status-${task.id}">${pillHTML(task.status)}</div><div class="tt-dd-menu">${statusItems}</div></div></td>
               <td><input type="date" class="tt-date" value="${task.start_date||""}" onchange="queueUpdate(${task.id},{start_date:this.value})"></td>
-              <td><input type="date" class="tt-date" value="${task.due_date||""}" onchange="queueUpdate(${task.id},{due_date:this.value})"></td>
+              <td><input type="date" class="tt-date" value="${task.due_date || ""}" onchange="queueUpdate(${task.id},{due_date:this.value})"></td>
               <td id="progress-${task.id}">${progressHTML(pct)}</td>
               <td>
                 <button class="tt-btn tt-btn-save" title="Save" onclick="saveTask(${task.id})">✔</button>
@@ -864,21 +1094,41 @@ function saveTask(taskId) {
 }
 
 function addTaskFromTemplate(phase, cleanId) {
-  const sel = document.getElementById(`tpl-${cleanId}`);
-  if (!sel||!sel.value) return;
-  fetch("/projects/tasks/add/", {
-    method: "POST",
-    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ project_id: currentProjectId, template_id: sel.value, phase }),
-  }).then(() => loadTasks(currentProjectId));
+    const sel = document.getElementById(`tpl-${cleanId}`);
+    if (!sel || !sel.value) return;
+
+    const postDate = document.getElementById("teamDueDate")?.value;
+    const preDate = document.getElementById("preDate")?.value;
+
+    const dateToSend = (phase.toUpperCase().includes("PRE")) ? preDate : postDate;
+
+    fetch("/projects/tasks/add/", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ 
+            project_id: currentProjectId, 
+            template_id: sel.value, 
+            phase: phase,
+            due_date: dateToSend 
+        }),
+    }).then(() => loadTasks(currentProjectId));
 }
 
 function addTask(phase) {
-  fetch("/projects/tasks/add/", {
-    method: "POST",
-    headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ project_id: currentProjectId, title: "New Task", phase }),
-  }).then(() => loadTasks(currentProjectId));
+    const postDate = document.getElementById("teamDueDate")?.value;
+    const preDate = document.getElementById("preDate")?.value;
+   const dateToSend = (phase.toUpperCase().includes("PRE")) ? preDate : postDate;
+
+    fetch("/projects/tasks/add/", {
+        method: "POST",
+        headers: { "X-CSRFToken": csrfToken(), "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({ 
+            project_id: currentProjectId, 
+            title: "New Task", 
+            phase: phase,
+            due_date: dateToSend
+        }),
+    }).then(() => loadTasks(currentProjectId));
 }
 
 function deleteTask(id) {

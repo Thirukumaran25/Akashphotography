@@ -461,3 +461,26 @@ class EmployeeNotification(models.Model):
 
     def __str__(self):
         return f"[{'Read' if self.is_read else 'Unread'}] {self.employee} — {self.title}"
+    
+
+
+class ExpenseReport(models.Model):
+    project = models.ForeignKey('ProjectDetail', on_delete=models.CASCADE, related_name='expenses')
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE)
+    assignment = models.ForeignKey('CrewAssignment', on_delete=models.CASCADE, null=True, blank=True)
+    
+    travel_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    food_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    accommodation_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Expense: {self.employee} - {self.project.project_name} (₹{self.total_amount})"
+    
+
+class ExpenseImage(models.Model):
+    expense_report = models.ForeignKey(ExpenseReport, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='expenses/receipts/')

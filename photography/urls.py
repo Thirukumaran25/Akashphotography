@@ -9,6 +9,9 @@ urlpatterns = [
     path('quotation/', quotation_builder_view, name='quotation_builder'),
     path('quotation/view/<uuid:token>/', public_quotation_view, name='public_quotation_view'),
 
+    path('admin-notifications/mark-read/', admin_mark_read, name='admin_mark_read'),
+    path('admin-notifications/mark-all-read/', admin_mark_all_read, name='admin_mark_all_read'),
+    path('lead/', lead, name='lead'),
     path('projects/', projects, name='projects'),
     path('projects/details/<int:project_id>/', get_project_details, name='get_project_details'),
     path('projects/assign-team/', assign_team_to_project, name='assign_team_to_project'),
@@ -58,7 +61,7 @@ urlpatterns = [
     path('api/task/<int:task_id>/complete/', mark_task_complete, name='mark_task_complete'),
     path('employee-dashboard/accept/', employee_accept_project, name='employee_accept_project'),
     path('api/shoot/<int:assignment_id>/complete/', mark_shoot_complete, name='mark_shoot_complete'),
-
+    path('api/expense/submit/', submit_expense, name='submit_expense'),
 
     path('notifications/', get_employee_notifications,  name='get_notifications'),
     path('notifications/<int:notif_id>/read/', mark_notification_read,  name='mark_notification_read'),

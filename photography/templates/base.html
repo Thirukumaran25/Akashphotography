@@ -29,16 +29,6 @@
 
 <body>
 
-<div class="followup-panel fixed top-0 right-[-420px] w-full sm:w-[420px] h-full bg-gradient-to-b from-white to-[#fafafa] shadow-[-20px_0_60px_rgba(0,0,0,.18)] transition-all duration-450 ease-[cubic-bezier(.4,0,.2,1)] z-[3000] flex flex-col" id="followupPanel">
-    <div class="followup-header p-[22px_22px_18px] border-b border-[rgba(0,0,0,.06)] flex justify-between items-center bg-white">
-        <div>
-            <h3 class="m-0 text-[20px] font-bold tracking-[.3px]">🔔 Follow-ups</h3>
-            <p class="m-[6px_0_0] text-[13px] text-[#666]">You have <strong class="text-[#9e2a2f]" id="followupTotal">0</strong> reminders</p>
-        </div>
-        <button class="close-btn text-[26px] bg-transparent border-none cursor-pointer text-[#888] transition-all duration-200 hover:text-[#000] hover:scale-[1.15]" onclick="closeFollowup()">×</button>
-    </div>
-</div>
-
 <div class="h-[28px] md:h-[28px] lg:h-[34px] xl:h-[36px] 2xl:h-[40px] bg-[#9e2a2f] mb-2 md:mb-2 lg:mb-[14px] xl:mb-[16px] 2xl:mb-[20px] w-full"></div>
 
 <nav class="h-[64px] lg:h-[80px] xl:h-[84px] grid grid-cols-[auto_1fr_auto] lg:grid-cols-[130px_1fr_180px] xl:grid-cols-[150px_1fr_150px] 2xl:grid-cols-[200px_1fr_200px] items-center px-[14px] lg:px-[36px] xl:px-[48px] bg-white border-b border-[#eee] sticky top-0 z-[1000]">
@@ -56,11 +46,11 @@
             
             {% if user.is_staff or user.is_superuser %}
 
-            <a href="#" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+            <a href="{% url 'home' %}"class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
                 <img src="{% static 'images/dashboard.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Dashboard</span>
             </a>
-            <a href="{% url 'home' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
+            <a href="{% url 'lead' %}" class="nav-item group flex flex-row lg:flex-col items-center gap-[14px] lg:gap-[10px] w-full lg:w-auto p-[14px_12px] lg:p-0 text-[15px] lg:text-[16px] xl:text-[17px] 2xl:text-[15px] rounded-[12px] lg:rounded-none font-medium cursor-pointer text-[#111] relative transition-all duration-300 hover:bg-[#f5f5f5] lg:hover:bg-transparent lg:hover:-translate-y-[2px] xl:hover:-translate-y-[3px] hover:text-[#9e2a2f] [&.active]:text-[#9e2a2f] [&.active]:after:hidden lg:[&.active]:after:block [&.active]:after:content-[''] [&.active]:after:absolute [&.active]:after:bottom-[-16px] xl:[&.active]:after:bottom-[-18px] [&.active]:after:w-[24px] xl:[&.active]:after:w-[28px] [&.active]:after:h-[3px] [&.active]:after:bg-[#9e2a2f] [&.active]:after:rounded-[4px]">
                 <img src="{% static 'images/leads.png' %}" class="w-[17px] h-[17px] lg:w-[22px] lg:h-[22px] 2xl:w-[17px] 2xl:h-[17px] group-hover:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] group-[.active]:filter-[brightness(0)_saturate(100%)_invert(23%)_sepia(92%)_saturate(5200%)_hue-rotate(352deg)_brightness(92%)_contrast(70%)] transition-all">
                 <span>Leads</span>
             </a>
@@ -111,29 +101,50 @@
         </div>
     </div>
 
-    <div class="nav-right flex items-center justify-end gap-[12px] lg:gap-[16px] xl:gap-[18px]">
-        <div class="notification relative cursor-pointer" onclick="openFollowup()">
-            <img src="{% static 'images/notification.png' %}" class="w-[26px] h-[26px] lg:w-[30px] lg:h-[30px] xl:w-[32px] xl:h-[34px] 2xl:w-[28px] 2xl:h-[28px] mt-[2px]">
-            <span class="notif-badge absolute top-[-6px] right-[-6px] min-w-[18px] h-[18px] px-[5px] bg-[#e53935] text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow-[0_4px_10px_rgba(229,57,53,.45)] scale-0 transition-transform duration-250 ease-in-out" id="followupBadge">0</span>
+    <div class="nav-right flex items-center justify-end gap-4 lg:gap-6">
+        <div class="relative" id="bellWrapper">
+            <button onclick="toggleBell()" class="relative w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center shadow-sm hover:bg-gray-50 transition">
+                <i class="fas fa-bell text-gray-400 text-[18px]"></i>
+                {% if unread_count > 0 %}
+                <span id="bellBadge" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#A9323D] text-white text-[10px] font-black rounded-full flex items-center justify-center">{{ unread_count }}</span>
+                {% endif %}
+            </button>
+
+            <div id="bellDropdown" class="hidden absolute right-0 top-12 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
+                <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
+                    <span class="font-bold text-[13px]">Notifications</span>
+                    <button onclick="markAllRead()" class="text-[11px] text-[#A9323D] font-bold">Mark all read</button>
+                </div>
+                <div class="max-h-72 overflow-y-auto">
+                    {% for notif in unread_notifications %}
+                        <div class="px-4 py-3 hover:bg-gray-50 border-b border-gray-50 cursor-pointer" onclick="markRead({{ notif.id }}, this)">
+                            <p class="text-[12px] font-bold text-gray-900">{{ notif.title }}</p>
+                            <p class="text-[11px] text-gray-500 mt-1">{{ notif.message }}</p>
+                            <p class="text-[10px] text-gray-400 mt-1">{{ notif.created_at|timesince }} ago</p>
+                        </div>
+                    {% empty %}
+                        <div class="p-6 text-center text-gray-400 text-xs font-medium">
+                            <i class="fas fa-check-circle mb-2 text-lg block"></i>
+                            All caught up!
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
+
+        <div class="relative hidden lg:block">
+            <div id="profileButton" class="flex items-center justify-center w-10 h-10 bg-[#111] text-white text-[13px] font-bold rounded-xl cursor-pointer hover:scale-[1.05] transition" onclick="toggleProfileDropdown()">
+                {{ user.username|make_list|first|upper }}
+            </div>
+            <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-[50] overflow-hidden">
+                <a href="{% url 'logout' %}" class="block px-5 py-3 text-sm text-gray-700 hover:bg-red-50 font-bold transition">Logout</a>
+            </div>
+        </div>
+
         <div class="mobile-menu-btn flex flex-col justify-between w-[28px] h-[20px] cursor-pointer lg:hidden" onclick="toggleMobileMenu()">
             <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
             <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
             <span class="h-[3px] w-full bg-[#9e2a2f] rounded-[4px]"></span>
-        </div>
-        
-        <div class="relative hidden lg:block ml-2">
-            <div id="profileButton" class="profile-circle flex items-center justify-center w-[36px] h-[36px] bg-[#111] text-white text-[13px] font-bold rounded-xl cursor-pointer transition-transform duration-300 hover:scale-[1.08] hover:shadow-md border border-gray-100" onclick="toggleProfileDropdown()">
-                {% if user.is_authenticated %}
-                    {{ user.username|make_list|first|upper }}
-                {% endif %}
-            </div>
-            
-            <div id="profileDropdown" class="hidden absolute right-0 mt-3 w-44 bg-white rounded-xl shadow-xl border border-gray-100 z-[5000] overflow-hidden origin-top-right transition-all">
-                <a href="{% url 'logout' %}" class="block px-5 py-3.5 text-[14px] text-gray-700 hover:bg-red-50 hover:text-[#A9323D] font-bold transition-colors">
-                    <i class="fas fa-sign-out-alt mr-2.5"></i> Logout
-                </a>
-            </div>
         </div>
     </div>
 </nav>
@@ -143,65 +154,99 @@
 </main>
 
 <script>
-window.toggleMobileMenu = function() {
-    const navCenter = document.querySelector(".nav-center");
-    if (navCenter) {
-        navCenter.classList.toggle("open");
+// --- 1. CSRF Helper (Crucial for Django POST requests) ---
+function getCsrf() {
+    const m = document.cookie.match('(^|;)\\s*csrftoken\\s*=\\s*([^;]+)');
+    return m ? m.pop() : '';
+}
+
+// --- 2. Notification Bell Logic ---
+window.toggleBell = function() {
+    const drop = document.getElementById('bellDropdown');
+    if (drop) {
+        // Toggle 'hidden' class from Tailwind
+        drop.classList.toggle('hidden');
     }
 };
 
-window.openFollowup = function() {
-    document.getElementById("followupPanel").classList.add("open");
+// Mark a single notification as read
+window.markRead = function(id, element) {
+    fetch("/admin-notifications/mark-read/", {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": getCsrf(),
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ id: id })
+    })
+    .then(response => {
+        if (response.ok) {
+            element.style.opacity = '0.5';
+            setTimeout(() => element.remove(), 300);
+            
+            const badge = document.getElementById('bellBadge');
+            if (badge) {
+                let count = parseInt(badge.innerText) - 1;
+                if (count > 0) badge.innerText = count;
+                else badge.remove();
+            }
+        }
+    });
 };
 
-window.closeFollowup = function() {
-    document.getElementById("followupPanel").classList.remove("open");
+// Mark everything as read
+window.markAllRead = function() {
+    fetch("/admin-notifications/mark-all-read/", {
+        method: "POST",
+        headers: { "X-CSRFToken": getCsrf() }
+    })
+    .then(response => {
+        if (response.ok) {
+            location.reload();
+        }
+    });
 };
 
+// --- 3. Profile & Mobile Menu Logic ---
 window.toggleProfileDropdown = function() {
-    const dropdown = document.getElementById("profileDropdown");
-    dropdown.classList.toggle("hidden");
+    document.getElementById("profileDropdown").classList.toggle("hidden");
 };
 
+window.toggleMobileMenu = function() {
+    const navCenter = document.querySelector(".nav-center");
+    if (navCenter) navCenter.classList.toggle("open");
+};
+
+// --- 4. Global Click Listener (Close dropdowns when clicking outside) ---
 window.addEventListener('click', function(e) {
-    const button = document.getElementById("profileButton");
-    const dropdown = document.getElementById("profileDropdown");
-    if (button && dropdown && !button.contains(e.target) && !dropdown.contains(e.target)) {
-        dropdown.classList.add("hidden");
+    const bellWrapper = document.getElementById('bellWrapper');
+    const bellDropdown = document.getElementById('bellDropdown');
+    const profileButton = document.getElementById("profileButton");
+    const profileDropdown = document.getElementById("profileDropdown");
+
+    // Close Bell if clicked outside
+    if (bellWrapper && !bellWrapper.contains(e.target)) {
+        bellDropdown.classList.add('hidden');
+    }
+    // Close Profile if clicked outside
+    if (profileButton && !profileButton.contains(e.target) && !profileDropdown.contains(e.target)) {
+        profileDropdown.classList.add("hidden");
     }
 });
 
+// --- 5. Navigation Active State ---
 document.addEventListener("DOMContentLoaded", () => {
     const currentPath = window.location.pathname;
     const navItems = document.querySelectorAll(".nav-item");
 
-    navItems.forEach(item => item.classList.remove("active"));
     navItems.forEach(item => {
         const href = item.getAttribute("href");
         if (!href || href === "#") return;
 
-        let isActive = false;
-        if (href === "/dashboard/" || href.endsWith("/dashboard/")) {
-            isActive = currentPath === href;
-        } else {
-            isActive = currentPath === href || (href !== "/" && currentPath.startsWith(href));
-        }
-
-        if (isActive) {
+        if (currentPath === href || (href !== "/" && currentPath.startsWith(href))) {
             item.classList.add("active");
         }
     });
-
-    navItems.forEach(item => {
-        item.addEventListener("click", () => {
-            const navCenter = document.querySelector(".nav-center");
-            if (navCenter) navCenter.classList.remove("open");
-        });
-    });
-
-    if (typeof loadFollowups === "function") {
-        loadFollowups();
-    }
 });
 </script>
 

@@ -11,43 +11,6 @@
         <h1 class="text-[26px] font-black text-gray-900 inline-block border-b-[3px] border-gray-900 pb-1">
             Dashboard
         </h1>
-
-        <!-- Notification Bell (click-toggle) -->
-        <div class="relative" id="bellWrapper">
-            <button onclick="toggleBell()" class="relative w-10 h-10 bg-white border border-gray-200 rounded-xl flex items-center justify-center shadow-sm hover:bg-gray-50 transition">
-                <i class="fas fa-bell text-gray-500 text-[15px]"></i>
-                {% if unread_count > 0 %}
-                <span id="bellBadge" class="absolute -top-1.5 -right-1.5 w-5 h-5 bg-[#A9323D] text-white text-[10px] font-black rounded-full flex items-center justify-center leading-none">{{ unread_count }}</span>
-                {% endif %}
-            </button>
-
-            <div id="bellDropdown" class="hidden absolute right-0 top-12 w-80 bg-white border border-gray-200 rounded-2xl shadow-2xl z-50 overflow-hidden">
-                <div class="px-4 py-3 border-b border-gray-100 flex justify-between items-center">
-                    <span class="font-bold text-[13px] text-gray-900">Notifications</span>
-                    {% if unread_count > 0 %}
-                    <button onclick="markAllRead()" class="text-[11px] text-[#A9323D] font-bold hover:underline">Mark all read</button>
-                    {% endif %}
-                </div>
-                <div class="max-h-72 overflow-y-auto divide-y divide-gray-50">
-                    {% for notif in unread_notifications %}
-                    <div class="px-4 py-3 hover:bg-gray-50 transition cursor-pointer" onclick="markRead({{ notif.id }}, this)">
-                        <p class="text-[12px] font-bold text-gray-900 leading-snug">{{ notif.title }}</p>
-                        {% if notif.subservice %}
-                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-[#A9323D] bg-[#fff0f0] px-2 py-0.5 rounded-full mt-1">
-                            <i class="fas fa-camera text-[8px]"></i> {{ notif.subservice.name }}
-                        </span>
-                        {% endif %}
-                        {% if notif.date %}
-                        <p class="text-[11px] text-gray-500 mt-1">{{ notif.date|date:"d M, Y" }}{% if notif.start_time %} · {{ notif.start_time|time:"g:ia" }}{% endif %}</p>
-                        {% endif %}
-                        <p class="text-[10px] text-gray-400 mt-0.5">{{ notif.created_at|timesince }} ago</p>
-                    </div>
-                    {% empty %}
-                    <div class="px-4 py-6 text-center text-[12px] text-gray-400">All caught up!</div>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -132,7 +95,7 @@
                             <th class="pb-3 px-2">Project ID</th>
                             <th class="pb-3 px-2">Project Name</th>
                             <th class="pb-3 px-2">Your Role</th>
-                            <th class="pb-3 px-2">Shoot Date &amp; Time</th>
+                            <th class="pb-3 px-2">Date &amp; Time</th>
                             <th class="pb-3 px-2 text-right">Action</th>
                         </tr>
                     </thead>
@@ -249,21 +212,56 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    new Chart(document.getElementById('overviewChart').getContext('2d'), {
+    const ctx = document.getElementById('overviewChart').getContext('2d');
+    const completedMonthData = {{ chart_completed|safe }};
+    const upcomingMonthData = {{ chart_upcoming|safe }};
+
+    new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['JAN','FEB','MAR','APR','MAY','JUN','JULY'],
+            labels: ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'],
             datasets: [
-                { label:'Completed', data:[25,20,20,18,26,11,15], backgroundColor:'#A9323D', barThickness:30 },
-                { label:'Upcoming',  data:[10,8,8,6,8,5,4],       backgroundColor:'#e5e7eb', barThickness:30 }
+                { 
+                    label: 'Completed', 
+                    data: completedMonthData, 
+                    backgroundColor: '#A9323D', 
+                    barThickness: 20,
+                    borderRadius: 4
+                },
+                { 
+                    label: 'Upcoming',  
+                    data: upcomingMonthData,  
+                    backgroundColor: '#e5e7eb', 
+                    barThickness: 20,
+                    borderRadius: 4
+                }
             ]
         },
         options: {
-            responsive:true, maintainAspectRatio:false,
-            plugins:{ legend:{ display:false } },
-            scales:{
-                x:{ stacked:true, grid:{ display:false } },
-                y:{ stacked:true, grid:{ display:false }, min:5, max:40, ticks:{ stepSize:5 } }
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#111',
+                    titleFont: { size: 12, weight: 'bold' },
+                    bodyFont: { size: 12 },
+                    padding: 10,
+                    displayColors: true
+                }
+            },
+            scales: {
+                x: { 
+                    stacked: true, 
+                    grid: { display: false },
+                    ticks: { font: { size: 10, weight: 'bold' } }
+                },
+                y: { 
+                    stacked: true, 
+                    grid: { color: '#f0f0f0' },
+                    beginAtZero: true,
+                    ticks: { stepSize: 5 }
+                }
             }
         }
     });
@@ -276,36 +274,97 @@ function getCsrf() {
     return m ? m.pop() : '';
 }
 
-// ── Bell ──
-function toggleBell() {
-    document.getElementById('bellDropdown').classList.toggle('hidden');
-}
-document.addEventListener('click', function(e) {
-    const w = document.getElementById('bellWrapper');
-    if (w && !w.contains(e.target)) document.getElementById('bellDropdown').classList.add('hidden');
-});
 
 // ── Calendar ──
 let currentNavDate = new Date();
 const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
 
+const projectEvents = [
+    {% for n in notifications %}
+    {
+        id: "{{ n.id }}",
+        name: "{{ n.project_name|escapejs }}",
+        date: "{{ n.start_date|date:'Y-m-d' }}",
+        address: "{{ n.project_address|default:'No address set'|escapejs }}"
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
 function renderCalendar(date) {
     const y = date.getFullYear(), m = date.getMonth();
     document.getElementById("calMonthYear").innerText = `${MONTHS[m]} - ${y}`;
+    
     const first = new Date(y, m, 1).getDay();
-    const days  = new Date(y, m + 1, 0).getDate();
+    const days = new Date(y, m + 1, 0).getDate();
     const today = new Date();
-    const isCur = today.getMonth() === m && today.getFullYear() === y;
-    const grid  = document.getElementById("calendarGrid");
+    const isCurMonth = today.getMonth() === m && today.getFullYear() === y;
+    
+    const grid = document.getElementById("calendarGrid");
     grid.innerHTML = '<div></div>'.repeat(first);
+
     for (let d = 1; d <= days; d++) {
-        const t = isCur && d === today.getDate();
-        grid.innerHTML += t
-            ? `<div class="flex justify-center items-center h-8"><span class="w-7 h-7 flex items-center justify-center bg-[#A9323D] text-white rounded font-bold shadow-sm">${d}</span></div>`
-            : `<div class="flex justify-center items-center h-8 cursor-pointer hover:bg-gray-100 rounded transition"><span>${d}</span></div>`;
-        if (t) document.getElementById("selectedDateDisplay").innerText = `${d} ${MONTHS[m].substring(0,3)} ${y}`;
+        const dateStr = `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const dayEvent = projectEvents.find(e => e.date === dateStr);
+        const isToday = isCurMonth && d === today.getDate();
+
+        let spanClass = "w-7 h-7 flex items-center justify-center rounded font-bold transition-all";
+        
+        if (dayEvent) {
+            spanClass += " bg-[#A9323D] text-white shadow-sm cursor-pointer";
+        } else if (isToday) {
+            spanClass += " border-2 border-[#A9323D] text-[#A9323D] cursor-pointer";
+        } else {
+            spanClass += " text-gray-700 cursor-pointer hover:bg-gray-100";
+        }
+
+        grid.innerHTML += `
+            <div class="flex justify-center items-center h-8" onclick="showEventDetail('${dateStr}', '${dayEvent ? dayEvent.name : ''}', '${dayEvent ? dayEvent.address : ''}')">
+                <span class="${spanClass}">${d}</span>
+            </div>`;
+            
+        if (isToday) {
+            if (dayEvent) {
+                showEventDetail(dateStr, dayEvent.name, dayEvent.address);
+            } else {
+                showEventDetail(dateStr, "", "");
+            }
+        }
     }
 }
+
+function showEventDetail(dateStr, name, address) {
+    const display = document.getElementById("selectedDateDisplay");
+    const container = display.parentElement.parentElement;
+    
+    // Parse date for display
+    const d = new Date(dateStr);
+    const formattedDate = `${d.getDate()} ${MONTHS[d.getMonth()].substring(0,3)} ${d.getFullYear()}`;
+    
+    if (name) {
+        container.innerHTML = `
+            <p class="text-[13px] font-bold text-gray-900 mb-2 flex items-center gap-1.5">
+                <i class="far fa-calendar-alt text-gray-400"></i>
+                <span id="selectedDateDisplay">${formattedDate}</span>
+            </p>
+            <p class="text-[12px] text-gray-600 mb-1 truncate">
+                <i class="fas fa-link text-gray-300 text-[10px] w-4"></i> ${name}
+            </p>
+            <p class="text-[11px] text-gray-500 truncate">
+                <i class="fas fa-map-marker-alt text-gray-300 w-4"></i> ${address}
+            </p>
+        `;
+    } else {
+        container.innerHTML = `
+            <p class="text-[13px] font-bold text-gray-900 mb-2 flex items-center gap-1.5">
+                <i class="far fa-calendar-alt text-gray-400"></i>
+                <span id="selectedDateDisplay">${formattedDate}</span>
+            </p>
+            <p class="text-[11px] text-gray-400 italic">No events assigned for this date.</p>
+        `;
+    }
+}
+
+
 function prevMonth() { currentNavDate.setMonth(currentNavDate.getMonth()-1); renderCalendar(currentNavDate); }
 function nextMonth() { currentNavDate.setMonth(currentNavDate.getMonth()+1); renderCalendar(currentNavDate); }
 
@@ -337,27 +396,5 @@ function acceptProject(projectId, btn) {
     });
 }
 
-// ── Notifications ──
-function markRead(id, el) {
-    fetch(`/notifications/${id}/read/`, {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCsrf() }
-    });
-    el.style.opacity = '0.4';
-    el.style.pointerEvents = 'none';
-    const b = document.getElementById('bellBadge');
-    if (b) {
-        const n = parseInt(b.innerText) - 1;
-        if (n <= 0) b.remove();
-        else b.innerText = n;
-    }
-}
-
-function markAllRead() {
-    fetch('/notifications/mark-all-read/', {
-        method: 'POST',
-        headers: { 'X-CSRFToken': getCsrf() }
-    }).then(() => location.reload());
-}
 </script>
 {% endblock %}

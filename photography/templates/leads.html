@@ -161,22 +161,31 @@
                                 {% endif %}
                             </span>
                         </div>
+                        
+                        {% if lead.follow_up_date %}
+                        <div class="flex items-center gap-2.5 {% if lead.follow_up_date <= today %}text-[#d11a1a]{% else %}text-amber-600{% endif %}">
+                            <i class="fa-regular fa-clock w-4 text-center"></i>
+                            <span class="text-[13px] font-bold">{{ lead.follow_up_date|date:"d M, Y" }}</span>
+                            {% if lead.follow_up_date <= today %}
+                            <span class="bg-[#ffe8e8] text-[#d11a1a] text-[9px] px-1.5 py-0.5 rounded ml-1 font-bold font-['Inter']">OVERDUE</span>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         <div class="flex items-center gap-2.5">
-                            <i class="fa-regular fa-calendar text-gray-400 w-4 text-center"></i>
-                            <span class="text-[13px] text-gray-700">
-                                {% if lead.project %}
-                                    {{ lead.project.start_date|date:"d M, Y" }} – {{ lead.project.end_date|date:"d M, Y" }}
-                                {% else %}
-                                    Dates TBD
-                                {% endif %}
-                            </span>
+                            <i class="fa-solid fa-percent text-gray-400 w-4 text-center"></i>
+                            <span class="text-[13px] text-gray-700 font-bold">₹ {{ lead.total_cost|floatformat:0 }}</span>
                         </div>
                     </div>
+
                     <div class="flex justify-between items-center mt-4 border-t border-gray-100 pt-3">
                         <div class="flex items-center gap-1">
                             <button type="button" onclick="openLeadDetails('{{ lead.id }}', '{{ lead.name|escapejs }}', '{{ lead.mobile_number|escapejs }}', '{{ lead.email|default:''|escapejs }}', '{{ lead.address|default:''|escapejs }}', this.closest('.card').dataset.packages, '{{ lead.project.project_name|default:''|escapejs }}')" class="text-blue-600 text-xs font-bold hover:bg-blue-50 px-2 py-1.5 rounded transition">
                                 <i class="fa-regular fa-eye"></i> View
                             </button>
+                            <a href="/edit-lead/{{ lead.id }}/" class="text-gray-500 text-xs font-bold hover:bg-gray-100 px-2 py-1.5 rounded transition">
+                                <i class="fa-solid fa-pen"></i> Edit
+                            </a>
                         </div>
                         <select onchange="updateLeadStatus({{ lead.id }}, this.value, this)" class="text-xs border border-gray-200 rounded-md p-1.5 bg-gray-50 outline-none cursor-pointer font-bold text-gray-600">
                             <option value="NEW" {% if lead.status == 'NEW' %}selected{% endif %}>NEW</option>

@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+    :root {
+        --maroon: #A9323D;
+        --maroon-hover: #851e1e;
+        --light-red: #FFF5F5;
+        --grey-border: #F1F1F1;
+        --grey-text: #BDBDBD;
+    }
+
+    body { background-color: #FFFFFF; font-family: 'Inter', sans-serif; color: #111; margin: 0; }
+    .dashboard-wrapper { max-width: 1400px; margin: 0 auto; padding: 40px; }
+    
+    /* Header Area */
+    .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .page-title { font-size: 20px; font-weight: 900; border-bottom: 4px solid #000; padding-bottom: 5px; margin: 0; }
+    
+    /* Layout Grid */
+    .main-layout { display: grid; grid-template-columns: 320px 1fr; gap: 30px; align-items: stretch; }
+    .stacked-content { display: flex; flex-direction: column; gap: 30px; }
+    .card { background: #fff; border: 1.2px solid var(--grey-border); border-radius: 28px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.01); }
+
+    /* Welcome Card */
+    .welcome-card { background: var(--light-red); border-radius: 32px; text-align: center; padding: 40px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .welcome-card img { width: 150px; margin-bottom: 25px; }
+    .welcome-card h2 { font-size: 24px; font-weight: 900; margin: 0 0 10px 0; }
+    .welcome-card p { font-size: 13.5px; color: #666; line-height: 1.6; margin-bottom: 25px; }
+    .btn-maroon { background: var(--maroon); color: #fff; border: none; padding: 12px 40px; border-radius: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 6px 15px rgba(169, 50, 61, 0.2); }
+    .btn-maroon:hover { background: var(--maroon-hover); transform: translateY(-1px); }
+
+    /* Stats Row */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .stat-box { position: relative; height: 110px; display: flex; flex-direction: column; justify-content: center; padding: 0 25px; }
+    .stat-label { font-size: 11px; font-weight: 800; color: #999; text-transform: uppercase; margin-bottom: 5px; }
+    .stat-value { font-size: 36px; font-weight: 900; }
+    .stat-icon { position: absolute; top: 18px; right: 18px; font-size: 11px; color: #CCC; }
+
+    /* Chart */
+    .chart-box { height: 350px; display: flex; flex-direction: column; }
+    .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .chart-header h3 { font-size: 16px; font-weight: 900; margin: 0; }
+    .year-select { background: #F5F5F5; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 700; outline: none; }
+
+    /* Bottom Grid: Table + Calendar */
+    .bottom-layout { display: grid; grid-template-columns: 1fr 420px; gap: 30px; margin-top: 30px; }
+
+    /* Notification Table */
+    .notif-table { width: 100%; border-collapse: collapse; }
+    .notif-table th { text-align: left; color: var(--text-light); font-size: 11px; text-transform: uppercase; padding-bottom: 15px; border-bottom: 1.5px solid #F5F5F5; font-weight: 700; }
+    .notif-table td { padding: 18px 5px; font-size: 13px; font-weight: 700; border-bottom: 1px solid #FAFAFA; color: #333; }
+    .btn-acc { background: var(--maroon); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-size: 10px; font-weight: 700; cursor: pointer; }
+    .btn-rej { background: #fff; color: var(--text-light); border: 1.2px solid #EEE; padding: 5px 12px; border-radius: 6px; font-size: 10px; font-weight: 700; margin-left: 5px; cursor: pointer; }
+
+    /* Calendar Box */
+    .calendar-card { display: flex; flex-direction: column; justify-content: space-between; }
+    .cal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .cal-header h3 { font-size: 15px; font-weight: 900; letter-spacing: 1px; margin: 0; }
+    .cal-nav { display: flex; gap: 5px; }
+    .cal-nav button { width: 26px; height: 26px; border-radius: 6px; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; }
+    
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; row-gap: 20px; font-size: 14px; font-weight: 700; }
+    .cal-day-name { font-weight: 900; color: #000; margin-bottom: 10px; }
+    .cal-date { cursor: pointer; display: flex; align-items: center; justify-content: center; height: 28px; }
+    .date-active { background: var(--maroon); color: #fff; border-radius: 8px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; }
+
+    /* Event Detail Box */
+    .event-card { border-left: 5px solid var(--maroon); background: #F9F9F9; padding: 20px; border-radius: 0 16px 16px 0; border-top: 1.2px solid var(--grey-border); border-right: 1.2px solid var(--grey-border); border-bottom: 1.2px solid var(--grey-border); margin-top: 20px; }
+    .avatar-stack { display: flex; margin-top: 15px; padding-left: 5px; }
+    .avatar-stack span { width: 26px; height: 26px; border-radius: 50%; background: #000; color: #fff; font-size: 9px; font-weight: 700; border: 2px solid #fff; display: flex; align-items: center; justify-content: center; margin-left: -8px; }
+
+    /* Bell Dropdown Utilities */
+    .bell-btn { width: 40px; height: 40px; border-radius: 12px; border: 1px solid #E5E7EB; background: #fff; position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .bell-badge { position: absolute; top: -5px; right: -5px; background: var(--maroon); color: #fff; font-size: 10px; font-weight: 800; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+</style>
+
+<div class="dashboard-wrapper">
+    
+    <div class="header-container">
+        <h1 class="page-title">Dashboard</h1>
+    </div>
+
+    <div class="main-layout">
+        
+        <div class="welcome-card">
+            <img src="{% static 'images/login_illustration.png' %}" alt="Welcome">
+            <h2>Hello {{ display_name|default:"Admin" }} !</h2>
+            <p>Have a Good day !<br>You have {{ ongoing_count|stringformat:"02d" }} On-going projects and<br>{{ upcoming_count|stringformat:"02d" }} Upcoming projects..<br>Get started..</p>
+            <a href="{% url 'projects' %}"><button class="btn-maroon">Review it</button></a>
+        </div>
+
+        <div class="stacked-content">
+            <div class="stats-row">
+                <div class="card stat-box">
+                    <span class="stat-label">On-Going Project</span>
+                    <span class="stat-value">{{ ongoing_count|stringformat:"02d" }}</span>
+                    <i class="fas fa-external-link-alt stat-icon"></i>
+                </div>
+                <div class="card stat-box">
+                    <span class="stat-label">Upcoming Project</span>
+                    <span class="stat-value">{{ upcoming_count|stringformat:"02d" }}</span>
+                    <i class="fas fa-external-link-alt stat-icon"></i>
+                </div>
+                <div class="card stat-box">
+                    <span class="stat-label">Completed Project</span>
+                    <span class="stat-value">{{ completed_count|stringformat:"02d" }}</span>
+                    <i class="fas fa-external-link-alt stat-icon"></i>
+                </div>
+            </div>
+
+            <div class="card chart-box">
+                <div class="chart-header">
+                    <h3>Project Overview</h3>
+                    <select class="year-select"><option>2026</option></select>
+                </div>
+                <div style="flex: 1; position: relative;"><canvas id="mainChart"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-layout">
+        
+        <div class="card">
+            <h3 class="notif-header">Project Notifications</h3>
+            <div style="overflow-x: auto;">
+                <table class="notif-table">
+                    <thead>
+                        <tr>
+                            <th>Project ID</th><th>Project Name</th><th>Event Date</th><th>Due Date</th><th>Pending List</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in notifications %}
+                        <tr>
+                            <td style="color:#999; font-family: monospace;">AK-{{ p.id|stringformat:"03d" }}</td>
+                            <td>{{ p.project_name }}</td>
+                            <td>{{ p.start_date|date:"d M, Y" }}</td>
+                            <td style="color:#BBB;">
+                                    {% with lead=p.lead_set.first %}
+                                        {% if lead and lead.follow_up_date %}
+                                            {{ lead.follow_up_date|date:"d-m-Y" }}
+                                        {% else %}
+                                            TBD
+                                        {% endif %}
+                                    {% endwith %}
+                                </td>
+                            <td>
+                                <button class="btn-acc">✓ Accept</button>
+                                <button class="btn-rej">× Reject</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" style="text-align: center; padding: 30px; color: #999;">No pending notifications.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card calendar-card">
+            <div>
+                <div class="cal-header">
+                    <h3 id="calMonthYear">MARCH - 2026</h3>
+                    <div class="cal-nav">
+                        <button onclick="prevMonth()" style="background:#F0F0F0; color:#AAA;"><i class="fas fa-chevron-left"></i></button>
+                        <button onclick="nextMonth()" style="background:var(--maroon); color:#FFF;"><i class="fas fa-chevron-right"></i></button>
+                    </div>
+                </div>
+
+                <div class="cal-grid" id="calendarGridHeader">
+                    <div class="cal-day-name">S</div><div class="cal-day-name">M</div><div class="cal-day-name">T</div>
+                    <div class="cal-day-name">W</div><div class="cal-day-name">T</div><div class="cal-day-name">F</div><div class="cal-day-name">S</div>
+                </div>
+                <div class="cal-grid" id="calendarGridDays">
+                    </div>
+            </div>
+
+            <div class="event-card" id="eventCardData">
+                <p style="font-weight: 900; font-size: 14px;"><i class="far fa-calendar-alt" style="color: var(--maroon); margin-right: 8px;"></i> <span id="eventDate">Today</span></p>
+                <p style="font-weight: 800; font-size: 12px; margin-top: 10px; color:#444;" id="eventName">No events scheduled</p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // --- Chart JS ---
+    const ctx = document.getElementById('mainChart').getContext('2d');
+    const compData = {{ chart_completed|safe|default:"[15,10,25,12,18,8,14]" }};
+    const upData = {{ chart_upcoming|safe|default:"[10,12,8,8,7,5,4]" }};
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['JAN','FEB','MAR','APR','MAY','JUN','JUL'],
+            datasets: [
+                { data: compData, backgroundColor: (c)=>c.dataIndex===2?'#A9323D':'#FFF0F0', borderRadius: 8, barThickness: 45 },
+                { data: upData, backgroundColor: (c)=>c.dataIndex===2?'#8B1E28':'#E5E7EB', borderRadius: 8, barThickness: 45 }
+            ]
+        },
+        options: {
+            plugins: { legend: { display: false } },
+            responsive: true, maintainAspectRatio: false,
+            scales: {
+                x: { stacked: true, grid: { display: false }, border: { display: false }, ticks: { font: { weight: 'bold', size: 11 } } },
+                y: { stacked: true, grid: { color: '#F9F9F9' }, border: { display: false }, ticks: { stepSize: 5, font: { weight: '600' } } }
+            }
+        }
+    });
+
+
+    // --- Calendar JS ---
+    let currentNavDate = new Date();
+    const MONTHS = ["JANUARY","FEBRUARY","MARCH","APRIL","MAY","JUNE","JULY","AUGUST","SEPTEMBER","OCTOBER","NOVEMBER","DECEMBER"];
+    
+    // Mock event data format for JS to use based on the notifications
+    const projectEvents = [
+        {% for p in calendar_projects %}
+        { 
+            id: "{{ p.id }}", 
+            name: "{{ p.project_name|escapejs }}", 
+            date: "{{ p.start_date|date:'Y-m-d' }}", 
+            address: "{{ p.project_address|default:'No address set'|escapejs }}" 
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    function renderCalendar(date) {
+        const y = date.getFullYear(), m = date.getMonth();
+        document.getElementById("calMonthYear").innerText = `${MONTHS[m]} - ${y}`;
+        
+        const firstDay = new Date(y, m, 1).getDay();
+        const daysInMonth = new Date(y, m+1, 0).getDate();
+        const today = new Date();
+        const isCurMonth = today.getMonth() === m && today.getFullYear() === y;
+        
+        const grid = document.getElementById("calendarGridDays");
+        grid.innerHTML = '<div></div>'.repeat(firstDay);
+        
+        for(let d=1; d<=daysInMonth; d++) {
+            const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const hasEvent = projectEvents.find(e => e.date === dateStr);
+            const isToday = isCurMonth && d === today.getDate();
+            
+            let html = `<div class="cal-date" onclick="showEventDetail('${dateStr}', ${hasEvent ? `'${hasEvent.name}'` : null}, ${hasEvent ? `'${hasEvent.address}'` : null})">`;
+            if(hasEvent) { html += `<span class="date-active">${d}</span>`; }
+            else if(isToday) { html += `<span style="border: 2px solid var(--maroon); border-radius: 8px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; color: var(--maroon);">${d}</span>`; }
+            else { html += `<span>${d}</span>`; }
+            html += `</div>`;
+            grid.innerHTML += html;
+            
+            if(isToday) { showEventDetail(dateStr, hasEvent?.name, hasEvent?.address); }
+        }
+    }
+
+    function showEventDetail(dateStr, name, address) {
+        const d = new Date(dateStr);
+        document.getElementById("eventDate").innerText = `${d.getDate()} ${MONTHS[d.getMonth()].substring(0,3)} ${d.getFullYear()}`;
+        if(name) {
+            document.getElementById("eventName").innerHTML = `${name}<br><span style="font-size:10px; color:#AAA; margin-top:5px; display:block; font-weight:700;"><i class="fas fa-map-marker-alt"></i> ${address}</span>`;
+        } else {
+            document.getElementById("eventName").innerHTML = "No events scheduled";
+        }
+    }
+
+    function prevMonth() { currentNavDate.setMonth(currentNavDate.getMonth()-1); renderCalendar(currentNavDate); }
+    function nextMonth() { currentNavDate.setMonth(currentNavDate.getMonth()+1); renderCalendar(currentNavDate); }
+    
+    // Initialize
+    renderCalendar(currentNavDate);
+
+</script>
+{% endblock %}
