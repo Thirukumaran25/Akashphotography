@@ -40,7 +40,7 @@
             <button onclick="openNewInvoiceModal()" class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow-sm whitespace-nowrap">
                 + NEW INVOICE
             </button>
-            <button class="flex items-center gap-2 font-bold text-gray-700 hover:text-black transition text-sm">
+            <button onclick="openFilter()" class="flex items-center gap-2 font-bold text-gray-700 hover:text-black transition text-sm">
                 <i class="fa-solid fa-bars-staggered"></i> Filters
             </button>
         </div>
@@ -247,6 +247,32 @@
         </div>
     </div>
 </div>
+
+<div id="filterBackdrop" class="fixed inset-0 bg-black/40 z-[9999] hidden backdrop-blur-sm transition-opacity" onclick="closeFilter()"></div>
+
+<div class="fixed inset-y-0 right-[-420px] w-[380px] bg-white shadow-2xl z-[10000] flex flex-col font-['Inter'] transition-all duration-300 ease-[cubic-bezier(.22,1.2,.36,1)]" id="filterDrawer">
+    <div class="flex justify-between items-center p-6 border-b border-gray-100">
+        <h3 class="text-[22px] font-bold m-0 text-gray-900">Filters</h3>
+        <button class="bg-black text-white border-none w-8 h-8 rounded-lg text-lg cursor-pointer hover:rotate-90 hover:scale-105 transition-all flex justify-center items-center" onclick="closeFilter()">×</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
+        <div class="filter-section mb-6">
+            <label class="text-[13px] font-bold text-gray-900 relative pb-1.5 block mb-2 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-12 after:h-1 after:rounded-full after:bg-gradient-to-r after:from-[#A9323D] after:to-[#e57373]">Invoice Status</label>
+            <div class="flex flex-wrap gap-2 mt-3">
+                <label class="bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform"><input type="checkbox" value="PENDING" class="mr-1.5 accent-[#A9323D]"> Payment Pending</label>
+                <label class="bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform"><input type="checkbox" value="PARTIAL" class="mr-1.5 accent-[#A9323D]"> Partially Paid</label>
+                <label class="bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-xs font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform"><input type="checkbox" value="COMPLETED" class="mr-1.5 accent-[#A9323D]"> Payment Closed</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="p-6 border-t border-gray-100 flex justify-between gap-3 bg-gray-50">
+        <button class="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold cursor-pointer hover:-translate-y-0.5 active:scale-95 transition-all text-sm shadow-sm" onclick="resetFilter()">Clear All</button>
+        <button class="flex-1 bg-[#A9323D] text-white border-none py-2.5 rounded-xl font-bold cursor-pointer hover:-translate-y-0.5 hover:bg-[#851e1e] active:scale-95 transition-all text-sm shadow-sm" onclick="applyFilter()">Apply Filters</button>
+    </div>
+</div>
+
 
 <script>
 
@@ -639,5 +665,44 @@
             btn.disabled = false;
         });
     }
+
+
+
+    /* ── FILTER LOGIC ── */
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    
+    // Sync Checkboxes (Invoice Status)
+    const statuses = params.getAll("status");
+    if (statuses.length > 0) {
+        document.querySelectorAll('#filterDrawer input[type="checkbox"]').forEach(cb => {
+            cb.checked = statuses.includes(cb.value);
+        });
+    }
+});
+
+function openFilter() {
+    document.getElementById('filterDrawer').style.right = "0";
+    document.getElementById('filterBackdrop').classList.remove('hidden');
+}
+
+function closeFilter() {
+    document.getElementById('filterDrawer').style.right = "-420px";
+    document.getElementById('filterBackdrop').classList.add('hidden');
+}
+
+function applyFilter() {
+    const statuses = [...document.querySelectorAll('#filterDrawer input[type="checkbox"]:checked')].map(c=>c.value);
+    const p = new URLSearchParams();
+    
+    statuses.forEach(s => p.append("status", s));
+    
+    window.location.href = window.location.pathname + "?" + p.toString();
+}
+
+function resetFilter() {
+    window.location.href = window.location.pathname;
+}
+
 </script>
 {% endblock %}

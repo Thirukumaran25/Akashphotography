@@ -1,0 +1,182 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Gallery Dashboard{% endblock %}
+
+{% block content %}
+<div class="max-w-[1200px] mx-auto p-8 font-['Inter']">
+    
+    <div class="mb-8">
+        <a href="#" class="text-gray-600 font-bold hover:text-black flex items-center gap-2 mb-6">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+        <p class="text-gray-600 text-[15px]">Create stunning galleries and share them with your clients. Manage all your collections in one place.</p>
+    </div>
+
+    <div class="border-2 border-dashed border-[#A9323D] bg-[#fffafb] rounded-2xl p-12 text-center cursor-pointer hover:bg-[#fff0f3] transition mb-12" onclick="openCreateModal()">
+        <a href="{% url 'create_gallery' %}"><div class="w-12 h-12 bg-[#A9323D] text-white rounded-lg flex items-center justify-center text-xl mx-auto mb-4 shadow-md">
+            <i class="fas fa-plus"></i>
+        </div>
+        <h3 class="text-xl font-black text-gray-900 mb-2">Create New Gallery</h3></a>
+        <p class="text-gray-600 font-medium text-sm">Upload and organize your images into a beautiful gallery</p>
+    </div>
+
+    <div class="flex justify-between items-end border-b border-gray-200 mb-8 pb-3">
+        <div class="flex gap-6">
+            <span class="text-[#A9323D] font-bold text-[15px] border-b-2 border-[#A9323D] pb-3 -mb-[13px] cursor-pointer">Recent Galleries</span>
+            <span class="text-gray-500 font-bold text-[15px] pb-3 cursor-pointer hover:text-black">All Galleries</span>
+        </div>
+        <div class="flex gap-4">
+            <button class="bg-[#A9323D] text-white px-5 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow">
+               <a href="{% url 'create_gallery' %}">+ NEW GALLERY</a>
+            </button>
+            <button class="text-gray-700 font-bold text-sm flex items-center gap-2 hover:text-black">
+                <i class="fas fa-filter"></i> Filters
+            </button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for gallery in galleries %}
+        <a href="{% url 'gallery_overview' gallery.id %}"><div class="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition">
+            <div class="h-48 bg-gray-200 overflow-hidden relative">
+        
+                {% if gallery.representative_image %}
+                    <img src="{{ gallery.representative_image.file.url }}" 
+                        alt="{{ gallery.title }}" 
+                        class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105">
+                {% else %}
+                    <img src="{% static 'images/placeholder.jpg' %}" 
+                        alt="Placeholder" 
+                        class="w-full h-full object-cover opacity-60">
+                {% endif %}
+                
+                <span class="absolute bottom-3 left-3 bg-black text-white text-[10px] font-bold px-2 py-1 rounded z-10">
+                    {{ gallery.project_id }}
+                </span>
+                
+                <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-0 group-hover:opacity-100 transition duration-300"></div>
+            </div>
+            
+            <div class="p-5">
+                <h4 class="font-black text-lg text-gray-900 mb-1">{{ gallery.title }}</h4>
+                <p class="text-gray-500 text-xs font-semibold mb-4">{{ gallery.event_date|date:"d-m-Y" }}</p>
+                
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% for folder in gallery.folders.all %}
+                        <span class="border border-gray-300 text-gray-600 text-[10px] font-bold px-2 py-1 rounded bg-gray-50">{{ folder.title }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="text-[11px] text-gray-500 font-medium mb-4">
+                    <p>Created on : {{ gallery.created_at|date:"d-m-Y" }}</p>
+                    <p>Submitted on : {% if gallery.submitted_at %}<span class="text-green-600 font-bold">{{ gallery.submitted_at|date:"d-m-Y" }}</span> ({{ gallery.album_choice|title }}){% else %}-----{% endif %}</p>
+                </div>
+
+                <div class="flex gap-2">
+                    <a href="{% url 'edit_gallery' gallery.id %}">
+                        <button class="flex-1 border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-bold hover:bg-gray-50"><i class="fas fa-edit mr-1"></i>Edit</button>
+                    </a>
+                    <button onclick="openShareModal('{{ gallery.id }}')" class="flex-1 border border-gray-300 text-gray-700 py-1.5 rounded text-xs font-bold hover:bg-gray-50 transition">
+                        <i class="fas fa-share-alt mr-1"></i> Share
+                    </button>
+                    <button class="border border-red-200 text-red-600 px-3 py-1.5 rounded text-xs hover:bg-red-50"><i class="far fa-trash-alt"></i></button>
+                </div>
+            </div>
+        </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div id="shareModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative">
+        <button onclick="closeShareModal()" class="absolute top-5 right-5 w-8 h-8 bg-[#111] text-white rounded flex items-center justify-center hover:bg-gray-800 transition">
+            <i class="fas fa-times text-sm"></i>
+        </button>
+        
+        <h3 class="text-xl font-black text-gray-900 mb-6">Create Selection Link</h3>
+        
+        <div class="border border-gray-200 rounded-xl p-6 mb-6">
+            <h4 class="text-[15px] font-bold text-black mb-4">Link Details</h4>
+            
+            <div class="mb-4">
+                <label class="block text-xs font-bold text-gray-500 mb-1.5">Link Expiry (days)</label>
+                <input type="number" id="expiryDays" placeholder="30" value="30" class="w-full bg-[#f9f9f9] border border-gray-200 px-4 py-2.5 rounded-lg font-bold text-gray-800 outline-none focus:ring-1 focus:ring-gray-400">
+                <p class="text-[10px] text-gray-400 mt-1 italic">Leave empty for no expiry</p>
+            </div>
+            
+            <input type="hidden" id="currentShareGalleryId">
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="generateAndCopyLink()" id="generateLinkBtn" class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-[14px] hover:bg-red-800 transition shadow flex items-center gap-2">
+                <i class="fas fa-link"></i> Generate & Copy Link
+            </button>
+            <button onclick="closeShareModal()" class="bg-white border border-gray-300 text-gray-700 px-6 py-2.5 rounded-lg font-bold text-[14px] hover:bg-gray-50 transition shadow-sm">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    function openShareModal(galleryId) {
+        document.getElementById('currentShareGalleryId').value = galleryId;
+        document.getElementById('shareModal').classList.remove('hidden');
+    }
+
+    function closeShareModal() {
+        document.getElementById('shareModal').classList.add('hidden');
+        document.getElementById('generateLinkBtn').innerHTML = '<i class="fas fa-link"></i> Generate & Copy Link';
+    }
+
+    function generateAndCopyLink() {
+        const galleryId = document.getElementById('currentShareGalleryId').value;
+        const expiryDays = document.getElementById('expiryDays').value;
+        const btn = document.getElementById('generateLinkBtn');
+        
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Generating...';
+        btn.disabled = true;
+
+        fetch(`/gallery/${galleryId}/generate-link/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ expiry_days: expiryDays })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Copy the secure URL to clipboard
+                navigator.clipboard.writeText(data.secure_url).then(() => {
+                    btn.innerHTML = '<i class="fas fa-check text-green-400 mr-1"></i> Copied!';
+                    setTimeout(closeShareModal, 2000);
+                });
+            } else {
+                alert("Error: " + data.error);
+                btn.innerHTML = '<i class="fas fa-link"></i> Generate & Copy Link';
+            }
+            btn.disabled = false;
+        })
+        .catch(err => {
+            console.error(err);
+            alert("A network error occurred.");
+            btn.disabled = false;
+        });
+    }
+
+function copyGalleryLink(url, btnElement) {
+    navigator.clipboard.writeText(url).then(() => {
+        const originalText = btnElement.innerHTML;
+        btnElement.innerHTML = '<i class="fas fa-check text-green-600 mr-1"></i> Copied!';
+        setTimeout(() => {
+            btnElement.innerHTML = originalText;
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+        alert("Failed to copy link. Please try again.");
+    });
+}
+</script>
+{% endblock %}

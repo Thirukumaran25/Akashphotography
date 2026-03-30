@@ -4,7 +4,8 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Sum, F
 from django.utils import timezone
 from django.db.models import Q
-from datetime import date, timedelta
+from django.contrib.auth.models import User
+from datetime import datetime,date, timedelta
 from .models import *
 import json
 from weasyprint import HTML
@@ -12,7 +13,6 @@ from django.conf import settings as django_settings
 import base64
 import os
 from django.contrib.staticfiles import finders
-from datetime import datetime
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.template.loader import render_to_string
@@ -24,6 +24,7 @@ from weasyprint import HTML
 from django.contrib.auth.decorators import login_required
 from django.db.models.functions import ExtractMonth
 from django.db.models import Count
+from django.urls import reverse
 
 
 def custom_login_view(request):
@@ -292,27 +293,49 @@ def admin_mark_all_read(request):
 
 def lead(request):
     today = date.today()
+    # Auto-update NEW leads to FOLLOW_UP if their date has arrived
     Lead.objects.filter(status='NEW', follow_up_date__lte=today).update(status='FOLLOW_UP')
-    all_leads = Lead.objects.all()
+    
+    base_qs = Lead.objects.all()
 
+    # --- 1. APPLY DATE FILTERS (Based on Project Start Date) ---
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+
+    if from_date and to_date:
+        # Filter by custom date range using the associated project's start date
+        base_qs = base_qs.filter(project__start_date__gte=from_date, project__start_date__lte=to_date)
+    else:
+        # Filter by month and year using the associated project's start date
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        if month and year:
+            base_qs = base_qs.filter(project__start_date__month=int(month), project__start_date__year=int(year))
+
+    # --- 2. APPLY LEAD SOURCE FILTER ---
+    sources = request.GET.getlist('source')
+    if sources:
+        base_qs = base_qs.filter(lead_source__in=sources)
+
+    # --- 3. CALCULATE TOTALS BASED ON FILTERED DATA ---
     def calculate_leads_total(leads_queryset):
         total = 0
-        for lead in leads_queryset:
-            total += lead.total_cost
+        for lead_obj in leads_queryset:
+            total += lead_obj.total_cost
         return total
 
-    new_leads = all_leads.filter(status='NEW')
-    follow_up = all_leads.filter(status='FOLLOW_UP')
-    accepted  = all_leads.filter(status='ACCEPTED')
-    lost      = all_leads.filter(status='LOST')
+    new_leads = base_qs.filter(status='NEW')
+    follow_up = base_qs.filter(status='FOLLOW_UP')
+    accepted  = base_qs.filter(status='ACCEPTED')
+    lost      = base_qs.filter(status='LOST')
 
     context = {
         'new_leads': new_leads,
         'follow_up': follow_up,
         'accepted':  accepted,
         'lost':      lost,
-        'total_leads':          all_leads.count(),
-        'total_amount':         f"{calculate_leads_total(all_leads):,.0f}",
+        'total_leads':          base_qs.count(),
+        'total_amount':         f"{calculate_leads_total(base_qs):,.0f}",
         'accepted_amount':      f"{calculate_leads_total(accepted):,.0f}",
         'lost_quoted_amount':   f"{calculate_leads_total(lost):,.0f}",
     }
@@ -416,12 +439,43 @@ def projects(request):
             })
         return formatted_list
 
+    base_qs = ProjectDetail.objects.all()
+
+    # --- 1. STRICT START DATE FILTERS ---
+    from_date = request.GET.get('from_date')
+    to_date = request.GET.get('to_date')
+    
+    if from_date and to_date:
+        # Strictly check if start_date is within the custom range
+        base_qs = base_qs.filter(start_date__gte=from_date, start_date__lte=to_date)
+    else:
+        month = request.GET.get('month')
+        year = request.GET.get('year')
+        if month and year:
+            # Strictly check if the start_date month and year match
+            base_qs = base_qs.filter(start_date__month=int(month), start_date__year=int(year))
+
+    # --- 2. APPLY COMPLETION FILTER ---
+    completion = request.GET.get('completion', 'ALL')
+    if completion == 'COMPLETED':
+        base_qs = base_qs.filter(status='COMPLETED')
+    elif completion == 'PENDING':
+        base_qs = base_qs.exclude(status='COMPLETED')
+
+    # --- 3. APPLY STATUS FILTER ---
+    statuses = request.GET.getlist('status')
+    
+    def filter_status(status_code):
+        if statuses and status_code not in statuses:
+            return ProjectDetail.objects.none()
+        return base_qs.filter(status=status_code)
+    
     context = {
-        'assigned':  format_projects(ProjectDetail.objects.filter(status='ASSIGNED', lead__status='ACCEPTED')),
-        'pre_cards': format_projects(ProjectDetail.objects.filter(status='PRE')),
-        'selection': format_projects(ProjectDetail.objects.filter(status='SELECTION')),
-        'post':      format_projects(ProjectDetail.objects.filter(status='POST')),
-        'completed': format_projects(ProjectDetail.objects.filter(status='COMPLETED')),
+        'assigned':  format_projects(filter_status('ASSIGNED').filter(lead__status='ACCEPTED')),
+        'pre_cards': format_projects(filter_status('PRE')),
+        'selection': format_projects(filter_status('SELECTION')),
+        'post':      format_projects(filter_status('POST')),
+        'completed': format_projects(filter_status('COMPLETED')),
     }
     return render(request, 'projects.html', context)
 
@@ -918,13 +972,24 @@ def get_sub_services(request):
 
 
 def invoice(request):
-    all_invoices = Invoice.objects.all().select_related('lead', 'lead__project').order_by('-created_at')
-    payments_sum = PaymentRecord.objects.aggregate(total=Sum('amount'))['total'] or 0.00
+    base_qs = Invoice.objects.all().select_related('lead', 'lead__project').order_by('-created_at')
+
+    # --- 1. APPLY STATUS FILTER ---
+    statuses = request.GET.getlist('status')
+    if statuses:
+        base_qs = base_qs.filter(status__in=statuses)
+
+    all_invoices = base_qs
+
+    # --- 2. CALCULATE DYNAMIC TOTALS ---
+    payments_sum = PaymentRecord.objects.filter(invoice__in=all_invoices).aggregate(total=Sum('amount'))['total'] or 0.00
     pre_paid_sum = all_invoices.aggregate(total=Sum('pre_paid_amount'))['total'] or 0.00
     total_paid   = float(payments_sum) + float(pre_paid_sum)
+    
     total_upcoming = 0.0
     total_past_due = 0.0
     today = date.today()
+    
     pending_invoices = []
     partial_invoices = []
     completed_invoices = []
@@ -1144,26 +1209,66 @@ def add_deliverable_quick(request):
 
 
 def employees_list(request):
-    all_employees = Employee.objects.select_related('team').prefetch_related('assigned_projects')
+    base_qs = Employee.objects.select_related('team').prefetch_related('assigned_projects', 'subservices')
+    
+    # --- 1. SEARCH FILTER ---
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        base_qs = base_qs.filter(
+            Q(name__first_name__icontains=search_query) |
+            Q(name__last_name__icontains=search_query) |
+            Q(name__username__icontains=search_query)
+        )
+
+    # --- 2. TEAM FILTER ---
+    selected_teams = request.GET.getlist('team')
+    if selected_teams:
+        team_q = Q()
+        if "General" in selected_teams:
+            selected_teams.remove("General")
+            team_q |= Q(team__isnull=True)
+        if selected_teams:
+            team_q |= Q(team__name__in=selected_teams)
+        base_qs = base_qs.filter(team_q)
+
+    # --- 3. SUBSERVICE (SKILL) FILTER ---
+    selected_subservices = request.GET.getlist('subservice')
+    if selected_subservices:
+        # Filter employees who have the selected subservices
+        base_qs = base_qs.filter(subservices__name__in=selected_subservices)
+
+    # Ensure no duplicate employee cards if they match multiple subservices
+    base_qs = base_qs.distinct()
+
     employee_data = []
     active_count  = 0
 
-    for emp in all_employees:
+    for emp in base_qs:
         active_projects = emp.assigned_projects.exclude(status='COMPLETED').order_by('end_date')
         if active_projects.exists():
             active_count += 1
         display_name = (emp.name.get_full_name() or emp.name.username) if emp.name else "Unknown"
         initials     = "".join([n[0] for n in display_name.split() if n])[:2].upper()
+        
         employee_data.append({
             'id': emp.id, 'name': display_name, 'initials': initials,
             'role': emp.team.name if emp.team else "General",
             'deadlines': active_projects[:2], 'upcoming': active_projects[:3],
         })
 
+    # --- 4. GET SEPARATE FILTER OPTIONS FOR THE UI ---
+    available_teams = sorted(list(Team.objects.values_list('name', flat=True).distinct()))
+    
+    # NEW: Fetch all subservices to populate the Skills filter!
+    available_subservices = sorted(list(SubService.objects.values_list('name', flat=True).distinct()))
+
     return render(request, 'employees.html', {
         'employees': employee_data,
-        'total_employees': all_employees.count(),
+        'total_employees': base_qs.count(),
         'active_employees': active_count,
+        'available_teams': available_teams,
+        'available_subservices': available_subservices, # <--- SEND TO TEMPLATE
+        'search_query': search_query,
     })
 
 
@@ -1650,8 +1755,6 @@ def update_project_task(request):
 
         if task.assigned_to and task.assigned_to != old_assignee:
             if not (task.assigned_to.name.is_staff or task.assigned_to.name.is_superuser):
-                from datetime import date
-                from .models import EmployeeNotification
                 EmployeeNotification.objects.create(
                     employee=task.assigned_to,
                     project=task.project,
@@ -1809,11 +1912,6 @@ def employee_accept_project(request):
             project.save()
 
         admin_display_name = employee.name.get_full_name() or employee.name.username
-        
-        from django.contrib.auth.models import User
-        from django.db.models import Q
-        from datetime import date
-        
         admins = User.objects.filter(Q(is_staff=True) | Q(is_superuser=True)).distinct()
         for admin_user in admins:
             if hasattr(admin_user, 'employee_profile') and admin_user.employee_profile:
@@ -2158,3 +2256,336 @@ def submit_expense(request):
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
             
     return JsonResponse({"status": "error", "message": "Invalid request method"}, status=400)
+
+
+
+
+
+
+
+def gallery_dashboard(request):
+    galleries = Gallery.objects.prefetch_related('folders__images').order_by('-created_at')
+    for gallery in galleries:
+        representative_image = None
+        for folder in gallery.folders.all():
+            cover = folder.images.filter(is_cover=True).first()
+            if cover:
+                representative_image = cover
+                break 
+
+        if not representative_image:
+            for folder in gallery.folders.all():
+                any_img = folder.images.first()
+                if any_img:
+                    representative_image = any_img
+                    break 
+        gallery.representative_image = representative_image
+    return render(request, 'gallery/dashboard.html', {
+        'galleries': galleries
+    })
+
+def create_gallery(request):
+    if request.method == 'POST':
+        project_id = request.POST.get('project_id')
+        title = request.POST.get('title')
+        event_date = request.POST.get('event_date')
+        gallery = Gallery.objects.create(
+            project_id=project_id,
+            title=title,
+            event_date=event_date
+        )
+        folder_index = 1
+        while f'folder_title_{folder_index}' in request.POST:
+            folder_title = request.POST.get(f'folder_title_{folder_index}')
+            folder = Folder.objects.create(
+                gallery=gallery,
+                title=folder_title
+            )
+
+            cover_image = request.FILES.get(f'cover_image_{folder_index}')
+            if cover_image:
+                Image.objects.create(
+                    folder=folder,
+                    file=cover_image,
+                    is_cover=True
+                )
+            gallery_images = request.FILES.getlist(f'gallery_images_{folder_index}')
+            for img in gallery_images:
+                Image.objects.create(
+                    folder=folder,
+                    file=img,
+                    is_cover=False
+                )
+            folder_index += 1
+
+        messages.success(request, "Gallery created successfully!")
+        return redirect('gallery_dashboard')
+    return render(request, 'gallery/create_gallery.html')
+
+def gallery_overview(request, gallery_id):
+    gallery = get_object_or_404(Gallery, id=gallery_id)
+    folders = gallery.folders.all()
+    folder_data = []
+    for folder in folders:
+        cover_image = folder.images.filter(is_cover=True).first()
+        if not cover_image:
+            cover_image = folder.images.first()
+            
+        folder_data.append({
+            'id': folder.id,
+            'title': folder.title,
+            'cover_url': cover_image.file.url if cover_image else None
+        })
+
+    return render(request, 'gallery/gallery_overview.html', {
+        'gallery': gallery,
+        'folders': folder_data,
+    })
+
+
+def edit_gallery(request, gallery_id):
+    gallery = get_object_or_404(Gallery, id=gallery_id)
+    folders = gallery.folders.all()
+    current_folder_id = request.GET.get('folder')
+    if current_folder_id:
+        current_folder = get_object_or_404(Folder, id=current_folder_id, gallery=gallery)
+    elif folders.exists():
+        current_folder = folders.first()
+    else:
+        current_folder = None
+
+    images = []
+    if current_folder:
+        images = current_folder.images.all()
+
+    return render(request, 'gallery/edit_gallery.html', {
+        'gallery': gallery,
+        'folders': folders,
+        'current_folder': current_folder,
+        'images': images,
+    })
+
+def gallery_favorites(request, gallery_id):
+    gallery = get_object_or_404(Gallery, id=gallery_id)
+    favorite_images = Image.objects.filter(favorited_by__gallery=gallery)
+    favorite_ids = favorite_images.values_list('id', flat=True)
+    
+    return render(request, 'gallery/favorites.html', {
+        'gallery': gallery,
+        'images': favorite_images,
+        'favorite_ids': list(favorite_ids)
+    })
+
+@csrf_exempt
+def add_folder_to_gallery(request, gallery_id):
+    if request.method == 'POST':
+        try:
+            title = request.POST.get('title')
+            if not title:
+                return JsonResponse({'error': 'Title is required'}, status=400)
+            
+            gallery = get_object_or_404(Gallery, id=gallery_id)
+            folder = Folder.objects.create(gallery=gallery, title=title)
+            cover_image = request.FILES.get('cover_image')
+            if cover_image:
+                Image.objects.create(
+                    folder=folder, 
+                    file=cover_image, 
+                    is_cover=True
+                )
+
+            gallery_images = request.FILES.getlist('gallery_images')
+            for img in gallery_images:
+                Image.objects.create(
+                    folder=folder, 
+                    file=img, 
+                    is_cover=False
+                )
+            
+            return JsonResponse({'status': 'success', 'folder_id': folder.id, 'folder_title': folder.title})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@csrf_exempt
+def upload_images_to_folder(request, folder_id):
+    if request.method == 'POST':
+        folder = get_object_or_404(Folder, id=folder_id)
+        files = request.FILES.getlist('files')
+        uploaded_images = []
+        for f in files:
+            img = Image.objects.create(
+                folder=folder,
+                file=f,
+                is_cover=False
+            )
+            uploaded_images.append({'id': img.id, 'url': img.file.url}) 
+            
+        return JsonResponse({'status': 'success', 'images': uploaded_images})
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def delete_photo(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            image_id = data.get('image_id')
+            image = get_object_or_404(Image, id=image_id)
+            image.delete()
+            return JsonResponse({'status': 'success', 'image_id': image_id})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def client_folder_view(request, folder_id):
+    folder = get_object_or_404(Folder, id=folder_id)
+    images = folder.images.all()
+    favorite_ids = Favorite.objects.filter(
+        gallery=folder.gallery, 
+        image__in=images
+    ).values_list('image_id', flat=True)
+    
+    return render(request, 'gallery/client_folder.html', {
+        'folder': folder,
+        'images': images,
+        'favorite_ids': list(favorite_ids)
+    })
+
+
+@csrf_exempt
+def toggle_favorite(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            image_id = data.get('image_id')
+            image = get_object_or_404(Image, id=image_id)
+            target_gallery = image.folder.gallery
+            favorite, created = Favorite.objects.get_or_create(
+                gallery=target_gallery, 
+                image=image
+            )
+            
+            if not created:
+                favorite.delete()
+                return JsonResponse({'status': 'removed', 'image_id': image_id})
+            
+            return JsonResponse({'status': 'added', 'image_id': image_id})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+@csrf_exempt
+def generate_share_link(request, gallery_id):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            expiry_days = data.get('expiry_days')
+            
+            gallery = get_object_or_404(Gallery, id=gallery_id)
+            if expiry_days:
+                gallery.expiry_date = date.today() + timedelta(days=int(expiry_days))
+            else:
+                gallery.expiry_date = None # No expiry
+                
+            gallery.save()
+            secure_url = request.build_absolute_uri(
+                reverse('client_shared_gallery', args=[gallery.share_token])
+            )
+            
+            return JsonResponse({'status': 'success', 'secure_url': secure_url, 'expiry_date': gallery.expiry_date})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+
+def client_shared_gallery(request, token):
+    gallery = get_object_or_404(Gallery, share_token=token)
+
+    if gallery.expiry_date and gallery.expiry_date < date.today():
+        return render(request, 'gallery/expired.html', {'gallery': gallery})
+        
+    folders = gallery.folders.all()
+    folder_data = []
+    
+    for folder in folders:
+        cover_image = folder.images.filter(is_cover=True).first()
+        if not cover_image:
+            cover_image = folder.images.first()
+            
+        folder_data.append({
+            'id': folder.id,
+            'title': folder.title,
+            'cover_url': cover_image.file.url if cover_image else None
+        })
+
+    return render(request, 'gallery/gallery_overview.html', {
+        'gallery': gallery,
+        'folders': folder_data,
+        'is_client_view': True,
+    })
+
+def shared_folder_view(request, token, folder_id):
+    # 1. Verify the token is real
+    gallery = get_object_or_404(Gallery, share_token=token)
+    
+    # 2. Security Check: Has the link expired?
+    if gallery.expiry_date and gallery.expiry_date < date.today():
+        return render(request, 'gallery/expired.html', {'gallery': gallery})
+        
+    # 3. Security Check: Ensure the folder ACTUALLY belongs to this gallery!
+    folder = get_object_or_404(Folder, id=folder_id, gallery=gallery)
+    
+    images = folder.images.all()
+    
+    favorite_ids = Favorite.objects.filter(
+        gallery=gallery, 
+        image__in=images
+    ).values_list('image_id', flat=True)
+    
+    return render(request, 'gallery/client_folder.html', {
+        'folder': folder,
+        'images': images,
+        'favorite_ids': list(favorite_ids),
+        'is_client_view': True, # Tells the template to use secure back buttons
+        'token': token,
+    })
+
+
+# Secure View for the Favorites page
+def shared_favorites_view(request, token):
+    gallery = get_object_or_404(Gallery, share_token=token)
+    
+    if gallery.expiry_date and gallery.expiry_date < date.today():
+        return render(request, 'gallery/expired.html', {'gallery': gallery})
+        
+    favorite_images = Image.objects.filter(favorited_by__gallery=gallery)
+    favorite_ids = favorite_images.values_list('id', flat=True)
+    
+    return render(request, 'gallery/favorites.html', {
+        'gallery': gallery,
+        'images': favorite_images,
+        'favorite_ids': list(favorite_ids),
+        'is_client_view': True,
+        'token': token,
+    })
+
+
+@csrf_exempt
+def submit_gallery_selection(request, token):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            album_type = data.get('album_type')
+            gallery = get_object_or_404(Gallery, share_token=token)
+            gallery.submitted_at = timezone.now()
+            gallery.album_choice = album_type
+            gallery.save()
+            
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)

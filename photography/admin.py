@@ -322,8 +322,6 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     list_filter = ('is_approved', 'submitted_at', 'project')
     search_fields = ('project__project_name', 'employee__name__username')
     list_editable = ('is_approved',)
-    
-    # Add the inline here to show the multiple images
     inlines = [ExpenseImageInline]
 
     fieldsets = (
@@ -339,3 +337,8 @@ class ExpenseReportAdmin(admin.ModelAdmin):
     )
     
     readonly_fields = ('submitted_at',)
+
+admin.site.register(Gallery)
+admin.site.register(Folder)
+admin.site.register(Image)
+admin.site.register(Favorite)

@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}{{ folder.title }}{% endblock %}
+
+{% block content %}
+<style>
+    /* Masonry Layout CSS */
+    .masonry-grid {
+        column-count: 1;
+        column-gap: 1.5rem;
+    }
+    @media (min-width: 768px) { .masonry-grid { column-count: 2; } }
+    @media (min-width: 1024px) { .masonry-grid { column-count: 3; } }
+    
+    .masonry-item {
+        break-inside: avoid;
+        margin-bottom: 1.5rem;
+        position: relative;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    /* Heart Button Logic */
+    .favorite-btn {
+        position: absolute;
+        bottom: 15px;
+        right: 15px;
+        font-size: 24px;
+        color: white;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        z-index: 10;
+    }
+    
+    /* Show heart on image hover */
+    .masonry-item:hover .favorite-btn {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Keep heart visible and red if it is already favorited */
+    .favorite-btn.active {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        color: #A9323D; /* Your brand red */
+        text-shadow: 0 2px 10px rgba(169, 50, 61, 0.4);
+    }
+    
+    .favorite-btn:hover {
+        transform: scale(1.15) !important;
+    }
+    
+    /* Soft gradient overlay at bottom for better icon visibility */
+    .masonry-item::after {
+        content: '';
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 60px;
+        background: linear-gradient(to top, rgba(0,0,0,0.5), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+        pointer-events: none;
+    }
+    .masonry-item:hover::after { opacity: 1; }
+</style>
+
+<div class="max-w-[1200px] mx-auto p-8 font-['Inter']">
+    <div class="mb-10">
+        <a href="javascript:history.back()" class="text-gray-600 font-bold hover:text-black flex items-center gap-2 mb-6">
+            <i class="fas fa-arrow-left"></i> Back to Gallery
+        </a>
+        <h1 class="text-3xl font-black text-gray-900 border-b-4 border-gray-900 pb-2 inline-block">{{ folder.gallery.title }}</h1>
+        <h2 class="text-xl font-bold text-gray-500 mt-4"><i class="far fa-folder-open mr-2"></i> {{ folder.title }}</h2>
+    </div>
+
+    <div class="masonry-grid">
+        {% for image in images %}
+        <div class="masonry-item shadow-sm">
+            <img src="{{ image.file.url }}" alt="Gallery Image" class="w-full h-auto block">
+            
+            <i class="fa-heart favorite-btn 
+                      {% if image.id in favorite_ids %}fas active{% else %}far{% endif %}" 
+               onclick="toggleFavorite(this, {{ image.id }})">
+            </i>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleFavorite(element, imageId) {
+    // 1. Instantly update UI for snappy feedback
+    const isActive = element.classList.contains('active');
+    
+    if (isActive) {
+        element.classList.remove('active', 'fas');
+        element.classList.add('far'); // Empty heart
+    } else {
+        element.classList.remove('far');
+        element.classList.add('active', 'fas'); // Filled red heart
+    }
+
+    // 2. Send data to backend quietly
+    fetch('/gallery/toggle-favorite/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            // Include CSRF token if not using @csrf_exempt
+            // 'X-CSRFToken': getCookie('csrftoken') 
+        },
+        body: JSON.stringify({ image_id: imageId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if(data.error) {
+            console.error("Error toggling favorite:", data.error);
+            // Revert UI if server fails
+            element.classList.toggle('active');
+            element.classList.toggle('fas');
+            element.classList.toggle('far');
+        }
+    })
+    .catch(error => {
+        console.error('Network Error:', error);
+    });
+}
+</script>
+{% endblock %}

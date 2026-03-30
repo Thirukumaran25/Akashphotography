@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ gallery.title }} - Overview{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    body { font-family: "Inter", sans-serif; background-color: #fafafa; }
+</style>
+
+<div class="max-w-[1200px] mx-auto p-4 sm:p-8 min-h-screen">
+    
+    <div class="mb-10">
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'gallery_dashboard' %}" class="text-gray-700 font-bold hover:text-black flex items-center gap-2 text-[15px] transition">
+            <i class="fas fa-arrow-left text-sm"></i> Back to Dashboard
+        </a>
+        {% endif %}
+    </div>
+
+    <div class="text-center mb-16">
+        <h1 class="text-[32px] font-black text-gray-900 border-b-[3px] border-black pb-1 inline-block">
+            {{ gallery.title }}
+        </h1>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-16 max-w-[1000px] mx-auto">
+        
+        {% for folder in folders %}
+        
+        {% if is_client_view %}
+        <a href="{% url 'shared_folder' gallery.share_token folder.id %}" class="block relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 aspect-square group">
+        {% else %}
+        <a href="{% url 'client_folder' folder.id %}" class="block relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 aspect-square group">
+        {% endif %}
+            
+            {% if folder.cover_url %}
+                <img src="{{ folder.cover_url }}" alt="{{ folder.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+            {% else %}
+                <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                    <i class="fas fa-image text-gray-400 text-3xl"></i>
+                </div>
+            {% endif %}
+            
+            <div class="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4">
+                <span class="text-white font-bold text-[17px] flex items-center gap-2">
+                    <i class="fas fa-images text-sm opacity-90"></i> {{ folder.title }}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+
+        {% if is_client_view %}
+        <a href="{% url 'shared_favorites' gallery.share_token %}" class="block relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 aspect-square bg-white border border-gray-200 flex flex-col group">
+        {% else %}
+        <a href="{% url 'gallery_favorites' gallery.id %}" class="block relative rounded-xl overflow-hidden shadow-sm hover:shadow-lg transition duration-300 aspect-square bg-white border border-gray-200 flex flex-col group">
+        {% endif %}
+            
+            <div class="flex-1 flex items-center justify-center bg-white group-hover:bg-gray-50 transition">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                    <path d="M12 18h.01"></path>
+                    <path d="M8 8l2 2 4-4"></path>
+                    <path d="M19 6c2.5 0 2.5 4 0 4-2.5 0-2.5-4 0-4z"></path>
+                    <path d="M5 14c-2.5 0-2.5-4 0-4 2.5 0 2.5 4 0 4z"></path>
+                </svg>
+            </div>
+            <div class="bg-[#a3a3a3] p-4">
+                <span class="text-white font-bold text-[17px] flex items-center gap-2">
+                    <i class="fas fa-heart text-sm"></i> Favorites
+                </span>
+            </div>
+        </a>
+
+    </div>
+
+    <div class="text-center max-w-[800px] mx-auto">
+        <p class="text-[#A9323D] text-[13px] font-medium mb-6">
+            *The link will expire on {% if gallery.expiry_date %}{{ gallery.expiry_date|date:"F d, Y" }}{% else %}never{% endif %}. Kindly choose your favorite images and click on 'Submit'
+        </p>
+        
+        <div class="flex justify-center items-center gap-8 mb-8">
+            <label class="flex items-center gap-2.5 cursor-pointer font-medium text-gray-900 text-[15px]">
+                <input type="radio" name="album_type" value="hardcover" class="w-4 h-4 accent-[#A9323D]"> 
+                Hardcover Album
+            </label>
+            <label class="flex items-center gap-2.5 cursor-pointer font-medium text-gray-900 text-[15px]">
+                <input type="radio" name="album_type" value="digital" class="w-4 h-4 accent-[#A9323D]"> 
+                Digital Album
+            </label>
+        </div>
+        
+        <div class="flex justify-center gap-4">
+            <button id="submitSelectionBtn" onclick="submitClientSelection()" class="bg-[#A9323D] text-white px-8 py-2.5 rounded-md font-bold text-[15px] hover:bg-red-800 transition shadow">
+                Submit
+            </button>
+            {% if request.user.is_authenticated %}
+            <a href="{% url 'edit_gallery' gallery.id %}">
+                <button class="bg-white border border-gray-400 text-gray-800 px-8 py-2.5 rounded-md font-bold text-[15px] hover:bg-gray-50 transition shadow-sm">
+                    Edit
+                </button>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    function submitClientSelection() {
+        // Find which radio button is checked
+        const selectedAlbum = document.querySelector('input[name="album_type"]:checked');
+        
+        // Ensure they actually picked one
+        if (!selectedAlbum) {
+            alert("Please choose either a Hardcover or Digital Album before submitting!");
+            return;
+        }
+
+        const btn = document.getElementById('submitSelectionBtn');
+        const originalText = btn.innerHTML;
+        
+        // Show loading state
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Submitting...';
+        btn.disabled = true;
+
+        fetch("{% url 'submit_gallery_selection' gallery.share_token %}", {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken 
+            },
+            body: JSON.stringify({ album_type: selectedAlbum.value })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Change button to green success state
+                btn.innerHTML = '<i class="fas fa-check mr-2"></i> Submitted Successfully';
+                btn.classList.replace('bg-[#A9323D]', 'bg-green-600');
+                btn.classList.replace('hover:bg-red-800', 'hover:bg-green-700');
+                
+                alert("Thank you! Your final image selections and album choice have been sent to the photographer.");
+            } else {
+                alert("Error submitting: " + data.error);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("A network error occurred.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+</script>
+{% endblock %}

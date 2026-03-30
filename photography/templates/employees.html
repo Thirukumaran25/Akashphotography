@@ -32,12 +32,12 @@
             <div class="flex items-center gap-4 w-full lg:w-auto">
                 <div class="relative w-full lg:w-[300px]">
                     <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                    <input type="text" placeholder="Search for employees" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-gray-500 transition shadow-sm">
+                    <input type="text" id="searchInput" value="{{ search_query }}" oninput="liveSearch()" placeholder="Search for employees" class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg text-sm outline-none focus:border-gray-500 transition shadow-sm">
                 </div>
                 <button class="bg-[#A9323D] text-white px-6 py-2.5 rounded-lg font-bold text-sm hover:bg-red-800 transition shadow-sm whitespace-nowrap">
-                    View Gallery
+                    <a href="{% url 'gallery_dashboard' %}">View Gallery</a>
                 </button>
-                <button class="flex items-center gap-2 font-bold text-gray-700 hover:text-black transition text-sm ml-2 whitespace-nowrap">
+                <button onclick="openFilter()" class="flex items-center gap-2 font-bold text-gray-700 hover:text-black transition text-sm ml-2 whitespace-nowrap">
                     <i class="fa-solid fa-bars-staggered"></i> Filters
                 </button>
             </div>
@@ -47,7 +47,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         
         {% for emp in employees %}
-        <div class="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition duration-200">
+        <div class="employee-card bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition duration-200">
             
             <div class="flex justify-between items-start mb-5">
                 <div class="flex items-center gap-3">
@@ -110,4 +110,111 @@
 
     </div>
 </div>
+<div id="filterBackdrop" class="fixed inset-0 bg-black/40 z-[9999] hidden backdrop-blur-sm transition-opacity" onclick="closeFilter()"></div>
+
+<div class="fixed inset-y-0 right-[-420px] w-[380px] bg-white shadow-2xl z-[10000] flex flex-col font-['Inter'] transition-all duration-300 ease-[cubic-bezier(.22,1.2,.36,1)]" id="filterDrawer">
+    <div class="flex justify-between items-center p-6 border-b border-gray-100">
+        <h3 class="text-[22px] font-bold m-0 text-gray-900">Filters</h3>
+        <button class="bg-black text-white border-none w-8 h-8 rounded-lg text-lg cursor-pointer hover:rotate-90 hover:scale-105 transition-all flex justify-center items-center" onclick="closeFilter()">×</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto p-6 no-scrollbar">
+        
+        <div class="filter-section mb-8">
+            <label class="text-[15px] font-bold text-gray-900 relative pb-1.5 block mb-4 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-10 after:h-1 after:rounded-full after:bg-[#d45b5b]">Team / Role</label>
+            <div class="flex flex-wrap gap-2 mt-3">
+                {% for team in available_teams %}
+                <label class="bg-white border border-gray-100 px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform shadow-sm flex items-center gap-2">
+                    <input type="checkbox" value="{{ team }}" data-filter="team" class="w-3.5 h-3.5 accent-[#A9323D] border-gray-300 rounded"> {{ team }}
+                </label>
+                {% endfor %}
+                <label class="bg-white border border-gray-100 px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform shadow-sm flex items-center gap-2">
+                    <input type="checkbox" value="General" data-filter="team" class="w-3.5 h-3.5 accent-[#A9323D] border-gray-300 rounded"> General
+                </label>
+            </div>
+        </div>
+
+        <div class="filter-section mb-6">
+            <label class="text-[15px] font-bold text-gray-900 relative pb-1.5 block mb-4 after:content-[''] after:absolute after:left-0 after:bottom-0 after:w-10 after:h-1 after:rounded-full after:bg-[#d45b5b]">Skills</label>
+            <div class="flex flex-wrap gap-2 mt-3">
+                {% for sub in available_subservices %}
+                <label class="bg-white border border-gray-100 px-4 py-2 rounded-full text-[13px] font-semibold text-gray-700 cursor-pointer hover:-translate-y-0.5 transition-transform shadow-sm flex items-center gap-2">
+                    <input type="checkbox" value="{{ sub }}" data-filter="subservice" class="w-3.5 h-3.5 accent-[#A9323D] border-gray-300 rounded"> {{ sub }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+    </div>
+
+    <div class="p-6 border-t border-gray-100 flex justify-between gap-3 bg-gray-50">
+        <button class="flex-1 bg-white border border-gray-200 text-gray-700 py-2.5 rounded-xl font-bold cursor-pointer hover:-translate-y-0.5 active:scale-95 transition-all text-sm shadow-sm" onclick="resetFilter()">Clear All</button>
+        <button class="flex-1 bg-[#A9323D] text-white border-none py-2.5 rounded-xl font-bold cursor-pointer hover:-translate-y-0.5 hover:bg-[#851e1e] active:scale-95 transition-all text-sm shadow-sm" onclick="applyFilter()">Apply Filters</button>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const params = new URLSearchParams(window.location.search);
+    const teams = params.getAll("team");
+    if (teams.length > 0) {
+        document.querySelectorAll('#filterDrawer input[data-filter="team"]').forEach(cb => {
+            cb.checked = teams.includes(cb.value);
+        });
+    }
+
+    const subservices = params.getAll("subservice");
+    if (subservices.length > 0) {
+        document.querySelectorAll('#filterDrawer input[data-filter="subservice"]').forEach(cb => {
+            cb.checked = subservices.includes(cb.value);
+        });
+    }
+});
+
+
+function liveSearch() {
+    const query = document.getElementById("searchInput").value.toLowerCase();
+    const cards = document.querySelectorAll(".employee-card");
+    cards.forEach(card => {
+        const name = card.querySelector("h3")?.innerText.toLowerCase() || "";
+        const role = card.querySelector("p")?.innerText.toLowerCase() || "";
+        
+        if (name.includes(query) || role.includes(query)) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+}
+
+
+function openFilter() {
+    document.getElementById('filterDrawer').style.right = "0";
+    document.getElementById('filterBackdrop').classList.remove('hidden');
+}
+
+function closeFilter() {
+    document.getElementById('filterDrawer').style.right = "-420px";
+    document.getElementById('filterBackdrop').classList.add('hidden');
+}
+
+function applyFilter() {
+    const searchVal = document.getElementById("searchInput")?.value.trim() || "";
+    const teams = [...document.querySelectorAll('#filterDrawer input[data-filter="team"]:checked')].map(c=>c.value);
+    const subservices = [...document.querySelectorAll('#filterDrawer input[data-filter="subservice"]:checked')].map(c=>c.value);
+    
+    const p = new URLSearchParams();
+    
+    if (searchVal) p.append("q", searchVal);
+    teams.forEach(t => p.append("team", t));
+    subservices.forEach(s => p.append("subservice", s));
+    
+    window.location.href = window.location.pathname + "?" + p.toString();
+}
+
+function resetFilter() {
+    window.location.href = window.location.pathname;
+}
+</script>
+
 {% endblock %}

@@ -1,0 +1,380 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Edit Gallery - {{ gallery.title }}{% endblock %}
+
+{% block content %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+    body { font-family: "Inter", sans-serif; background-color: #fafafa; }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Custom styles for image editing UI (Matches image_12.jpg) */
+    .edit-masonry-grid {
+        column-count: 1;
+        column-gap: 1.5rem;
+    }
+    @media (min-width: 768px) { .edit-masonry-grid { column-count: 2; } }
+    @media (min-width: 1024px) { .edit-masonry-grid { column-count: 3; } }
+    
+    .edit-masonry-item {
+        break-inside: avoid;
+        margin-bottom: 1.5rem;
+        position: relative;
+        border-radius: 0.5rem;
+        overflow: hidden;
+    }
+
+    /* Soft overlay and trash icon on hover */
+    .delete-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.5); /* Semi-transparent black overlay */
+        opacity: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.3s;
+        pointer-events: none;
+        z-index: 5;
+    }
+
+    .edit-masonry-item:hover .delete-overlay {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .delete-trash-icon {
+        color: white;
+        background-color: #dc2626; /* Warning Red */
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .delete-trash-icon:hover {
+        transform: scale(1.15);
+    }
+    
+    /* Upload Drag & Drop Styling */
+    .file-input { display: none; }
+    .drag-over { border-color: #dc2626 !important; background-color: #fff1f2 !important; }
+</style>
+
+<div class="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 min-h-screen font-['Inter']">
+    
+    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end mb-8 border-b border-gray-200 pb-3 gap-6">
+        <div class="flex gap-8 text-[15px]">
+            <span class="text-gray-500 font-bold pb-2 cursor-pointer hover:text-black transition">Board View</span>
+            <span class="text-[#A9323D] font-bold pb-2 border-b-2 border-[#A9323D] -mb-[15px] cursor-pointer">List View</span>
+            <span class="text-gray-500 font-bold pb-2 cursor-pointer hover:text-black transition">Projects Overview</span>
+            <span class="text-gray-500 font-bold pb-2 cursor-pointer hover:text-black transition flex items-center gap-1.5"><i class="fas fa-filter text-xs"></i> Filters</span>
+        </div>
+        <a href="{% url 'gallery_dashboard' %}" class="bg-[#A9323D] text-white px-6 py-2 rounded font-bold text-sm hover:bg-red-800 transition shadow whitespace-nowrap">
+            Go to Gallery
+        </a>
+    </div>
+
+    <div class="mb-10">
+        <h1 class="text-[28px] font-black text-gray-900 border-b-4 border-gray-900 pb-1.5 inline-block">{{ gallery.title }} - {{ current_folder.title|default:"No Folder" }}</h1>
+    </div>
+
+    <div class="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-10">
+        
+        <div class="flex flex-wrap items-center gap-4 mb-8">
+            <div class="relative w-[300px]">
+                <label class="block text-xs font-bold text-gray-500 mb-1 tracking-wider">FOLDER - SELECT HERE</label>
+                <select id="folderSelect" onchange="switchFolder(this.value)" class="w-full bg-[#f9f9f9] border border-gray-200 px-4 py-2.5 rounded-lg font-bold text-gray-800 outline-none focus:ring-1 focus:ring-gray-300 appearance-none text-[15px]">
+                    {% for folder in folders %}
+                    <option value="{{ folder.id }}" {% if folder.id == current_folder.id %}selected{% endif %}>{{ folder.title }}</option>
+                    {% endfor %}
+                </select>
+                <i class="fas fa-chevron-down absolute right-4 top-[30px] text-gray-400 pointer-events-none"></i>
+            </div>
+            
+            <button onclick="openAddFolderModal()" class="bg-[#111] text-white px-5 py-2.5 rounded-lg font-semibold text-sm hover:bg-gray-800 transition shadow-sm mt-5">
+                + Add New Folder
+            </button>
+        </div>
+
+        {% if current_folder %}
+        <div class="mb-8 border-t border-gray-100 pt-8">
+            <p class="font-bold text-black text-lg mb-6">Delete or Add New Photo to {{ current_folder.title }} Folder</p>
+            
+            <form id="dropzoneForm" enctype="multipart/form-data">
+                <div id="dropzoneZone" class="border-2 border-dashed border-[#A9323D] bg-[#fffafb] rounded-2xl p-1 text-center flex flex-col items-center justify-center cursor-pointer hover:bg-[#fff0f3] transition mb-6" onclick="document.getElementById('editFileInput').click()">
+                    <p class="font-bold text-black text-[15px] mb-1">+ Add new photo</p>
+                    <p class="text-gray-600 font-medium text-[13px]">Drop files here or click to upload</p>
+                    <input type="file" id="editFileInput" class="file-input" multiple accept="image/*" onchange="handleBulkUpload(this)">
+                </div>
+            </form>
+            
+            <div class="flex gap-3">
+                <a href="{% url 'gallery_dashboard' %}" class="bg-[#A9323D] text-white px-10 py-2.5 rounded font-bold text-sm hover:bg-red-800 transition shadow">
+                    SAVE CHANGES
+                </a>
+                <a href="{% url 'gallery_dashboard' %}" class="bg-white border border-gray-200 text-gray-700 px-10 py-2.5 rounded font-bold text-sm hover:bg-gray-50 transition shadow-sm">
+                    CANCEL
+                </a>
+            </div>
+        </div>
+
+        <div class="edit-masonry-grid" id="imageGrid">
+            {% for image in images %}
+            <div class="edit-masonry-item shadow-sm" id="image_container_{{ image.id }}">
+                <img src="{{ image.file.url }}" alt="Gallery Image" class="w-full h-auto block">
+                
+                <div class="delete-overlay">
+                    <div class="delete-trash-icon" onclick="deletePhoto({{ image.id }})">
+                        <i class="fas fa-trash-alt"></i>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-20 text-gray-400 font-medium" id="emptyStateMsg">No images in this folder.</div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-20 text-gray-400 font-medium">No folders exist yet. Click "+ Add New Folder" to start.</div>
+        {% endif %}
+    </div>
+</div>
+
+<div id="addFolderModal" class="hidden fixed inset-0 bg-black/50 z-[6000] flex items-center justify-center p-4 backdrop-blur-sm transition-opacity overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-8 relative my-auto">
+        
+        <button onclick="closeAddFolderModal()" class="absolute top-5 right-5 w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-600 transition bg-gray-100 rounded-lg hover:bg-red-50">
+            <i class="fas fa-times text-sm"></i>
+        </button>
+        
+        <h3 class="text-xl font-black text-gray-900 mb-6 border-b-2 border-gray-900 pb-2 inline-block">Add New Folder</h3>
+        
+        <form id="newFolderForm">
+            <div class="mb-6">
+                <label class="block text-xs font-bold text-gray-500 mb-2">Folder Title<span class="text-[#A9323D]">*</span></label>
+                <input type="text" id="newFolderTitle" placeholder="e.g. Sangeet, Reception" required class="w-full bg-[#f9f9f9] border border-gray-200 px-4 py-3 rounded-lg font-bold text-gray-800 outline-none focus:ring-1 focus:ring-gray-400">
+            </div>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition mb-4 upload-zone" onclick="document.getElementById('modal_cover_image').click()">
+                <i class="fas fa-arrow-up text-gray-400 text-xl mb-2"></i>
+                <p class="font-bold text-black text-[14px] mb-1">Upload Cover Image</p>
+                <div class="bg-[#111] text-white px-4 py-1.5 rounded text-[10px] font-bold mt-2">Select Image</div>
+                <p class="file-name-display text-[11px] text-[#A9323D] font-bold mt-2 hidden"></p>
+                <input type="file" id="modal_cover_image" accept="image/*" class="hidden" onchange="updateModalFileName(this)">
+            </div>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center flex flex-col items-center justify-center cursor-pointer hover:bg-gray-50 transition mb-8 upload-zone" onclick="document.getElementById('modal_gallery_images').click()">
+                <i class="fas fa-arrow-up text-gray-400 text-xl mb-2"></i>
+                <p class="font-bold text-black text-[14px] mb-1">Upload Gallery Images</p>
+                <div class="bg-[#111] text-white px-4 py-1.5 rounded text-[10px] font-bold mt-2">Select Images</div>
+                <p class="file-name-display text-[11px] text-[#A9323D] font-bold mt-2 hidden"></p>
+                <input type="file" id="modal_gallery_images" accept="image/*" multiple class="hidden" onchange="updateModalFileName(this)">
+            </div>
+            
+            <button type="button" onclick="submitNewFolder()" id="submitFolderBtn" class="w-full bg-[#A9323D] text-white py-3.5 rounded-lg font-bold text-[14px] hover:bg-red-800 transition shadow-sm flex items-center justify-center gap-2">
+                Create Folder & Upload Photos
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    // --- FOLDER SELECTION ---
+    function switchFolder(folderId) {
+        window.location.href = `?folder=${folderId}`;
+    }
+
+    // --- ADD NEW FOLDER MODAL LOGIC ---
+    function openAddFolderModal() {
+        document.getElementById('addFolderModal').classList.remove('hidden');
+    }
+
+    function closeAddFolderModal() {
+        document.getElementById('addFolderModal').classList.add('hidden');
+    }
+
+    function updateModalFileName(inputElement) {
+        const display = inputElement.parentElement.querySelector('.file-name-display');
+        if (inputElement.files && inputElement.files.length > 0) {
+            display.classList.remove('hidden');
+            if (inputElement.files.length === 1) {
+                display.innerText = `1 file selected: ${inputElement.files[0].name}`;
+            } else {
+                display.innerText = `${inputElement.files.length} files selected for upload`;
+            }
+            inputElement.parentElement.classList.add('border-green-400', 'bg-green-50');
+            inputElement.parentElement.classList.remove('border-gray-300');
+        } else {
+            display.classList.add('hidden');
+            inputElement.parentElement.classList.remove('border-green-400', 'bg-green-50');
+            inputElement.parentElement.classList.add('border-gray-300');
+        }
+    }
+
+    function submitNewFolder() {
+        const titleInput = document.getElementById('newFolderTitle');
+        const title = titleInput.value.trim();
+        const coverImageInput = document.getElementById('modal_cover_image');
+        const galleryImagesInput = document.getElementById('modal_gallery_images');
+        const btn = document.getElementById('submitFolderBtn');
+        
+        if (!title) {
+            alert("Please enter a folder title.");
+            titleInput.focus();
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('title', title);
+        
+        if (coverImageInput.files.length > 0) {
+            formData.append('cover_image', coverImageInput.files[0]);
+        }
+        
+        for (let i = 0; i < galleryImagesInput.files.length; i++) {
+            formData.append('gallery_images', galleryImagesInput.files[i]);
+        }
+
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Uploading...';
+        btn.disabled = true;
+
+        const galleryId = "{{ gallery.id }}";
+
+        // Must point to the add_folder_to_gallery URL
+        fetch(`/gallery/edit/${galleryId}/add-folder/`, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Success! Reload instantly to the new folder
+                window.location.href = `?folder=${data.folder_id}`;
+            } else {
+                alert("Error: " + (data.error || 'Could not create folder.'));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert("A network error occurred. Check your file sizes.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        });
+    }
+
+    // --- BULK UPLOAD TO EXISTING FOLDER LOGIC ---
+    function handleBulkUpload(inputElement) {
+        if (!inputElement.files || inputElement.files.length === 0) return;
+        
+        document.body.style.cursor = 'wait';
+        
+        const currentFolderId = "{{ current_folder.id }}";
+        const formData = new FormData();
+        
+        for (let i = 0; i < inputElement.files.length; i++) {
+            formData.append('files', inputElement.files[i]);
+        }
+        
+        const uploadUrl = `/gallery/edit/upload-photos/${currentFolderId}/`;
+
+        fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'X-CSRFToken': csrfToken },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                injectNewPhotosToGrid(data.images);
+                const emptyMsg = document.getElementById('emptyStateMsg');
+                if (emptyMsg) emptyMsg.remove();
+            } else {
+                alert("Error uploading photos. " + (data.error || ''));
+            }
+            document.body.style.cursor = 'default';
+            inputElement.value = '';
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Network error occurred during upload.");
+            document.body.style.cursor = 'default';
+        });
+    }
+
+    function injectNewPhotosToGrid(images) {
+        const grid = document.getElementById("imageGrid");
+        
+        images.forEach(img => {
+            const newHtml = `
+                <div class="edit-masonry-item shadow-sm" id="image_container_${img.id}">
+                    <img src="${img.url}" alt="Gallery Image" class="w-full h-auto block">
+                    <div class="delete-overlay">
+                        <div class="delete-trash-icon" onclick="deletePhoto(${img.id})">
+                            <i class="fas fa-trash-alt"></i>
+                        </div>
+                    </div>
+                </div>`;
+            grid.insertAdjacentHTML('afterbegin', newHtml);
+        });
+    }
+
+    // --- DELETE PHOTO LOGIC ---
+    function deletePhoto(imageId) {
+        if (!confirm("Are you sure you want to delete this photo permanently?")) return;
+
+        const container = document.getElementById(`image_container_${imageId}`);
+        container.style.opacity = '0.3';
+        
+        fetch('/gallery/edit/delete-photo/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+            body: JSON.stringify({ image_id: imageId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                container.remove();
+            } else {
+                alert("Error deleting photo. " + (data.error || ''));
+                container.style.opacity = '1';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            container.style.opacity = '1';
+        });
+    }
+    
+    // --- DRAG AND DROP ZONE ---
+    const dropZone = document.getElementById('dropzoneZone');
+    const dropZoneInput = document.getElementById('editFileInput');
+
+    if (dropZone) {
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+        dropZone.addEventListener('dragleave', e => { e.preventDefault(); dropZone.classList.remove('drag-over'); });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+            
+            if (e.dataTransfer.files.length > 0) {
+                dropZoneInput.files = e.dataTransfer.files;
+                handleBulkUpload(dropZoneInput);
+            }
+        });
+    }
+</script>
+{% endblock %}

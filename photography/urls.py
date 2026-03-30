@@ -66,4 +66,21 @@ urlpatterns = [
     path('notifications/', get_employee_notifications,  name='get_notifications'),
     path('notifications/<int:notif_id>/read/', mark_notification_read,  name='mark_notification_read'),
     path('notifications/mark-all-read/', mark_all_notifications_read, name='mark_all_notifications_read'),
+
+
+    path('galleries/', gallery_dashboard, name='gallery_dashboard'),
+    path('gallery/create/', create_gallery, name='create_gallery'),
+    path('gallery/<int:gallery_id>/', gallery_overview, name='gallery_overview'),
+    path('gallery/<int:gallery_id>/favorites/', gallery_favorites, name='gallery_favorites'),
+    path('galleries/edit/<int:gallery_id>/', edit_gallery, name='edit_gallery'),
+    path('gallery/edit/<int:gallery_id>/add-folder/', add_folder_to_gallery, name='edit_add_folder'),
+    path('gallery/edit/delete-photo/', delete_photo, name='edit_delete_photo'),
+    path('gallery/edit/upload-photos/<int:folder_id>/', upload_images_to_folder, name='edit_upload_photos'),
+    path('gallery/folder/<int:folder_id>/', client_folder_view, name='client_folder'),
+    path('gallery/toggle-favorite/', toggle_favorite, name='toggle_favorite'),
+    path('gallery/<int:gallery_id>/generate-link/', generate_share_link, name='generate_share_link'),
+    path('shared/<uuid:token>/', client_shared_gallery, name='client_shared_gallery'),
+    path('shared/<uuid:token>/folder/<int:folder_id>/', shared_folder_view, name='shared_folder'),
+    path('shared/<uuid:token>/favorites/', shared_favorites_view, name='shared_favorites'),
+    path('shared/<uuid:token>/submit/', submit_gallery_selection, name='submit_gallery_selection'),
 ]

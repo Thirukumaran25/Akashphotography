@@ -484,3 +484,32 @@ class ExpenseReport(models.Model):
 class ExpenseImage(models.Model):
     expense_report = models.ForeignKey(ExpenseReport, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='expenses/receipts/')
+
+
+
+class Gallery(models.Model):
+    title = models.CharField(max_length=255)
+    project_id = models.CharField(max_length=50)
+    event_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    share_token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    expiry_date = models.DateField(null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    album_choice = models.CharField(max_length=50, null=True, blank=True)
+
+class Folder(models.Model):
+    gallery = models.ForeignKey(Gallery, related_name='folders', on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+
+class Image(models.Model):
+    folder = models.ForeignKey(Folder, related_name='images', on_delete=models.CASCADE)
+    file = models.ImageField(upload_to='galleries/')
+    is_cover = models.BooleanField(default=False)
+
+class Favorite(models.Model):
+    gallery = models.ForeignKey(Gallery, on_delete=models.CASCADE, related_name='favorites')
+    image = models.ForeignKey(Image, on_delete=models.CASCADE, related_name='favorited_by')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('gallery', 'image')
